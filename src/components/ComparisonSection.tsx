@@ -90,10 +90,10 @@ const ComparisonSection = () => {
   return (
     <section 
       ref={sectionRef}
-      className="section-padding bg-gradient-to-b from-surface to-white"
+      className="section-padding-reduced bg-gradient-to-b from-surface to-white"
     >
       <div className="container-narrow">
-        <div className="text-center mb-16">
+        <div className="text-center mb-8 md:mb-12">
           <h2 className="subheadline text-gray-900 mb-6">
             FinGuard vs. Metode Tradiționale
           </h2>

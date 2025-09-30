@@ -49,10 +49,10 @@ const ProblemSection = () => {
   return (
     <section 
       ref={sectionRef}
-      className="section-padding bg-gradient-to-b from-white to-surface"
+      className="section-padding-reduced bg-gradient-to-b from-white to-surface"
     >
       <div className="container-narrow">
-        <div className="text-center mb-16">
+        <div className="text-center mb-8 md:mb-12">
           <h2 className="subheadline text-gray-900 mb-6">
             Cunosc frustrarea: zile întregi consumate de analiza manuală
           </h2>

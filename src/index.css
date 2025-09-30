@@ -183,6 +183,10 @@
     @apply py-24 md:py-32;
   }
 
+  .section-padding-reduced {
+    @apply py-16 md:py-20;
+  }
+
   .container-custom {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }

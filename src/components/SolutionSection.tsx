@@ -50,13 +50,13 @@ const SolutionSection = () => {
     <section 
       id="demo"
       ref={sectionRef}
-      className="section-padding bg-white relative overflow-hidden"
+      className="section-padding-reduced bg-white relative overflow-hidden"
     >
       {/* Grid Pattern Background */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
       
       <div className="container-narrow relative z-10">
-        <div className="text-center mb-20">
+        <div className="text-center mb-8 md:mb-12">
           <h2 className="subheadline text-gray-900 mb-6">
             FinGuard oferă claritate financiară instantanee
           </h2>

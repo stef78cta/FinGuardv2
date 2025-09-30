@@ -72,10 +72,10 @@ const FeaturesSection = () => {
     <section 
       id="features"
       ref={sectionRef}
-      className="section-padding bg-surface"
+      className="section-padding-reduced bg-surface"
     >
       <div className="container-custom">
-        <div className="text-center mb-20">
+        <div className="text-center mb-8 md:mb-12">
           <h2 className="subheadline text-gray-900 mb-6">
             Tot ce ai nevoie pentru control financiar complet
           </h2>

@@ -36,9 +36,9 @@ const FAQSection = () => {
   };
 
   return (
-    <section id="faq" className="section-padding bg-surface">
+    <section id="faq" className="section-padding-reduced bg-surface">
       <div className="container-narrow">
-        <div className="text-center mb-16">
+        <div className="text-center mb-8 md:mb-12">
           <h2 className="subheadline text-gray-900 mb-6">
             Întrebări frecvente
           </h2>

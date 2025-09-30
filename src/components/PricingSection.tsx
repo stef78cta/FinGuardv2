@@ -79,10 +79,10 @@ const PricingSection = () => {
     <section 
       id="pricing"
       ref={sectionRef}
-      className="section-padding bg-white"
+      className="section-padding-reduced bg-white"
     >
       <div className="container-custom">
-        <div className="text-center mb-20">
+        <div className="text-center mb-8 md:mb-12">
           <h2 className="subheadline text-gray-900 mb-6">
             Prețuri simple, fără surprize
           </h2>
