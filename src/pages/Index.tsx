@@ -9,6 +9,8 @@ import PricingSection from '../components/PricingSection';
 import FAQSection from '../components/FAQSection';
 import FinalCTASection from '../components/FinalCTASection';
 import Footer from '../components/Footer';
+import CookieConsent from '../components/CookieConsent';
+import SmartStickyCTA from '../components/SmartStickyCTA';
 
 const Index = () => {
   return (
@@ -26,6 +28,8 @@ const Index = () => {
         <FinalCTASection />
       </main>
       <Footer />
+      <CookieConsent />
+      <SmartStickyCTA />
     </div>
   );
 };

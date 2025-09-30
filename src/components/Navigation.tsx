@@ -33,19 +33,28 @@ const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
+            <button onClick={() => scrollToSection('demo')} className="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200">
+              Cum funcționează
+            </button>
             <button onClick={() => scrollToSection('features')} className="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200">
               Caracteristici
+            </button>
+            <button onClick={() => scrollToSection('testimonials')} className="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200">
+              Testimoniale
             </button>
             <button onClick={() => scrollToSection('pricing')} className="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200">
               Prețuri
             </button>
-            <button onClick={() => scrollToSection('demo')} className="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200">Cum functioneaza</button>
-            <button onClick={() => scrollToSection('testimonials')} className="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200">Testimoniale
-          </button>
+            <button onClick={() => scrollToSection('faq')} className="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200">
+              Întrebări frecvente
+            </button>
           </div>
 
-          {/* CTA Button */}
-          <div className="hidden lg:block">
+          {/* CTA Buttons */}
+          <div className="hidden lg:flex items-center space-x-4">
+            <button className="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200">
+              Autentificare
+            </button>
             <button onClick={() => scrollToSection('hero')} className="btn-secondary">
               Începe gratuit
             </button>
@@ -60,19 +69,25 @@ const Navigation = () => {
         {/* Mobile Menu */}
         {isMobileMenuOpen && <div className="lg:hidden absolute top-full left-0 right-0 bg-white shadow-large border-t border-gray-100 animate-fade-in-up">
             <div className="py-6 px-4 space-y-4">
+              <button onClick={() => scrollToSection('demo')} className="block w-full text-left py-3 px-4 text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-lg font-medium transition-all duration-200">
+                Cum funcționează
+              </button>
               <button onClick={() => scrollToSection('features')} className="block w-full text-left py-3 px-4 text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-lg font-medium transition-all duration-200">
                 Caracteristici
+              </button>
+              <button onClick={() => scrollToSection('testimonials')} className="block w-full text-left py-3 px-4 text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-lg font-medium transition-all duration-200">
+                Testimoniale
               </button>
               <button onClick={() => scrollToSection('pricing')} className="block w-full text-left py-3 px-4 text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-lg font-medium transition-all duration-200">
                 Prețuri
               </button>
-              <button onClick={() => scrollToSection('demo')} className="block w-full text-left py-3 px-4 text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-lg font-medium transition-all duration-200">
-                Demo
+              <button onClick={() => scrollToSection('faq')} className="block w-full text-left py-3 px-4 text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-lg font-medium transition-all duration-200">
+                Întrebări frecvente
               </button>
-              <button onClick={() => scrollToSection('testimonials')} className="block w-full text-left py-3 px-4 text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-lg font-medium transition-all duration-200">
-                Cazuri de Utilizare
-              </button>
-              <div className="pt-4 border-t border-gray-100">
+              <div className="pt-4 border-t border-gray-100 space-y-2">
+                <button className="text-gray-700 hover:text-indigo-600 font-medium w-full py-2">
+                  Autentificare
+                </button>
                 <button className="btn-secondary w-full">
                   Începe gratuit
                 </button>
