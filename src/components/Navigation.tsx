@@ -50,13 +50,10 @@ const Navigation = () => {
             </button>
           </div>
 
-          {/* CTA Buttons */}
-          <div className="hidden lg:flex items-center space-x-4">
-            <button className="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200">
-              Autentificare
-            </button>
+          {/* CTA Button */}
+          <div className="hidden lg:block">
             <button onClick={() => scrollToSection('hero')} className="btn-secondary">
-              Începe gratuit
+              Autentificare
             </button>
           </div>
 
@@ -84,12 +81,9 @@ const Navigation = () => {
               <button onClick={() => scrollToSection('faq')} className="block w-full text-left py-3 px-4 text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-lg font-medium transition-all duration-200">
                 Întrebări frecvente
               </button>
-              <div className="pt-4 border-t border-gray-100 space-y-2">
-                <button className="text-gray-700 hover:text-indigo-600 font-medium w-full py-2">
-                  Autentificare
-                </button>
+              <div className="pt-4 border-t border-gray-100">
                 <button className="btn-secondary w-full">
-                  Începe gratuit
+                  Autentificare
                 </button>
               </div>
             </div>
