@@ -39,9 +39,7 @@ const Navigation = () => {
             <button onClick={() => scrollToSection('pricing')} className="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200">
               Prețuri
             </button>
-            <button onClick={() => scrollToSection('demo')} className="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200">
-              Demo
-            </button>
+            <button onClick={() => scrollToSection('demo')} className="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200">Cum functioneaza</button>
             <button onClick={() => scrollToSection('testimonials')} className="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200">Testimoniale
           </button>
           </div>
