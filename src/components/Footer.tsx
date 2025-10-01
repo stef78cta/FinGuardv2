@@ -20,7 +20,7 @@ const Footer = () => {
   }];
   return <footer className="bg-primary-navy text-white">
       <div className="container-custom py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Column */}
           <div className="lg:col-span-1">
             <div className="flex items-center space-x-3 mb-6">
@@ -78,20 +78,6 @@ const Footer = () => {
                   </a>
                 </li>)}
             </ul>
-          </div>
-
-          {/* Newsletter Column */}
-          <div>
-            <h3 className="font-semibold text-white mb-6">Newsletter</h3>
-            <p className="text-gray-300 mb-4 text-sm">
-              Primește sfaturi financiare și noutăți despre FinGuard
-            </p>
-            <form className="space-y-3">
-              <input type="email" placeholder="Email-ul tău" className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              <button type="submit" className="w-full px-4 py-2 bg-gradient-primary text-white rounded-lg font-medium hover:opacity-90 transition-opacity duration-200">
-                Subscribe
-              </button>
-            </form>
           </div>
         </div>
       </div>

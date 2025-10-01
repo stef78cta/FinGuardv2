@@ -65,7 +65,7 @@ const HeroSection = () => {
           {/* Left Content */}
           <div className="space-y-8">
             <div className="space-y-6">
-              <h1 className="headline text-gray-900 animate-fade-in-up">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 animate-fade-in-up leading-tight">
                 Cum să obții 
                 <span className="gradient-text block">
                   analiză financiară de nivel CFO
@@ -73,7 +73,7 @@ const HeroSection = () => {
                 în 30 de secunde, fără consultanți scumpi
               </h1>
               
-              <p className="body-large text-gray-600 max-w-2xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <p className="text-lg md:text-xl text-gray-600 max-w-2xl animate-fade-in-up leading-relaxed" style={{ animationDelay: '0.2s' }}>
                 FinGuard transformă balanțele contabile în rapoarte detaliate, KPI-uri esențiale 
                 și previziuni bugetare precise – automat și 100% confidențial.
               </p>
@@ -82,8 +82,7 @@ const HeroSection = () => {
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
               <button className="btn-hero group">
-                Analizează gratuit acum
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+                Analizează gratuit o balanță de verificare
               </button>
               
               <button 
@@ -91,34 +90,52 @@ const HeroSection = () => {
                 className="btn-ghost group inline-flex items-center justify-center"
               >
                 <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-200" />
-                Vezi demo video (2 min)
+                Vezi analiză demo
               </button>
             </div>
 
-            {/* Trust Bar */}
-            <div className="animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-              <p className="text-small text-gray-500 mb-4">
-                Peste 500 de companii românești folosesc FinGuard zilnic
-              </p>
-              <div className="flex items-center space-x-8 opacity-60">
-                <div className="w-24 h-8 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-500">COMPANY</span>
+            {/* Social Proof - Enhanced */}
+            <div className="animate-fade-in-up space-y-8 pt-8" style={{ animationDelay: '0.6s' }}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Social Proof Card 1 */}
+                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-100 hover:shadow-lg transition-shadow duration-300">
+                  <div className="text-3xl font-bold gradient-text mb-2">500+</div>
+                  <div className="text-sm font-semibold text-gray-900 mb-2">companii</div>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    au încredere în analiza noastră pentru decizii mai rapide
+                  </p>
                 </div>
-                <div className="w-24 h-8 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-500">BRAND</span>
+
+                {/* Social Proof Card 2 */}
+                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-6 border border-emerald-100 hover:shadow-lg transition-shadow duration-300">
+                  <div className="text-3xl font-bold text-emerald-600 mb-2">&lt; 1 min</div>
+                  <div className="text-sm font-semibold text-gray-900 mb-2">Viteză de analiză</div>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    rezultate financiare clare, fără fișiere Excel complicate
+                  </p>
                 </div>
-                <div className="w-24 h-8 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-500">CORP</span>
+
+                {/* Social Proof Card 3 */}
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-100 hover:shadow-lg transition-shadow duration-300">
+                  <div className="text-3xl font-bold text-amber-600 mb-2">€250k+</div>
+                  <div className="text-sm font-semibold text-gray-900 mb-2">Economii reale</div>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    clienții noștri au redus drastic costurile de consultanță
+                  </p>
                 </div>
-                <div className="w-24 h-8 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-500">FIRM</span>
-                </div>
+              </div>
+
+              {/* Final Benefit */}
+              <div className="text-center pt-4">
+                <p className="text-sm md:text-base text-gray-700 font-medium italic leading-relaxed max-w-2xl mx-auto">
+                  „Alătură-te liderilor care au trecut deja la o soluție modernă de Financial Planning and Analysis"
+                </p>
               </div>
             </div>
           </div>
 
           {/* Right Content - Dashboard Mockup */}
-          <div className="relative animate-slide-in-right">
+          <div className="relative animate-slide-in-right mt-12 lg:mt-0">
             <div className="relative">
               <img 
                 src={dashboardMockup}
@@ -127,21 +144,21 @@ const HeroSection = () => {
               />
               
               {/* Floating Metric Cards */}
-              <div className="absolute -top-6 -left-6 bg-white p-4 rounded-xl shadow-large border border-gray-100 float-animation">
+              <div className="hidden md:block absolute -top-6 -left-6 bg-white p-4 rounded-xl shadow-large border border-gray-100 float-animation">
                 <div className="text-2xl font-bold gradient-text">
                   {Math.round(counters.saved)}%
                 </div>
                 <div className="text-sm text-gray-600">timp economisit</div>
               </div>
 
-              <div className="absolute top-8 -right-8 bg-white p-4 rounded-xl shadow-large border border-gray-100 float-animation" style={{ animationDelay: '0.5s' }}>
+              <div className="hidden md:block absolute top-8 -right-8 bg-white p-4 rounded-xl shadow-large border border-gray-100 float-animation" style={{ animationDelay: '0.5s' }}>
                 <div className="text-2xl font-bold gradient-text">
                   {Math.round(counters.kpis)}
                 </div>
                 <div className="text-sm text-gray-600">KPI-uri calculate</div>
               </div>
 
-              <div className="absolute -bottom-4 -left-8 bg-white p-4 rounded-xl shadow-large border border-gray-100 float-animation" style={{ animationDelay: '1s' }}>
+              <div className="hidden md:block absolute -bottom-4 -left-8 bg-white p-4 rounded-xl shadow-large border border-gray-100 float-animation" style={{ animationDelay: '1s' }}>
                 <div className="text-2xl font-bold gradient-text-success">
                   {counters.accuracy.toFixed(1)}%
                 </div>

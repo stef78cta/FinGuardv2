@@ -8,6 +8,7 @@ import ComparisonSection from '../components/ComparisonSection';
 import PricingSection from '../components/PricingSection';
 import FAQSection from '../components/FAQSection';
 import FinalCTASection from '../components/FinalCTASection';
+import Newsletter from '../components/Newsletter';
 import Footer from '../components/Footer';
 import CookieConsent from '../components/CookieConsent';
 import SmartStickyCTA from '../components/SmartStickyCTA';
@@ -26,6 +27,7 @@ const Index = () => {
         <PricingSection />
         <FAQSection />
         <FinalCTASection />
+        <Newsletter />
       </main>
       <Footer />
       <CookieConsent />
