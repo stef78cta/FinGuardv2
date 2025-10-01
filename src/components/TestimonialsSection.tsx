@@ -127,7 +127,7 @@ const TestimonialsSection = () => {
             <div className="text-center space-y-3">
               <div className="text-4xl font-bold gradient-text">500+</div>
               <div className="text-sm font-semibold text-gray-900 uppercase tracking-wide">companii</div>
-              <p className="text-sm text-gray-600 leading-relaxed px-4">
+              <p className="leading-relaxed px-4 text-base text-zinc-950">
                 au încredere în analiza noastră pentru decizii mai rapide
               </p>
             </div>
@@ -136,7 +136,7 @@ const TestimonialsSection = () => {
             <div className="text-center space-y-3">
               <div className="text-4xl font-bold text-emerald-600">&lt; 1 minut</div>
               <div className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Viteză de analiză</div>
-              <p className="text-sm text-gray-600 leading-relaxed px-4">
+              <p className="leading-relaxed px-4 text-base text-zinc-950">
                 rezultate financiare clare, fără fișiere Excel complicate
               </p>
             </div>
@@ -145,7 +145,7 @@ const TestimonialsSection = () => {
             <div className="text-center space-y-3">
               <div className="text-4xl font-bold text-amber-600">€250k+</div>
               <div className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Economii reale</div>
-              <p className="text-sm text-gray-600 leading-relaxed px-4">
+              <p className="leading-relaxed px-4 text-base text-zinc-950">
                 clienții noștri au redus drastic costurile de consultanță
               </p>
             </div>
