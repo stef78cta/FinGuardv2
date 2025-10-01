@@ -94,42 +94,24 @@ const HeroSection = () => {
               </button>
             </div>
 
-            {/* Social Proof - Enhanced */}
-            <div className="animate-fade-in-up space-y-8 pt-8" style={{ animationDelay: '0.6s' }}>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Social Proof Card 1 */}
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-100 hover:shadow-lg transition-shadow duration-300">
-                  <div className="text-3xl font-bold gradient-text mb-2">500+</div>
-                  <div className="text-sm font-semibold text-gray-900 mb-2">companii</div>
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    au încredere în analiza noastră pentru decizii mai rapide
-                  </p>
+            {/* Trust Bar */}
+            <div className="animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+              <p className="text-small text-gray-500 mb-4">
+                Peste 500 de companii românești folosesc FinGuard zilnic
+              </p>
+              <div className="flex items-center space-x-8 opacity-60">
+                <div className="w-24 h-8 bg-gray-200 rounded flex items-center justify-center">
+                  <span className="text-xs font-medium text-gray-500">COMPANY</span>
                 </div>
-
-                {/* Social Proof Card 2 */}
-                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-6 border border-emerald-100 hover:shadow-lg transition-shadow duration-300">
-                  <div className="text-3xl font-bold text-emerald-600 mb-2">&lt; 1 min</div>
-                  <div className="text-sm font-semibold text-gray-900 mb-2">Viteză de analiză</div>
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    rezultate financiare clare, fără fișiere Excel complicate
-                  </p>
+                <div className="w-24 h-8 bg-gray-200 rounded flex items-center justify-center">
+                  <span className="text-xs font-medium text-gray-500">BRAND</span>
                 </div>
-
-                {/* Social Proof Card 3 */}
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-100 hover:shadow-lg transition-shadow duration-300">
-                  <div className="text-3xl font-bold text-amber-600 mb-2">€250k+</div>
-                  <div className="text-sm font-semibold text-gray-900 mb-2">Economii reale</div>
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    clienții noștri au redus drastic costurile de consultanță
-                  </p>
+                <div className="w-24 h-8 bg-gray-200 rounded flex items-center justify-center">
+                  <span className="text-xs font-medium text-gray-500">CORP</span>
                 </div>
-              </div>
-
-              {/* Final Benefit */}
-              <div className="text-center pt-4">
-                <p className="text-sm md:text-base text-gray-700 font-medium italic leading-relaxed max-w-2xl mx-auto">
-                  „Alătură-te liderilor care au trecut deja la o soluție modernă de Financial Planning and Analysis"
-                </p>
+                <div className="w-24 h-8 bg-gray-200 rounded flex items-center justify-center">
+                  <span className="text-xs font-medium text-gray-500">FIRM</span>
+                </div>
               </div>
             </div>
           </div>
