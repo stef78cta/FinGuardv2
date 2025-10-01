@@ -157,20 +157,45 @@ const TestimonialsSection = () => {
 
         {/* Stats Bar */}
         <div 
-          className={`grid grid-cols-2 md:grid-cols-4 gap-8 border-t border-gray-100 pt-16 ${
+          className={`border-t border-gray-100 pt-16 ${
             isVisible ? 'animate-fade-in-up' : 'opacity-0'
           }`}
         >
-          {stats.map((stat, index) => (
-            <div key={index} className="text-center">
-              <div className="text-3xl font-bold text-gray-900 mb-2">
-                {stat.value}
-              </div>
-              <div className="text-sm text-gray-600 uppercase tracking-wide">
-                {stat.label}
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            {/* Stat 1 */}
+            <div className="text-center space-y-3">
+              <div className="text-4xl font-bold gradient-text">500+</div>
+              <div className="text-sm font-semibold text-gray-900 uppercase tracking-wide">companii</div>
+              <p className="text-sm text-gray-600 leading-relaxed px-4">
+                au încredere în analiza noastră pentru decizii mai rapide
+              </p>
             </div>
-          ))}
+
+            {/* Stat 2 */}
+            <div className="text-center space-y-3">
+              <div className="text-4xl font-bold text-emerald-600">&lt; 1 minut</div>
+              <div className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Viteză de analiză</div>
+              <p className="text-sm text-gray-600 leading-relaxed px-4">
+                rezultate financiare clare, fără fișiere Excel complicate
+              </p>
+            </div>
+
+            {/* Stat 3 */}
+            <div className="text-center space-y-3">
+              <div className="text-4xl font-bold text-amber-600">€250k+</div>
+              <div className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Economii reale</div>
+              <p className="text-sm text-gray-600 leading-relaxed px-4">
+                clienții noștri au redus drastic costurile de consultanță
+              </p>
+            </div>
+          </div>
+
+          {/* Final Benefit */}
+          <div className="text-center pt-8 border-t border-gray-100">
+            <p className="text-base md:text-lg text-gray-700 font-medium italic leading-relaxed max-w-3xl mx-auto">
+              „Alătură-te liderilor care au trecut deja la o soluție modernă de Financial Planning and Analysis"
+            </p>
+          </div>
         </div>
       </div>
     </section>
