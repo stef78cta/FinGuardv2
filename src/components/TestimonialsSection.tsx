@@ -153,7 +153,7 @@ const TestimonialsSection = () => {
 
           {/* Final Benefit */}
           <div className="text-center pt-8 border-t border-gray-100 mx-0 px-0">
-            <p className="text-base text-gray-700 italic leading-relaxed max-w-3xl mx-auto font-extrabold md:text-3xl">Alătură-te liderilor care au trecut deja la o soluție modernă de Financial Planning and Analysis</p>
+            <p className="text-base italic leading-relaxed max-w-3xl mx-auto text-zinc-950 font-extrabold md:text-3xl">Alătură-te liderilor care au trecut deja la o soluție modernă de Financial Planning and Analysis</p>
           </div>
         </div>
       </div>
