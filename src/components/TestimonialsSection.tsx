@@ -125,27 +125,27 @@ const TestimonialsSection = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             {/* Stat 1 */}
             <div className="text-center space-y-3">
-              <div className="text-4xl font-bold gradient-text">500+</div>
+              <div className="text-4xl font-bold text-gray-900">500+</div>
               <div className="text-sm font-semibold text-gray-900 uppercase tracking-wide">companii</div>
-              <p className="leading-relaxed px-4 text-base text-zinc-950">
+              <p className="body-large text-gray-700 leading-relaxed px-4">
                 au încredere în analiza noastră pentru decizii mai rapide
               </p>
             </div>
 
             {/* Stat 2 */}
             <div className="text-center space-y-3">
-              <div className="text-4xl font-bold text-emerald-600">&lt; 1 minut</div>
+              <div className="text-4xl font-bold text-gray-900">&lt; 1 minut</div>
               <div className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Viteză de analiză</div>
-              <p className="leading-relaxed px-4 text-base text-zinc-950">
+              <p className="body-large text-gray-700 leading-relaxed px-4">
                 rezultate financiare clare, fără fișiere Excel complicate
               </p>
             </div>
 
             {/* Stat 3 */}
             <div className="text-center space-y-3">
-              <div className="text-4xl font-bold text-amber-600">€250k+</div>
+              <div className="text-4xl font-bold text-gray-900">€250k+</div>
               <div className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Economii reale</div>
-              <p className="leading-relaxed px-4 text-base text-zinc-950">
+              <p className="body-large text-gray-700 leading-relaxed px-4">
                 clienții noștri au redus drastic costurile de consultanță
               </p>
             </div>
