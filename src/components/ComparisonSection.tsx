@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Check, X } from 'lucide-react';
+import { Check, X, Zap, Shield, Lock, ArrowRight } from 'lucide-react';
 
 const ComparisonSection = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -149,15 +149,80 @@ const ComparisonSection = () => {
           </div>
         </div>
 
-        <div className="text-center mt-12">
-          <button className="btn-primary">
-            Încearcă gratuit 14 zile
-          </button>
-          <p className="text-sm text-gray-500 mt-4 flex items-center justify-center space-x-4">
-            <span>💳 Fără card necesar</span>
-            <span>❌ Anulare oricând</span>
-            <span>🔒 Plată securizată</span>
-          </p>
+        {/* High-Converting CTA Section */}
+        <div className="mt-16 bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-600 rounded-3xl p-8 md:p-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {/* Benefit Card 1 */}
+            <div 
+              className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 transform"
+              style={{ animationDelay: '0ms' }}
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4 hover:scale-105 transition-transform duration-300">
+                  <Zap className="w-8 h-8 text-emerald-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-3">
+                  Start Instant Fără Card
+                </h3>
+                <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                  Începeți imediat, fără să adăugați cardul. Zero risc, zero obligații. Testați toate funcționalitățile premium gratuit.
+                </p>
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                  ✓ Activare în 30 secunde
+                </span>
+              </div>
+            </div>
+
+            {/* Benefit Card 2 */}
+            <div 
+              className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 transform"
+              style={{ animationDelay: '100ms' }}
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mb-4 hover:scale-105 transition-transform duration-300">
+                  <Shield className="w-8 h-8 text-orange-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-3">
+                  Anulare Fără Complicații
+                </h3>
+                <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                  Un singur click și gata! Anulați oricând doriți, fără întrebări și fără taxe ascunse. Controlul complet este al dumneavoastră.
+                </p>
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700">
+                  ✓ Garantat 100%
+                </span>
+              </div>
+            </div>
+
+            {/* Benefit Card 3 */}
+            <div 
+              className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 transform"
+              style={{ animationDelay: '200ms' }}
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-4 hover:scale-105 transition-transform duration-300">
+                  <Lock className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-3">
+                  Securitate Bancară
+                </h3>
+                <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                  Datele dumneavoastră sunt protejate cu encriptare de nivel bancar. Certificare SSL și conformitate GDPR completă.
+                </p>
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">
+                  ✓ Protecție 256-bit
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Enhanced CTA Button */}
+          <div className="text-center">
+            <button className="btn-primary bg-white text-indigo-600 hover:bg-gray-50 px-8 py-4 text-lg font-bold inline-flex items-center gap-2 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+              Încearcă gratuit 14 zile
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
     </section>
