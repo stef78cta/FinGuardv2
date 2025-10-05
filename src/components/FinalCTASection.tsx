@@ -2,7 +2,7 @@ import { ArrowRight } from 'lucide-react';
 
 const FinalCTASection = () => {
   return (
-    <section className="section-padding bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 relative overflow-hidden">
+    <section className="section-padding-reduced bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
