@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Check, ArrowRight, Phone } from 'lucide-react';
+import { Check, ArrowRight, Phone, Sparkles, Shield, Lock } from 'lucide-react';
 
 const PricingSection = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -160,21 +160,38 @@ const PricingSection = () => {
           ))}
         </div>
 
-        {/* Trust Elements */}
-        <div className="text-center mt-16">
-          <div className="inline-flex items-center space-x-6 text-sm text-gray-500 bg-gray-50 px-6 py-3 rounded-2xl">
-            <span className="flex items-center space-x-2">
-              <span>💳</span>
-              <span>Fără card necesar pentru trial</span>
-            </span>
-            <span className="flex items-center space-x-2">
-              <span>❌</span>
-              <span>Anulare oricând</span>
-            </span>
-            <span className="flex items-center space-x-2">
-              <span>🔒</span>
-              <span>Plată securizată Stripe</span>
-            </span>
+        {/* Trust & Reassurance Bar */}
+        <div className="text-center mt-20">
+          <div className="inline-flex flex-wrap items-center justify-center gap-8 lg:gap-12 bg-gradient-to-r from-gray-50 via-white to-gray-50 px-8 lg:px-12 py-8 rounded-3xl border border-gray-100 shadow-sm">
+            <div className="flex items-center gap-3 group">
+              <div className="flex-shrink-0 w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center group-hover:bg-emerald-100 transition-colors duration-300">
+                <Sparkles className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div className="text-left">
+                <div className="font-semibold text-gray-900 body">Start Instant Fără Card</div>
+                <div className="text-sm text-gray-600">Activare în 30 secunde</div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3 group">
+              <div className="flex-shrink-0 w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center group-hover:bg-blue-100 transition-colors duration-300">
+                <Shield className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="text-left">
+                <div className="font-semibold text-gray-900 body">Anulare Instant 100%</div>
+                <div className="text-sm text-gray-600">Zero întrebări, zero taxe</div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3 group">
+              <div className="flex-shrink-0 w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center group-hover:bg-purple-100 transition-colors duration-300">
+                <Lock className="w-6 h-6 text-purple-600" />
+              </div>
+              <div className="text-left">
+                <div className="font-semibold text-gray-900 body">Securitate Bancară</div>
+                <div className="text-sm text-gray-600">Encriptare SSL 256-bit</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
