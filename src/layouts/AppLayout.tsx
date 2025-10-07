@@ -14,7 +14,7 @@ const AppLayout = () => {
             <SidebarTrigger className="mr-4" />
             <div className="flex-1">
               <h2 className="text-lg font-semibold text-foreground">
-                Platforma Financiară
+                FinGuard
               </h2>
             </div>
           </header>

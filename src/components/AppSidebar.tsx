@@ -46,8 +46,8 @@ export function AppSidebar() {
           </div>
           {open && (
             <div>
-              <h2 className="font-semibold text-foreground text-sm">FinanceAI</h2>
-              <p className="text-xs text-foreground-secondary">Analiză inteligentă</p>
+              <h2 className="font-semibold text-foreground text-sm">FinGuard</h2>
+              <p className="text-xs text-foreground-secondary">Analiză financiară AI</p>
             </div>
           )}
         </div>
@@ -85,7 +85,7 @@ export function AppSidebar() {
       <SidebarFooter className="border-t border-gray-200 p-4">
         {open && (
           <div className="text-xs text-foreground-secondary text-center">
-            © 2024 FinanceAI
+            © 2024 FinGuard
           </div>
         )}
       </SidebarFooter>
