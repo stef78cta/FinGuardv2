@@ -326,7 +326,7 @@ const RapoarteFinanciare = () => {
           </div>
           
           <div className="flex items-center gap-2 text-sm text-text-secondary bg-surface px-4 py-2 rounded-lg no-print">
-            <Info className="w-4 h-4 text-primary-indigo" />
+            <Info className="w-4 h-4 text-gray-800" />
             <span>
               Sursa: <span className="font-semibold text-foreground">{sourceFile}</span>
             </span>
@@ -338,11 +338,11 @@ const RapoarteFinanciare = () => {
         <TabsList className="grid w-full grid-cols-3 gap-4 bg-transparent h-auto p-0 mb-8 no-print">
           <TabsTrigger 
             value="bilant" 
-            className="data-[state=active]:bg-gradient-to-br data-[state=active]:from-indigo-50 data-[state=active]:to-purple-50 data-[state=active]:border-2 data-[state=active]:border-indigo-200 data-[state=active]:shadow-medium border-2 border-gray-200 rounded-xl py-4 px-6 transition-all"
+            className="data-[state=active]:bg-gray-50 data-[state=active]:border-2 data-[state=active]:border-gray-300 data-[state=active]:shadow-medium border-2 border-gray-200 rounded-xl py-4 px-6 transition-all"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                <Scale className="w-5 h-5 text-primary-indigo" />
+              <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                <Scale className="w-5 h-5 text-gray-800" />
               </div>
               <div className="text-left">
                 <div className="font-semibold text-base">Bilanț Contabil</div>
@@ -353,11 +353,11 @@ const RapoarteFinanciare = () => {
           
           <TabsTrigger 
             value="pnl"
-            className="data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-50 data-[state=active]:to-teal-50 data-[state=active]:border-2 data-[state=active]:border-emerald-200 data-[state=active]:shadow-medium border-2 border-gray-200 rounded-xl py-4 px-6 transition-all"
+            className="data-[state=active]:bg-gray-50 data-[state=active]:border-2 data-[state=active]:border-gray-300 data-[state=active]:shadow-medium border-2 border-gray-200 rounded-xl py-4 px-6 transition-all"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-accent-emerald" />
+              <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-gray-800" />
               </div>
               <div className="text-left">
                 <div className="font-semibold text-base">Profit și Pierdere</div>
@@ -368,11 +368,11 @@ const RapoarteFinanciare = () => {
           
           <TabsTrigger 
             value="cashflow"
-            className="data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-50 data-[state=active]:to-cyan-50 data-[state=active]:border-2 data-[state=active]:border-blue-200 data-[state=active]:shadow-medium border-2 border-gray-200 rounded-xl py-4 px-6 transition-all"
+            className="data-[state=active]:bg-gray-50 data-[state=active]:border-2 data-[state=active]:border-gray-300 data-[state=active]:shadow-medium border-2 border-gray-200 rounded-xl py-4 px-6 transition-all"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                <ArrowUpDown className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                <ArrowUpDown className="w-5 h-5 text-gray-800" />
               </div>
               <div className="text-left">
                 <div className="font-semibold text-base">Fluxuri Numerar</div>
@@ -388,7 +388,7 @@ const RapoarteFinanciare = () => {
             <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-white space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary-indigo to-purple-600 rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center">
                     <FileText className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -415,16 +415,16 @@ const RapoarteFinanciare = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem onClick={handleExportPDF}>
-                        <FileText className="w-4 h-4 mr-2 text-red-600" />
+                        <FileText className="w-4 h-4 mr-2 text-gray-700" />
                         Export PDF
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={handleExportExcel}>
-                        <FileSpreadsheet className="w-4 h-4 mr-2 text-accent-emerald" />
+                        <FileSpreadsheet className="w-4 h-4 mr-2 text-gray-700" />
                         Export Excel
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={handleSendEmail}>
-                        <Mail className="w-4 h-4 mr-2 text-blue-600" />
+                        <Mail className="w-4 h-4 mr-2 text-gray-700" />
                         Trimite pe Email
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -437,12 +437,12 @@ const RapoarteFinanciare = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* ACTIVE */}
                 <div className="space-y-6">
-                  <div className="flex items-center justify-between pb-2 border-b-2 border-primary-indigo">
+                  <div className="flex items-center justify-between pb-2 border-b-2 border-gray-800">
                     <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                      <Building2 className="w-5 h-5 text-primary-indigo" />
+                      <Building2 className="w-5 h-5 text-gray-800" />
                       ACTIVE
                     </h3>
-                    <span className="text-sm font-semibold text-primary-indigo">Total</span>
+                    <span className="text-sm font-semibold text-gray-800">Total</span>
                   </div>
                   
                   <div className="space-y-3">
@@ -460,11 +460,11 @@ const RapoarteFinanciare = () => {
                         </div>
                       ))}
                       
-                      <div className="flex items-center justify-between py-2 bg-indigo-50 rounded px-2 border-l-4 border-primary-indigo">
+                      <div className="flex items-center justify-between py-2 bg-gray-50 rounded px-2 border-l-4 border-gray-800">
                         <span className="text-sm font-semibold text-foreground">
                           Total Active Imobilizate
                         </span>
-                        <span className="text-sm font-bold text-primary-indigo tabular-nums">
+                        <span className="text-sm font-bold text-foreground tabular-nums">
                           {formatCurrency(subtotalActiveImobilizate)}
                         </span>
                       </div>
@@ -486,11 +486,11 @@ const RapoarteFinanciare = () => {
                         </div>
                       ))}
                       
-                      <div className="flex items-center justify-between py-2 bg-indigo-50 rounded px-2 border-l-4 border-primary-indigo">
+                      <div className="flex items-center justify-between py-2 bg-gray-50 rounded px-2 border-l-4 border-gray-800">
                         <span className="text-sm font-semibold text-foreground">
                           Total Active Circulante
                         </span>
-                        <span className="text-sm font-bold text-primary-indigo tabular-nums">
+                        <span className="text-sm font-bold text-foreground tabular-nums">
                           {formatCurrency(subtotalActiveCirculante)}
                         </span>
                       </div>
@@ -499,7 +499,7 @@ const RapoarteFinanciare = () => {
                   
                   <Separator className="my-4" />
                   
-                  <div className="flex items-center justify-between py-4 bg-gradient-to-r from-primary-indigo to-purple-600 rounded-lg px-4">
+                  <div className="flex items-center justify-between py-4 bg-gray-800 rounded-lg px-4">
                     <span className="text-base font-bold text-white">
                       TOTAL ACTIVE
                     </span>
@@ -511,12 +511,12 @@ const RapoarteFinanciare = () => {
                 
                 {/* PASIVE */}
                 <div className="space-y-6">
-                  <div className="flex items-center justify-between pb-2 border-b-2 border-purple-600">
+                  <div className="flex items-center justify-between pb-2 border-b-2 border-gray-800">
                     <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                      <Wallet className="w-5 h-5 text-purple-600" />
+                      <Wallet className="w-5 h-5 text-gray-800" />
                       PASIVE
                     </h3>
-                    <span className="text-sm font-semibold text-purple-600">Total</span>
+                    <span className="text-sm font-semibold text-gray-800">Total</span>
                   </div>
                   
                   <div className="space-y-3">
@@ -534,11 +534,11 @@ const RapoarteFinanciare = () => {
                         </div>
                       ))}
                       
-                      <div className="flex items-center justify-between py-2 bg-purple-50 rounded px-2 border-l-4 border-purple-600">
+                      <div className="flex items-center justify-between py-2 bg-gray-50 rounded px-2 border-l-4 border-gray-800">
                         <span className="text-sm font-semibold text-foreground">
                           Total Capitaluri Proprii
                         </span>
-                        <span className="text-sm font-bold text-purple-600 tabular-nums">
+                        <span className="text-sm font-bold text-foreground tabular-nums">
                           {formatCurrency(subtotalCapitaluri)}
                         </span>
                       </div>
@@ -560,11 +560,11 @@ const RapoarteFinanciare = () => {
                         </div>
                       ))}
                       
-                      <div className="flex items-center justify-between py-2 bg-purple-50 rounded px-2 border-l-4 border-purple-600">
+                      <div className="flex items-center justify-between py-2 bg-gray-50 rounded px-2 border-l-4 border-gray-800">
                         <span className="text-sm font-semibold text-foreground">
                           Total Datorii
                         </span>
-                        <span className="text-sm font-bold text-purple-600 tabular-nums">
+                        <span className="text-sm font-bold text-foreground tabular-nums">
                           {formatCurrency(subtotalDatorii)}
                         </span>
                       </div>
@@ -573,7 +573,7 @@ const RapoarteFinanciare = () => {
                   
                   <Separator className="my-4" />
                   
-                  <div className="flex items-center justify-between py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg px-4">
+                  <div className="flex items-center justify-between py-4 bg-gray-800 rounded-lg px-4">
                     <span className="text-base font-bold text-white">
                       TOTAL PASIVE
                     </span>
@@ -618,8 +618,8 @@ const RapoarteFinanciare = () => {
                     <p className="text-xs text-text-secondary uppercase">Lichiditate Curentă</p>
                     <p className="text-2xl font-bold text-foreground mt-1">2.35</p>
                   </div>
-                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-accent-emerald" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-gray-800" />
                   </div>
                 </div>
               </CardContent>
@@ -632,8 +632,8 @@ const RapoarteFinanciare = () => {
                     <p className="text-xs text-text-secondary uppercase">Grad Îndatorare</p>
                     <p className="text-2xl font-bold text-foreground mt-1">45%</p>
                   </div>
-                  <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <Percent className="w-5 h-5 text-warning" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <Percent className="w-5 h-5 text-gray-800" />
                   </div>
                 </div>
               </CardContent>
@@ -646,8 +646,8 @@ const RapoarteFinanciare = () => {
                     <p className="text-xs text-text-secondary uppercase">Capital de Lucru</p>
                     <p className="text-2xl font-bold text-foreground mt-1">125K</p>
                   </div>
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Wallet className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <Wallet className="w-5 h-5 text-gray-800" />
                   </div>
                 </div>
               </CardContent>
@@ -660,8 +660,8 @@ const RapoarteFinanciare = () => {
                     <p className="text-xs text-text-secondary uppercase">Solvabilitate</p>
                     <p className="text-2xl font-bold text-foreground mt-1">1.85</p>
                   </div>
-                  <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                    <Shield className="w-5 h-5 text-primary-indigo" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-gray-800" />
                   </div>
                 </div>
               </CardContent>
@@ -675,7 +675,7 @@ const RapoarteFinanciare = () => {
             <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-white space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-accent-emerald to-teal-600 rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center">
                     <TrendingUp className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -702,16 +702,16 @@ const RapoarteFinanciare = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem onClick={handleExportPDF}>
-                        <FileText className="w-4 h-4 mr-2 text-red-600" />
+                        <FileText className="w-4 h-4 mr-2 text-gray-700" />
                         Export PDF
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={handleExportExcel}>
-                        <FileSpreadsheet className="w-4 h-4 mr-2 text-accent-emerald" />
+                        <FileSpreadsheet className="w-4 h-4 mr-2 text-gray-700" />
                         Export Excel
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={handleSendEmail}>
-                        <Mail className="w-4 h-4 mr-2 text-blue-600" />
+                        <Mail className="w-4 h-4 mr-2 text-gray-700" />
                         Trimite pe Email
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -740,7 +740,7 @@ const RapoarteFinanciare = () => {
                       </div>
                     ))}
                     
-                    <div className="flex items-center justify-between py-3 bg-emerald-50 rounded-lg px-3 border-l-4 border-accent-emerald mt-3">
+                    <div className="flex items-center justify-between py-3 bg-gray-50 rounded-lg px-3 border-l-4 border-gray-800 mt-3">
                       <span className="text-base font-bold text-foreground">
                         Total Venituri din Exploatare
                       </span>
@@ -771,7 +771,7 @@ const RapoarteFinanciare = () => {
                       </div>
                     ))}
                     
-                    <div className="flex items-center justify-between py-3 bg-red-50 rounded-lg px-3 border-l-4 border-red-600 mt-3">
+                    <div className="flex items-center justify-between py-3 bg-gray-50 rounded-lg px-3 border-l-4 border-gray-800 mt-3">
                       <span className="text-base font-bold text-foreground">
                         Total Cheltuieli din Exploatare
                       </span>
@@ -784,11 +784,11 @@ const RapoarteFinanciare = () => {
                 
                 <Separator />
                 
-                <div className="flex items-center justify-between py-4 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-lg px-4 border-l-4 border-accent-emerald">
+                <div className="flex items-center justify-between py-4 bg-gray-50 rounded-lg px-4 border-l-4 border-gray-800">
                   <span className="text-base font-bold text-foreground">
                     PROFIT BRUT DIN EXPLOATARE
                   </span>
-                  <span className="text-lg font-bold text-emerald-700 tabular-nums">
+                  <span className="text-lg font-bold text-accent-emerald tabular-nums">
                     {formatCurrency(profitBrut)}
                   </span>
                 </div>
@@ -799,13 +799,13 @@ const RapoarteFinanciare = () => {
                   </h4>
                   
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center justify-between py-2 px-3 bg-emerald-50 rounded">
+                    <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded">
                       <span className="text-sm text-foreground">Venituri Financiare</span>
                       <span className="text-sm font-medium text-accent-emerald tabular-nums">
                         {formatCurrency(venituriFinanciare)}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between py-2 px-3 bg-red-50 rounded">
+                    <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded">
                       <span className="text-sm text-foreground">Cheltuieli Financiare</span>
                       <span className="text-sm font-medium text-destructive tabular-nums">
                         ({formatCurrency(cheltuieliFinanciare)})
@@ -816,25 +816,25 @@ const RapoarteFinanciare = () => {
                 
                 <Separator />
                 
-                <div className="flex items-center justify-between py-4 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-lg px-4 border-l-4 border-primary-indigo">
+                <div className="flex items-center justify-between py-4 bg-gray-50 rounded-lg px-4 border-l-4 border-gray-800">
                   <span className="text-base font-bold text-foreground">
                     PROFIT CURENT ÎNAINTE DE IMPOZITARE
                   </span>
-                  <span className="text-lg font-bold text-indigo-700 tabular-nums">
+                  <span className="text-lg font-bold text-accent-emerald tabular-nums">
                     {formatCurrency(profitCurent)}
                   </span>
                 </div>
                 
-                <div className="flex items-center justify-between py-2 px-3 bg-amber-50 rounded">
+                <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded">
                   <span className="text-sm font-semibold text-foreground">Impozit pe Profit (16%)</span>
-                  <span className="text-sm font-semibold text-amber-700 tabular-nums">
+                  <span className="text-sm font-semibold text-destructive tabular-nums">
                     ({formatCurrency(impozit)})
                   </span>
                 </div>
                 
                 <Separator className="border-2" />
                 
-                <div className="flex items-center justify-between py-5 bg-gradient-to-r from-accent-emerald to-teal-600 rounded-xl px-6 shadow-large">
+                <div className="flex items-center justify-between py-5 bg-gray-800 rounded-xl px-6 shadow-large">
                   <div>
                     <p className="text-white/80 text-sm mb-1">REZULTAT FINAL</p>
                     <span className="text-xl font-bold text-white">
@@ -857,8 +857,8 @@ const RapoarteFinanciare = () => {
                     <p className="text-xs text-text-secondary uppercase">Marjă Brută</p>
                     <p className="text-2xl font-bold text-foreground mt-1">32%</p>
                   </div>
-                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                    <Percent className="w-5 h-5 text-accent-emerald" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <Percent className="w-5 h-5 text-gray-800" />
                   </div>
                 </div>
               </CardContent>
@@ -871,8 +871,8 @@ const RapoarteFinanciare = () => {
                     <p className="text-xs text-text-secondary uppercase">Marjă Netă</p>
                     <p className="text-2xl font-bold text-foreground mt-1">18%</p>
                   </div>
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-gray-800" />
                   </div>
                 </div>
               </CardContent>
@@ -885,8 +885,8 @@ const RapoarteFinanciare = () => {
                     <p className="text-xs text-text-secondary uppercase">ROA</p>
                     <p className="text-2xl font-bold text-foreground mt-1">12%</p>
                   </div>
-                  <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                    <Target className="w-5 h-5 text-primary-indigo" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <Target className="w-5 h-5 text-gray-800" />
                   </div>
                 </div>
               </CardContent>
@@ -899,8 +899,8 @@ const RapoarteFinanciare = () => {
                     <p className="text-xs text-text-secondary uppercase">ROE</p>
                     <p className="text-2xl font-bold text-foreground mt-1">22%</p>
                   </div>
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Activity className="w-5 h-5 text-purple-600" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <Activity className="w-5 h-5 text-gray-800" />
                   </div>
                 </div>
               </CardContent>
@@ -914,7 +914,7 @@ const RapoarteFinanciare = () => {
             <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-white space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center">
                     <ArrowUpDown className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -941,16 +941,16 @@ const RapoarteFinanciare = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem onClick={handleExportPDF}>
-                        <FileText className="w-4 h-4 mr-2 text-red-600" />
+                        <FileText className="w-4 h-4 mr-2 text-gray-700" />
                         Export PDF
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={handleExportExcel}>
-                        <FileSpreadsheet className="w-4 h-4 mr-2 text-accent-emerald" />
+                        <FileSpreadsheet className="w-4 h-4 mr-2 text-gray-700" />
                         Export Excel
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={handleSendEmail}>
-                        <Mail className="w-4 h-4 mr-2 text-blue-600" />
+                        <Mail className="w-4 h-4 mr-2 text-gray-700" />
                         Trimite pe Email
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -961,11 +961,11 @@ const RapoarteFinanciare = () => {
             
             <CardContent className="p-8">
               <div className="max-w-4xl mx-auto space-y-6">
-                <div className="flex items-center justify-between py-4 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg px-4">
+                <div className="flex items-center justify-between py-4 bg-gray-50 rounded-lg px-4">
                   <span className="text-base font-bold text-foreground">
                     Numerar și Echivalente la Începutul Perioadei
                   </span>
-                  <span className="text-lg font-bold text-blue-700 tabular-nums">
+                  <span className="text-lg font-bold text-foreground tabular-nums">
                     {formatCurrency(cashInitial)}
                   </span>
                 </div>
@@ -973,15 +973,15 @@ const RapoarteFinanciare = () => {
                 <Separator />
                 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between pb-2 border-b-2 border-accent-emerald">
+                  <div className="flex items-center justify-between pb-2 border-b-2 border-gray-800">
                     <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                      <Activity className="w-5 h-5 text-accent-emerald" />
+                      <Activity className="w-5 h-5 text-gray-800" />
                       FLUXURI DIN ACTIVITĂȚI OPERAȚIONALE
                     </h3>
                   </div>
                   
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between py-2 px-3 bg-emerald-50 rounded">
+                    <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded">
                       <span className="text-sm font-semibold text-foreground">Profit Net</span>
                       <span className="text-sm font-semibold text-accent-emerald tabular-nums">
                         {formatCurrency(profitNet)}
@@ -1002,11 +1002,11 @@ const RapoarteFinanciare = () => {
                       </div>
                     ))}
                     
-                    <div className="flex items-center justify-between py-3 bg-emerald-100 rounded-lg px-3 border-l-4 border-accent-emerald mt-3">
+                    <div className="flex items-center justify-between py-3 bg-gray-50 rounded-lg px-3 border-l-4 border-gray-800 mt-3">
                       <span className="text-base font-bold text-foreground">
                         Fluxuri Nete din Activități Operaționale
                       </span>
-                      <span className="text-base font-bold text-emerald-700 tabular-nums">
+                      <span className="text-base font-bold text-accent-emerald tabular-nums">
                         {formatCurrency(totalOperational)}
                       </span>
                     </div>
@@ -1016,9 +1016,9 @@ const RapoarteFinanciare = () => {
                 <Separator />
                 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between pb-2 border-b-2 border-amber-600">
+                  <div className="flex items-center justify-between pb-2 border-b-2 border-gray-800">
                     <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                      <TrendingDown className="w-5 h-5 text-warning" />
+                      <TrendingDown className="w-5 h-5 text-gray-800" />
                       FLUXURI DIN ACTIVITĂȚI DE INVESTIȚII
                     </h3>
                   </div>
@@ -1036,13 +1036,13 @@ const RapoarteFinanciare = () => {
                       </div>
                     ))}
                     
-                    <div className="flex items-center justify-between py-3 bg-amber-100 rounded-lg px-3 border-l-4 border-warning mt-3">
+                    <div className="flex items-center justify-between py-3 bg-gray-50 rounded-lg px-3 border-l-4 border-gray-800 mt-3">
                       <span className="text-base font-bold text-foreground">
                         Fluxuri Nete din Activități de Investiții
                       </span>
                       <span className={cn(
                         "text-base font-bold tabular-nums",
-                        totalInvestment >= 0 ? "text-emerald-700" : "text-amber-700"
+                        totalInvestment >= 0 ? "text-accent-emerald" : "text-destructive"
                       )}>
                         {totalInvestment >= 0 ? formatCurrency(totalInvestment) : `(${formatCurrency(Math.abs(totalInvestment))})`}
                       </span>
@@ -1053,9 +1053,9 @@ const RapoarteFinanciare = () => {
                 <Separator />
                 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between pb-2 border-b-2 border-purple-600">
+                  <div className="flex items-center justify-between pb-2 border-b-2 border-gray-800">
                     <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                      <Landmark className="w-5 h-5 text-purple-600" />
+                      <Landmark className="w-5 h-5 text-gray-800" />
                       FLUXURI DIN ACTIVITĂȚI DE FINANȚARE
                     </h3>
                   </div>
@@ -1073,13 +1073,13 @@ const RapoarteFinanciare = () => {
                       </div>
                     ))}
                     
-                    <div className="flex items-center justify-between py-3 bg-purple-100 rounded-lg px-3 border-l-4 border-purple-600 mt-3">
+                    <div className="flex items-center justify-between py-3 bg-gray-50 rounded-lg px-3 border-l-4 border-gray-800 mt-3">
                       <span className="text-base font-bold text-foreground">
                         Fluxuri Nete din Activități de Finanțare
                       </span>
                       <span className={cn(
                         "text-base font-bold tabular-nums",
-                        totalFinancing >= 0 ? "text-emerald-700" : "text-purple-700"
+                        totalFinancing >= 0 ? "text-accent-emerald" : "text-destructive"
                       )}>
                         {totalFinancing >= 0 ? formatCurrency(totalFinancing) : `(${formatCurrency(Math.abs(totalFinancing))})`}
                       </span>
@@ -1090,7 +1090,7 @@ const RapoarteFinanciare = () => {
                 <Separator className="border-2" />
                 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between py-3 bg-blue-50 rounded-lg px-3">
+                  <div className="flex items-center justify-between py-3 bg-gray-50 rounded-lg px-3">
                     <span className="text-sm font-semibold text-foreground">
                       Creștere/(Descreștere) Netă a Numerarului
                     </span>
@@ -1102,7 +1102,7 @@ const RapoarteFinanciare = () => {
                     </span>
                   </div>
                   
-                  <div className="flex items-center justify-between py-5 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl px-6 shadow-large">
+                  <div className="flex items-center justify-between py-5 bg-gray-800 rounded-xl px-6 shadow-large">
                     <div>
                       <p className="text-white/80 text-sm mb-1">REZULTAT FINAL</p>
                       <span className="text-xl font-bold text-white">
@@ -1126,8 +1126,8 @@ const RapoarteFinanciare = () => {
                     <p className="text-xs text-text-secondary uppercase">Cash Flow Operațional</p>
                     <p className="text-2xl font-bold text-accent-emerald mt-1">+{formatCurrency(totalOperational / 1000)}K</p>
                   </div>
-                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                    <ArrowUpCircle className="w-5 h-5 text-accent-emerald" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <ArrowUpCircle className="w-5 h-5 text-gray-800" />
                   </div>
                 </div>
               </CardContent>
@@ -1140,8 +1140,8 @@ const RapoarteFinanciare = () => {
                     <p className="text-xs text-text-secondary uppercase">Free Cash Flow</p>
                     <p className="text-2xl font-bold text-foreground mt-1">{formatCurrency((totalOperational + totalInvestment) / 1000)}K</p>
                   </div>
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Coins className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <Coins className="w-5 h-5 text-gray-800" />
                   </div>
                 </div>
               </CardContent>
@@ -1154,8 +1154,8 @@ const RapoarteFinanciare = () => {
                     <p className="text-xs text-text-secondary uppercase">Conversie Cash</p>
                     <p className="text-2xl font-bold text-foreground mt-1">78%</p>
                   </div>
-                  <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                    <Percent className="w-5 h-5 text-primary-indigo" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <Percent className="w-5 h-5 text-gray-800" />
                   </div>
                 </div>
               </CardContent>
@@ -1168,8 +1168,8 @@ const RapoarteFinanciare = () => {
                     <p className="text-xs text-text-secondary uppercase">Zile de Cash</p>
                     <p className="text-2xl font-bold text-foreground mt-1">45</p>
                   </div>
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <CalendarIcon className="w-5 h-5 text-purple-600" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <CalendarIcon className="w-5 h-5 text-gray-800" />
                   </div>
                 </div>
               </CardContent>
