@@ -733,7 +733,7 @@ const RapoarteFinanciare = () => {
                     <BilantRow
                       label="Subtotal Active imobilizate"
                       value={mockBilantData.active.imobilizate.subtotal}
-                      className="font-semibold mt-2 pt-2 border-t-4 border-double border-indigo-500 text-gray-700"
+                      className="font-semibold mt-2 pt-2 border-t-[3px] border-indigo-500 text-gray-700"
                     />
                   </div>
 
@@ -758,14 +758,14 @@ const RapoarteFinanciare = () => {
                     <BilantRow
                       label="Subtotal Active circulante"
                       value={mockBilantData.active.circulante.subtotal}
-                      className="font-semibold mt-2 pt-2 border-t-4 border-double border-indigo-500 text-gray-700"
+                      className="font-semibold mt-2 pt-2 border-t-[3px] border-indigo-500 text-gray-700"
                     />
                   </div>
 
                   <BilantRow
                     label="TOTAL ACTIVE"
                     value={mockBilantData.active.total}
-                    className="font-bold text-lg mt-6 pt-4 border-t-4 border-double border-indigo-500 pb-4 border-b-4 border-double text-gray-700"
+                    className="font-bold text-lg mt-6 pt-4 border-t-[3px] border-indigo-500 pb-4 border-b-[3px] text-gray-700"
                   />
                 </div>
 
@@ -796,7 +796,7 @@ const RapoarteFinanciare = () => {
                     <BilantRow
                       label="Subtotal Capitaluri proprii"
                       value={mockBilantData.pasive.capitaluri.subtotal}
-                      className="font-semibold mt-2 pt-2 border-t-4 border-double border-indigo-500 text-gray-700"
+                      className="font-semibold mt-2 pt-2 border-t-[3px] border-indigo-500 text-gray-700"
                     />
                   </div>
 
@@ -815,14 +815,14 @@ const RapoarteFinanciare = () => {
                     <BilantRow
                       label="Subtotal Datorii"
                       value={mockBilantData.pasive.datorii.subtotal}
-                      className="font-semibold mt-2 pt-2 border-t-4 border-double border-indigo-500 text-gray-700"
+                      className="font-semibold mt-2 pt-2 border-t-[3px] border-indigo-500 text-gray-700"
                     />
                   </div>
 
                   <BilantRow
                     label="TOTAL PASIVE"
                     value={mockBilantData.pasive.total}
-                    className="font-bold text-lg mt-6 pt-4 border-t-4 border-double border-indigo-500 pb-4 border-b-4 border-double text-gray-700"
+                    className="font-bold text-lg mt-6 pt-4 border-t-[3px] border-indigo-500 pb-4 border-b-[3px] text-gray-700"
                   />
                 </div>
               </div>
@@ -851,7 +851,7 @@ const RapoarteFinanciare = () => {
                   <PLRow
                     label="TOTAL VENITURI"
                     value={mockPLData.venituri.total}
-                    className="font-bold mt-3 pt-3 border-t-4 border-double border-indigo-500 pb-3 border-b-4 border-double text-base text-gray-700"
+                    className="font-bold mt-3 pt-3 border-t-[3px] border-indigo-500 pb-3 border-b-[3px] text-base text-gray-700"
                     type="income"
                   />
                 </div>
@@ -881,7 +881,7 @@ const RapoarteFinanciare = () => {
                   <PLRow
                     label="TOTAL CHELTUIELI"
                     value={mockPLData.cheltuieli.total}
-                    className="font-bold mt-3 pt-3 border-t-4 border-double border-indigo-500 pb-3 border-b-4 border-double text-base text-gray-700"
+                    className="font-bold mt-3 pt-3 border-t-[3px] border-indigo-500 pb-3 border-b-[3px] text-base text-gray-700"
                     type="expense"
                   />
                 </div>
@@ -934,7 +934,7 @@ const RapoarteFinanciare = () => {
                   <PLRow
                     label="Flux net din activități operaționale"
                     value={mockCashFlowData.operational.flux}
-                    className="font-bold mt-3 pt-3 border-t-4 border-double border-indigo-500 text-base text-gray-700"
+                    className="font-bold mt-3 pt-3 border-t-[3px] border-indigo-500 text-base text-gray-700"
                   />
                 </div>
 
@@ -957,7 +957,7 @@ const RapoarteFinanciare = () => {
                   <PLRow
                     label="Flux net din activități de investiții"
                     value={mockCashFlowData.investitii.flux}
-                    className="font-bold mt-3 pt-3 border-t-4 border-double border-indigo-500 text-base text-gray-700"
+                    className="font-bold mt-3 pt-3 border-t-[3px] border-indigo-500 text-base text-gray-700"
                   />
                 </div>
 
@@ -980,7 +980,7 @@ const RapoarteFinanciare = () => {
                   <PLRow
                     label="Flux net din activități de finanțare"
                     value={mockCashFlowData.finantare.flux}
-                    className="font-bold mt-3 pt-3 border-t-4 border-double border-indigo-500 text-base text-gray-700"
+                    className="font-bold mt-3 pt-3 border-t-[3px] border-indigo-500 text-base text-gray-700"
                   />
                 </div>
 
@@ -989,7 +989,7 @@ const RapoarteFinanciare = () => {
                   <PLRow
                     label="VARIAȚIA NETĂ A NUMERARULUI"
                     value={mockCashFlowData.variatieNeta}
-                    className="text-base font-bold mb-3 pt-3 border-t-4 border-double border-indigo-500 pb-3 border-b-4 border-double text-gray-700"
+                    className="text-base font-bold mb-3 pt-3 border-t-[3px] border-indigo-500 pb-3 border-b-[3px] text-gray-700"
                   />
                   <PLRow
                     label="Numerar la începutul perioadei"
