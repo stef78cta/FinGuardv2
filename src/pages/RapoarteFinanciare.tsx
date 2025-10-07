@@ -246,12 +246,7 @@ const BilantRow = ({ label, value, className, indent = false }: BilantRowProps) 
       )}
     >
       <span className="text-sm">{label}</span>
-      <span
-        className={cn(
-          'text-sm font-mono tabular-nums',
-          isNegative ? 'text-destructive' : 'text-foreground'
-        )}
-      >
+      <span className="text-sm font-mono tabular-nums text-gray-700">
         {isNegative && '('}
         {formatCurrency(Math.abs(value))}
         {isNegative && ')'}
@@ -268,12 +263,6 @@ interface PLRowProps {
 }
 
 const PLRow = ({ label, value, type = 'neutral', className }: PLRowProps) => {
-  const getValueColor = () => {
-    if (type === 'income') return 'text-accent-emerald';
-    if (type === 'expense') return 'text-destructive';
-    return value >= 0 ? 'text-accent-emerald' : 'text-destructive';
-  };
-
   const displayValue =
     type === 'expense' || value < 0
       ? `(${formatCurrency(Math.abs(value))})`
@@ -282,7 +271,7 @@ const PLRow = ({ label, value, type = 'neutral', className }: PLRowProps) => {
   return (
     <div className={cn('flex justify-between items-center py-2', className)}>
       <span className="text-sm">{label}</span>
-      <span className={cn('text-sm font-mono tabular-nums', getValueColor())}>
+      <span className="text-sm font-mono tabular-nums text-gray-700">
         {displayValue}
       </span>
     </div>
@@ -744,7 +733,7 @@ const RapoarteFinanciare = () => {
                     <BilantRow
                       label="Subtotal Active imobilizate"
                       value={mockBilantData.active.imobilizate.subtotal}
-                      className="font-semibold mt-2 pt-2 border-t"
+                      className="font-semibold mt-2 pt-2 border-t border-indigo-500 text-gray-700"
                     />
                   </div>
 
@@ -769,14 +758,14 @@ const RapoarteFinanciare = () => {
                     <BilantRow
                       label="Subtotal Active circulante"
                       value={mockBilantData.active.circulante.subtotal}
-                      className="font-semibold mt-2 pt-2 border-t"
+                      className="font-semibold mt-2 pt-2 border-t border-indigo-500 text-gray-700"
                     />
                   </div>
 
                   <BilantRow
                     label="TOTAL ACTIVE"
                     value={mockBilantData.active.total}
-                    className="font-bold text-lg mt-6 pt-4 border-t-2 border-primary text-accent-emerald"
+                    className="font-bold text-lg mt-6 pt-4 border-t-2 border-indigo-500 text-gray-700"
                   />
                 </div>
 
@@ -807,7 +796,7 @@ const RapoarteFinanciare = () => {
                     <BilantRow
                       label="Subtotal Capitaluri proprii"
                       value={mockBilantData.pasive.capitaluri.subtotal}
-                      className="font-semibold mt-2 pt-2 border-t"
+                      className="font-semibold mt-2 pt-2 border-t border-indigo-500 text-gray-700"
                     />
                   </div>
 
@@ -826,14 +815,14 @@ const RapoarteFinanciare = () => {
                     <BilantRow
                       label="Subtotal Datorii"
                       value={mockBilantData.pasive.datorii.subtotal}
-                      className="font-semibold mt-2 pt-2 border-t"
+                      className="font-semibold mt-2 pt-2 border-t border-indigo-500 text-gray-700"
                     />
                   </div>
 
                   <BilantRow
                     label="TOTAL PASIVE"
                     value={mockBilantData.pasive.total}
-                    className="font-bold text-lg mt-6 pt-4 border-t-2 border-primary text-primary-indigo"
+                    className="font-bold text-lg mt-6 pt-4 border-t-2 border-indigo-500 text-gray-700"
                   />
                 </div>
               </div>
@@ -862,7 +851,7 @@ const RapoarteFinanciare = () => {
                   <PLRow
                     label="TOTAL VENITURI"
                     value={mockPLData.venituri.total}
-                    className="font-bold text-accent-emerald mt-3 pt-3 border-t-2 border-emerald-200 text-base"
+                    className="font-bold mt-3 pt-3 border-t-2 border-indigo-500 text-base text-gray-700"
                     type="income"
                   />
                 </div>
@@ -892,7 +881,7 @@ const RapoarteFinanciare = () => {
                   <PLRow
                     label="TOTAL CHELTUIELI"
                     value={mockPLData.cheltuieli.total}
-                    className="font-bold text-destructive mt-3 pt-3 border-t-2 border-red-200 text-base"
+                    className="font-bold mt-3 pt-3 border-t-2 border-indigo-500 text-base text-gray-700"
                     type="expense"
                   />
                 </div>
@@ -945,7 +934,7 @@ const RapoarteFinanciare = () => {
                   <PLRow
                     label="Flux net din activități operaționale"
                     value={mockCashFlowData.operational.flux}
-                    className="font-bold mt-3 pt-3 border-t-2 border-emerald-200 text-base"
+                    className="font-bold mt-3 pt-3 border-t-2 border-indigo-500 text-base text-gray-700"
                   />
                 </div>
 
@@ -968,7 +957,7 @@ const RapoarteFinanciare = () => {
                   <PLRow
                     label="Flux net din activități de investiții"
                     value={mockCashFlowData.investitii.flux}
-                    className="font-bold mt-3 pt-3 border-t-2 border-red-200 text-base"
+                    className="font-bold mt-3 pt-3 border-t-2 border-indigo-500 text-base text-gray-700"
                   />
                 </div>
 
@@ -991,7 +980,7 @@ const RapoarteFinanciare = () => {
                   <PLRow
                     label="Flux net din activități de finanțare"
                     value={mockCashFlowData.finantare.flux}
-                    className="font-bold mt-3 pt-3 border-t-2 border-primary-indigo/20 text-base"
+                    className="font-bold mt-3 pt-3 border-t-2 border-indigo-500 text-base text-gray-700"
                   />
                 </div>
 
