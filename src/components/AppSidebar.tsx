@@ -22,6 +22,8 @@ import {
   SidebarFooter,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { NotificationsPopover } from '@/components/NotificationsPopover';
+import { UserMenuPopover } from '@/components/UserMenuPopover';
 
 const menuItems = [
   { title: 'Dashboard', url: '/app/dashboard', icon: LayoutDashboard },
@@ -82,12 +84,9 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-gray-200 p-4">
-        {open && (
-          <div className="text-xs text-foreground-secondary text-center">
-            © 2024 FinGuard
-          </div>
-        )}
+      <SidebarFooter className="border-t border-gray-200 p-3 space-y-2">
+        <NotificationsPopover />
+        <UserMenuPopover />
       </SidebarFooter>
     </Sidebar>
   );
