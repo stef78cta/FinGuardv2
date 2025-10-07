@@ -79,7 +79,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="border-r border-gray-200 bg-surface transition-all duration-300 ease-in-out w-72 data-[state=collapsed]:w-16">
+    <Sidebar className="border-r border-gray-200 bg-surface transition-all duration-300 ease-in-out">
       <SidebarHeader className="border-b border-gray-200 p-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center shrink-0">
