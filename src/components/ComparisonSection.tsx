@@ -109,7 +109,7 @@ const ComparisonSection = () => {
             <div className="inline-flex items-center gap-2 bg-surface px-3 py-1 rounded-full mb-4">
               <span className="text-sm font-semibold text-text-secondary">Tradițional</span>
             </div>
-            <h3 className="text-2xl font-bold text-foreground mb-6">Consultant Financiar</h3>
+            <h3 className="text-xl font-bold text-foreground mb-6 whitespace-nowrap">Consultant Financiar</h3>
             
             {comparisonData.map((row, index) => (
               <div key={index} className="mb-4 pb-4 border-b border-border last:border-0">
