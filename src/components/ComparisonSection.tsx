@@ -44,7 +44,7 @@ const ComparisonSection = () => {
   }, {
     feature: 'Confidențialitate',
     finGuard: true,
-    consultant: 'partial',
+    consultant: false,
     manual: true
   }];
   const renderCell = (value: string | boolean, isFinGuard = false) => {
@@ -53,10 +53,7 @@ const ComparisonSection = () => {
         {value ? <Check className={`w-5 h-5 ${isFinGuard ? 'text-emerald-600' : 'text-gray-400'}`} /> : <X className="w-5 h-5 text-red-500" />}
       </div>;
     }
-    if (value === 'partial') {
-      return <span className="text-red-500 text-sm">Partajat</span>;
-    }
-    return <span className={`text-sm ${isFinGuard ? 'font-semibold text-emerald-600' : 'text-gray-600'}`}>
+    return <span className={`text-sm ${isFinGuard ? 'font-semibold text-emerald-600' : 'text-gray-700'}`}>
         {value}
       </span>;
   };
@@ -120,12 +117,14 @@ const ComparisonSection = () => {
                 <div className="flex items-center justify-between">
                   {typeof row.consultant === 'boolean' ? (
                     <div className="flex items-center justify-center w-full">
-                      <X className="w-6 h-6 text-destructive" />
+                      {row.consultant ? (
+                        <Check className="w-6 h-6 text-gray-400" />
+                      ) : (
+                        <X className="w-6 h-6 text-red-500" />
+                      )}
                     </div>
-                  ) : row.consultant === 'partial' ? (
-                    <div className="font-medium text-destructive">Partajat</div>
                   ) : (
-                    <div className="font-medium text-text-secondary">{row.consultant}</div>
+                    <div className="font-medium text-gray-700">{row.consultant}</div>
                   )}
                 </div>
               </div>
@@ -146,13 +145,13 @@ const ComparisonSection = () => {
                   {typeof row.manual === 'boolean' ? (
                     <div className="flex items-center justify-center w-full">
                       {row.manual ? (
-                        <Check className="w-6 h-6 text-text-muted" />
+                        <Check className="w-6 h-6 text-gray-400" />
                       ) : (
-                        <X className="w-6 h-6 text-destructive" />
+                        <X className="w-6 h-6 text-red-500" />
                       )}
                     </div>
                   ) : (
-                    <div className="font-medium text-text-secondary">{row.manual}</div>
+                    <div className="font-medium text-gray-700">{row.manual}</div>
                   )}
                 </div>
               </div>
