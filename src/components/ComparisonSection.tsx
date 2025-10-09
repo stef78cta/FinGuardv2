@@ -42,11 +42,6 @@ const ComparisonSection = () => {
     consultant: false,
     manual: false
   }, {
-    feature: 'Multi-device',
-    finGuard: true,
-    consultant: false,
-    manual: false
-  }, {
     feature: 'Confidențialitate',
     finGuard: true,
     consultant: 'partial',
@@ -54,10 +49,12 @@ const ComparisonSection = () => {
   }];
   const renderCell = (value: string | boolean, isFinGuard = false) => {
     if (typeof value === 'boolean') {
-      return value ? <Check className={`w-5 h-5 ${isFinGuard ? 'text-emerald-600' : 'text-gray-400'}`} /> : <X className="w-5 h-5 text-red-500" />;
+      return <div className="flex items-center justify-center">
+        {value ? <Check className={`w-5 h-5 ${isFinGuard ? 'text-emerald-600' : 'text-gray-400'}`} /> : <X className="w-5 h-5 text-red-500" />}
+      </div>;
     }
     if (value === 'partial') {
-      return <span className="text-orange-500 text-sm">Partajat </span>;
+      return <span className="text-red-500 text-sm">Partajat</span>;
     }
     return <span className={`text-sm ${isFinGuard ? 'font-semibold text-emerald-600' : 'text-gray-600'}`}>
         {value}
