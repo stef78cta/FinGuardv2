@@ -44,7 +44,7 @@ const ComparisonSection = () => {
   }, {
     feature: 'Confidențialitate',
     finGuard: true,
-    consultant: false,
+    consultant: 'partial',
     manual: true
   }];
   const renderCell = (value: string | boolean, isFinGuard = false) => {
@@ -78,91 +78,86 @@ const ComparisonSection = () => {
           </p>
         </div>
 
-        {/* Comparison Table Header */}
-        <div className={`bg-white rounded-2xl shadow-large border border-border overflow-hidden transform transition-all duration-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-          {/* Header Row */}
-          <div className="grid grid-cols-4 gap-4 bg-surface p-6 border-b-2 border-border">
-            <div className="font-semibold text-text-secondary">Caracteristică</div>
-            <div className="text-center">
-              <div className="inline-flex items-center gap-2 bg-gradient-to-br from-primary-indigo to-purple-600 text-white px-4 py-2 rounded-full mb-2">
+        {/* Comparison Cards Grid */}
+        <div className={`grid md:grid-cols-3 gap-6 mb-12 transform transition-all duration-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          {/* FinGuard Card - Featured */}
+          <div className="bg-gradient-to-br from-primary-indigo via-primary-indigo-dark to-purple-600 p-8 rounded-2xl shadow-xl border-2 border-primary-indigo/20 relative overflow-hidden transform hover:scale-105 transition-all duration-300">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full mb-4">
                 <Zap className="w-4 h-4 text-yellow-300" />
-                <span className="text-sm font-bold">Recomandat</span>
+                <span className="text-sm font-bold text-white">Recomandat</span>
               </div>
-              <h3 className="text-xl font-bold gradient-text">FinGuard</h3>
-            </div>
-            <div className="text-center">
-              <div className="inline-flex items-center gap-2 bg-destructive/10 text-destructive px-4 py-2 rounded-full mb-2">
-                <span className="text-sm font-semibold">Costisitor</span>
-              </div>
-              <h3 className="text-xl font-bold text-foreground">Expert Uman</h3>
-            </div>
-            <div className="text-center">
-              <div className="inline-flex items-center gap-2 bg-warning/10 text-warning px-4 py-2 rounded-full mb-2">
-                <span className="text-sm font-semibold">Consum Timp</span>
-              </div>
-              <h3 className="text-xl font-bold text-foreground">DIY Manual</h3>
+              <h3 className="text-2xl font-bold text-white mb-6">FinGuard</h3>
+              
+              {comparisonData.map((row, index) => (
+                <div key={index} className="mb-4 pb-4 border-b border-white/10 last:border-0">
+                  <div className="text-sm text-white/70 mb-1">{row.feature}</div>
+                  <div className="flex items-center justify-between">
+                    {typeof row.finGuard === 'boolean' ? (
+                      <div className="flex items-center justify-center w-full">
+                        <Check className="w-6 h-6 text-accent-emerald" />
+                      </div>
+                    ) : (
+                      <div className="font-semibold text-white">{row.finGuard}</div>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Comparison Rows */}
-          {comparisonData.map((row, index) => (
-            <div 
-              key={index} 
-              className={`grid grid-cols-4 gap-4 p-6 items-center ${index % 2 === 0 ? 'bg-white' : 'bg-surface/50'} border-b border-border last:border-0 hover:bg-primary-indigo/5 transition-colors duration-200`}
-            >
-              {/* Feature Name */}
-              <div className="font-semibold text-foreground">{row.feature}</div>
-              
-              {/* FinGuard Value */}
-              <div className="text-center">
-                {typeof row.finGuard === 'boolean' ? (
-                  <div className="flex items-center justify-center">
-                    <div className="w-10 h-10 rounded-full bg-accent-emerald/20 flex items-center justify-center">
-                      <Check className="w-6 h-6 text-accent-emerald" />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="font-bold text-accent-emerald text-lg">{row.finGuard}</div>
-                )}
-              </div>
-              
-              {/* Consultant Value */}
-              <div className="text-center">
-                {typeof row.consultant === 'boolean' ? (
-                  <div className="flex items-center justify-center">
-                    <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center">
+          {/* Consultant Card */}
+          <div className="bg-white p-8 rounded-2xl shadow-medium border border-border hover:shadow-large transition-all duration-300">
+            <div className="inline-flex items-center gap-2 bg-surface px-3 py-1 rounded-full mb-4">
+              <span className="text-sm font-semibold text-text-secondary">Tradițional</span>
+            </div>
+            <h3 className="text-2xl font-bold text-foreground mb-6">Consultant Financiar</h3>
+            
+            {comparisonData.map((row, index) => (
+              <div key={index} className="mb-4 pb-4 border-b border-border last:border-0">
+                <div className="text-sm text-text-muted mb-1">{row.feature}</div>
+                <div className="flex items-center justify-between">
+                  {typeof row.consultant === 'boolean' ? (
+                    <div className="flex items-center justify-center w-full">
                       <X className="w-6 h-6 text-destructive" />
                     </div>
-                  </div>
-                ) : (
-                  <div className="font-medium text-destructive bg-destructive/10 inline-block px-3 py-1 rounded-full">
-                    {row.consultant}
-                  </div>
-                )}
+                  ) : row.consultant === 'partial' ? (
+                    <div className="font-medium text-destructive">Partajat</div>
+                  ) : (
+                    <div className="font-medium text-text-secondary">{row.consultant}</div>
+                  )}
+                </div>
               </div>
-              
-              {/* Manual Value */}
-              <div className="text-center">
-                {typeof row.manual === 'boolean' ? (
-                  <div className="flex items-center justify-center">
-                    {row.manual ? (
-                      <div className="w-10 h-10 rounded-full bg-text-muted/20 flex items-center justify-center">
-                        <Check className="w-6 h-6 text-text-muted" />
-                      </div>
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center">
-                        <X className="w-6 h-6 text-destructive" />
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="font-medium text-warning bg-warning/10 inline-block px-3 py-1 rounded-full">
-                    {row.manual}
-                  </div>
-                )}
-              </div>
+            ))}
+          </div>
+
+          {/* Manual Card */}
+          <div className="bg-white p-8 rounded-2xl shadow-medium border border-border hover:shadow-large transition-all duration-300">
+            <div className="inline-flex items-center gap-2 bg-surface px-3 py-1 rounded-full mb-4">
+              <span className="text-sm font-semibold text-text-secondary">Manual</span>
             </div>
-          ))}
+            <h3 className="text-2xl font-bold text-foreground mb-6">Analiză Manuală</h3>
+            
+            {comparisonData.map((row, index) => (
+              <div key={index} className="mb-4 pb-4 border-b border-border last:border-0">
+                <div className="text-sm text-text-muted mb-1">{row.feature}</div>
+                <div className="flex items-center justify-between">
+                  {typeof row.manual === 'boolean' ? (
+                    <div className="flex items-center justify-center w-full">
+                      {row.manual ? (
+                        <Check className="w-6 h-6 text-text-muted" />
+                      ) : (
+                        <X className="w-6 h-6 text-destructive" />
+                      )}
+                    </div>
+                  ) : (
+                    <div className="font-medium text-text-secondary">{row.manual}</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Key Benefits Summary */}
