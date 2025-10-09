@@ -40,7 +40,7 @@ const Newsletter = () => {
             </button>
           </form>
           
-          <p className="text-sm text-indigo-200 mt-4">
+          <p className="text-sm text-white/70 mt-4">
             🔒 Confidențialitate garantată. Poți anula abonamentul oricând.
           </p>
         </div>
