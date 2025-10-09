@@ -1,8 +1,6 @@
 import { ArrowRight } from 'lucide-react';
-
 const FinalCTASection = () => {
-  return (
-    <section className="section-padding-reduced bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 relative overflow-hidden">
+  return <section className="section-padding-reduced bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
@@ -26,20 +24,7 @@ const FinalCTASection = () => {
             </button>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-8 text-indigo-100">
-            <span className="flex items-center space-x-2">
-              <span>⚡</span>
-              <span>Setup în 2 minute</span>
-            </span>
-            <span className="flex items-center space-x-2">
-              <span>💳</span>
-              <span>Fără card necesar</span>
-            </span>
-            <span className="flex items-center space-x-2">
-              <span>✓</span>
-              <span>Anulare oricând</span>
-            </span>
-          </div>
+          
 
           {/* Floating Dashboard Elements */}
           <div className="absolute -top-8 -left-8 opacity-20">
@@ -53,8 +38,6 @@ const FinalCTASection = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default FinalCTASection;
