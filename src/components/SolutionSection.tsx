@@ -60,9 +60,36 @@ const SolutionSection = () => {
           <h2 className="subheadline text-gray-900 mb-6">
             FinGuard oferă claritate financiară instantanee
           </h2>
-          <p className="body-large text-gray-600 max-w-2xl mx-auto">
+          <p className="body-large text-gray-600 max-w-2xl mx-auto mb-12">
             Încarcă balanța, primește analiză completă – simplu ca atât
           </p>
+
+          {/* Stepper */}
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-center justify-between relative">
+              {/* Connection Line */}
+              <div className="absolute top-6 left-0 right-0 h-0.5 bg-indigo-200 -z-10"></div>
+              
+              {steps.map((step, index) => {
+                const IconComponent = step.icon;
+                return (
+                  <div key={index} className="flex flex-col items-center flex-1">
+                    {/* Step Circle */}
+                    <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center text-white font-bold shadow-lg mb-3">
+                      {step.number}
+                    </div>
+                    {/* Step Title */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <IconComponent className="w-4 h-4 text-indigo-600" />
+                      <p className="text-sm font-semibold text-gray-900">
+                        {step.title}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         <div className="space-y-20">
