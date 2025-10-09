@@ -57,7 +57,7 @@ const ComparisonSection = () => {
       return value ? <Check className={`w-5 h-5 ${isFinGuard ? 'text-emerald-600' : 'text-gray-400'}`} /> : <X className="w-5 h-5 text-red-500" />;
     }
     if (value === 'partial') {
-      return <span className="text-orange-500 text-sm">? Partajat</span>;
+      return <span className="text-orange-500 text-sm">Partajat </span>;
     }
     return <span className={`text-sm ${isFinGuard ? 'font-semibold text-emerald-600' : 'text-gray-600'}`}>
         {value}
