@@ -12,3 +12,16 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Disallow dashboard pages (necesită autentificare)
+Disallow: /dashboard
+Disallow: /incarcare-balanta
+Disallow: /analize-financiare
+Disallow: /indicatori-cheie
+Disallow: /analize-comparative
+Disallow: /previziuni-bugetare
+Disallow: /rapoarte-financiare
+Disallow: /alte-analize
+
+# Sitemap
+Sitemap: https://finguard.ro/sitemap.xml
