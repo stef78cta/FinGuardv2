@@ -67,7 +67,7 @@ export default {
   		},
   		fontFamily: {
   			sans: [
-  				'Poppins',
+  				'Lato',
   				'ui-sans-serif',
   				'system-ui',
   				'-apple-system',
@@ -80,7 +80,7 @@ export default {
   				'sans-serif'
   			],
   			serif: [
-  				'Merriweather',
+  				'EB Garamond',
   				'ui-serif',
   				'Georgia',
   				'Cambria',
@@ -89,7 +89,7 @@ export default {
   				'serif'
   			],
   			mono: [
-  				'JetBrains Mono',
+  				'Fira Code',
   				'ui-monospace',
   				'SFMono-Regular',
   				'Menlo',
@@ -220,7 +220,7 @@ export default {
   					transform: 'scale(1)'
   				}
   			},
-  			float: {
+  			'float': {
   				'0%, 100%': {
   					transform: 'translateY(0px)'
   				},
@@ -228,7 +228,7 @@ export default {
   					transform: 'translateY(-10px)'
   				}
   			},
-  			counter: {
+  			'counter': {
   				'0%': {
   					opacity: '0',
   					transform: 'scale(0.5)'
@@ -253,8 +253,8 @@ export default {
   			'fade-in-up': 'fade-in-up 0.6s ease-out',
   			'slide-in-right': 'slide-in-right 0.8s ease-out',
   			'scale-in': 'scale-in 0.4s ease-out',
-  			float: 'float 3s ease-in-out infinite',
-  			counter: 'counter 2s ease-out',
+  			'float': 'float 3s ease-in-out infinite',
+  			'counter': 'counter 2s ease-out',
   			'pulse-glow': 'pulse-glow 2s ease-in-out infinite'
   		}
   	}
