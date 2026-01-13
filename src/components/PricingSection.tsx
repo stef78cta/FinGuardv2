@@ -148,12 +148,12 @@ const PricingSection = () => {
 
                 {/* CTA */}
                 <button className={`w-full ${plan.ctaStyle} group`}>
-                  {plan.cta}
                   {plan.name === 'Enterprise' ? (
-                    <Phone className="w-5 h-5 ml-2 group-hover:scale-110 transition-transform duration-200" />
+                    <Phone className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-200" />
                   ) : (
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+                    <ArrowRight className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform duration-200" />
                   )}
+                  {plan.cta}
                 </button>
               </div>
             </div>
