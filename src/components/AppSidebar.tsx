@@ -41,7 +41,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-r border-gray-200 bg-surface">
-      <SidebarHeader className="px-4 py-4">
+      <SidebarHeader className="h-14 px-4 flex items-center border-b border-gray-200">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
             <TrendingUp className="w-5 h-5 text-white" />
@@ -54,9 +54,6 @@ export function AppSidebar() {
           )}
         </div>
       </SidebarHeader>
-
-      {/* Separator continuu pe toată lățimea */}
-      <div className="border-b border-gray-200 mx-0" />
 
       <SidebarContent>
         <SidebarGroup>
