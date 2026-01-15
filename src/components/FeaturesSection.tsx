@@ -75,13 +75,13 @@ const FeaturesSection = () => {
       className="section-padding-reduced bg-surface"
     >
       <div className="container-custom">
-        <div className="text-center mb-8 md:mb-12">
-          <h2 className="subheadline text-gray-900 mb-6">
+        <div className="text-center mb-6">
+          <h2 className="subheadline text-gray-900 mb-3">
             Tot ce ai nevoie pentru control financiar complet
           </h2>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             
@@ -97,15 +97,15 @@ const FeaturesSection = () => {
                   transitionDelay: `${index * 0.1}s`
                 }}
               >
-                <div className={`w-16 h-16 bg-gradient-to-br ${feature.gradient} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                  <IconComponent className="w-8 h-8 text-white" />
+                <div className={`w-12 h-12 bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <IconComponent className="w-6 h-6 text-white" />
                 </div>
                 
-                <h3 className="text-xl font-semibold text-gray-900 mb-4 group-hover:text-indigo-600 transition-colors duration-300">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors duration-300">
                   {feature.title}
                 </h3>
                 
-                <p className="body text-gray-600 leading-relaxed">
+                <p className="body text-gray-600">
                   {feature.description}
                 </p>
               </div>

@@ -68,20 +68,20 @@ const SolutionSection = () => {
           <div className="max-w-3xl mx-auto">
             <div className="flex items-center justify-between relative">
               {/* Connection Line */}
-              <div className="absolute top-6 left-0 right-0 h-0.5 bg-indigo-200 -z-10"></div>
+              <div className="absolute top-5 left-0 right-0 h-0.5 bg-indigo-200 -z-10"></div>
               
               {steps.map((step, index) => {
                 const IconComponent = step.icon;
                 return (
                   <div key={index} className="flex flex-col items-center flex-1">
                     {/* Step Circle */}
-                    <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center text-white font-bold shadow-lg mb-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-white text-sm font-bold shadow-md mb-2">
                       {step.number}
                     </div>
                     {/* Step Title */}
-                    <div className="flex items-center gap-2 mb-2">
-                      <IconComponent className="w-4 h-4 text-indigo-600" />
-                      <p className="text-sm font-semibold text-gray-900">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <IconComponent className="w-3.5 h-3.5 text-indigo-600" />
+                      <p className="text-xs font-semibold text-gray-900">
                         {step.title}
                       </p>
                     </div>
@@ -92,7 +92,7 @@ const SolutionSection = () => {
           </div>
         </div>
 
-        <div className="space-y-20">
+        <div className="space-y-12">
           {steps.map((step, index) => {
             const IconComponent = step.icon;
             const isEven = index % 2 === 0;
@@ -100,13 +100,13 @@ const SolutionSection = () => {
             return (
               <div
                 key={index}
-                className={`grid lg:grid-cols-2 gap-12 items-center ${
+                className={`grid lg:grid-cols-2 gap-8 items-center ${
                   !isEven ? 'lg:grid-flow-col-dense' : ''
                 }`}
               >
                 {/* Content */}
                 <div 
-                  className={`space-y-6 ${
+                  className={`space-y-4 ${
                     isVisible 
                       ? 'animate-fade-in-up' 
                       : 'opacity-0'
@@ -115,20 +115,20 @@ const SolutionSection = () => {
                     animationDelay: `${index * 0.3}s`,
                   }}
                 >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center text-white font-bold text-sm">
                       {step.number}
                     </div>
-                    <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center">
-                      <IconComponent className="w-6 h-6 text-indigo-600" />
+                    <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center">
+                      <IconComponent className="w-5 h-5 text-indigo-600" />
                     </div>
                   </div>
                   
-                  <h3 className="text-2xl font-bold text-gray-900">
+                  <h3 className="text-xl font-bold text-gray-900">
                     {step.title}
                   </h3>
                   
-                  <p className="body-large text-gray-600 leading-relaxed">
+                  <p className="body text-gray-600">
                     {step.description}
                   </p>
                 </div>
@@ -144,45 +144,45 @@ const SolutionSection = () => {
                     animationDelay: `${index * 0.3 + 0.2}s`,
                   }}
                 >
-                  <div className="bg-gray-50 rounded-2xl p-8 h-80 flex items-center justify-center border border-gray-100">
+                  <div className="bg-gray-50 rounded-xl p-6 h-60 flex items-center justify-center border border-gray-100">
                     {step.visual === 'upload-interface' && (
-                      <div className="w-full max-w-sm">
-                        <div className="border-2 border-dashed border-indigo-300 rounded-xl p-8 text-center bg-indigo-50/50">
-                          <Upload className="w-12 h-12 text-indigo-500 mx-auto mb-4" />
-                          <p className="text-indigo-700 font-medium">Drag & Drop balanța aici</p>
-                          <p className="text-sm text-indigo-600 mt-2">PDF, Excel, XLS</p>
+                      <div className="w-full max-w-xs">
+                        <div className="border-2 border-dashed border-indigo-300 rounded-lg p-6 text-center bg-indigo-50/50">
+                          <Upload className="w-10 h-10 text-indigo-500 mx-auto mb-3" />
+                          <p className="text-sm text-indigo-700 font-medium">Drag & Drop balanța aici</p>
+                          <p className="text-xs text-indigo-600 mt-1">PDF, Excel, XLS</p>
                         </div>
                       </div>
                     )}
 
                     {step.visual === 'processing-animation' && (
-                      <div className="space-y-4 w-full max-w-sm">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-4 h-4 bg-indigo-500 rounded-full animate-pulse"></div>
-                          <div className="h-2 bg-gray-200 rounded-full flex-1">
+                      <div className="space-y-3 w-full max-w-xs">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-3 h-3 bg-indigo-500 rounded-full animate-pulse"></div>
+                          <div className="h-1.5 bg-gray-200 rounded-full flex-1">
                             <div className="h-full bg-indigo-500 rounded-full w-3/4 animate-pulse"></div>
                           </div>
                         </div>
-                        <div className="text-sm text-gray-600">Analizez KPI-urile...</div>
-                        <div className="text-sm text-gray-600">Calculez previziunile...</div>
-                        <div className="text-sm text-gray-600">Generez raportul...</div>
+                        <div className="text-xs text-gray-600">Analizez KPI-urile...</div>
+                        <div className="text-xs text-gray-600">Calculez previziunile...</div>
+                        <div className="text-xs text-gray-600">Generez raportul...</div>
                       </div>
                     )}
 
                     {step.visual === 'dashboard-results' && (
-                      <div className="w-full max-w-sm space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-white p-4 rounded-lg shadow-soft">
-                            <div className="text-2xl font-bold text-emerald-600">87%</div>
-                            <div className="text-sm text-gray-600">Lichiditate</div>
+                      <div className="w-full max-w-xs space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-white p-3 rounded-lg shadow-sm">
+                            <div className="text-xl font-bold text-emerald-600">87%</div>
+                            <div className="text-xs text-gray-600">Lichiditate</div>
                           </div>
-                          <div className="bg-white p-4 rounded-lg shadow-soft">
-                            <div className="text-2xl font-bold text-indigo-600">15</div>
-                            <div className="text-sm text-gray-600">KPI-uri</div>
+                          <div className="bg-white p-3 rounded-lg shadow-sm">
+                            <div className="text-xl font-bold text-indigo-600">15</div>
+                            <div className="text-xs text-gray-600">KPI-uri</div>
                           </div>
                         </div>
-                        <div className="bg-white p-4 rounded-lg shadow-soft">
-                          <div className="h-20 bg-gradient-to-r from-indigo-400 to-purple-500 rounded opacity-80"></div>
+                        <div className="bg-white p-3 rounded-lg shadow-sm">
+                          <div className="h-14 bg-gradient-to-r from-indigo-400 to-purple-500 rounded opacity-80"></div>
                         </div>
                       </div>
                     )}
@@ -194,7 +194,7 @@ const SolutionSection = () => {
         </div>
 
         {/* CTA */}
-        <div className="text-center mt-20">
+        <div className="text-center mt-12">
           <button className="btn-primary">
             Începe analiza gratuită
           </button>

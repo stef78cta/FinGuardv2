@@ -52,13 +52,13 @@ const ProblemSection = () => {
       className="section-padding-reduced bg-gradient-to-b from-white to-surface"
     >
       <div className="container-narrow">
-        <div className="text-center mb-8 md:mb-12">
-          <h2 className="subheadline text-gray-900 mb-6">
+        <div className="text-center mb-6">
+          <h2 className="subheadline text-gray-900 mb-3">
             Cunosc frustrarea: zile întregi consumate de analiza manuală
           </h2>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-5">
           {problems.map((problem, index) => {
             const IconComponent = problem.icon;
             return (
@@ -74,15 +74,15 @@ const ProblemSection = () => {
                   transitionDelay: `${index * 0.1}s`
                 }}
               >
-                <div className={`w-16 h-16 ${problem.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-6`}>
-                  <IconComponent className={`w-8 h-8 ${problem.iconColor}`} />
+                <div className={`w-12 h-12 ${problem.bgColor} rounded-xl flex items-center justify-center mx-auto mb-4`}>
+                  <IconComponent className={`w-6 h-6 ${problem.iconColor}`} />
                 </div>
                 
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   {problem.title}
                 </h3>
                 
-                <p className="body text-gray-600 leading-relaxed">
+                <p className="body text-gray-600">
                   {problem.description}
                 </p>
               </div>
