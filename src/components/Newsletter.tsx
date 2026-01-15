@@ -33,7 +33,7 @@ const Newsletter = () => {
             />
             <button
               type="submit"
-              className="px-8 py-4 bg-emerald-500 text-white rounded-lg font-semibold hover:bg-emerald-600 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+              className="px-8 py-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
             >
               Abonează-te
               <Send className="w-5 h-5" />
