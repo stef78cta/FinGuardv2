@@ -38,27 +38,27 @@ const FAQSection = () => {
   return (
     <section id="faq" className="section-padding-reduced bg-surface">
       <div className="container-narrow">
-        <div className="text-center mb-8 md:mb-12">
-          <h2 className="subheadline text-gray-900 mb-6">
+        <div className="text-center mb-6">
+          <h2 className="subheadline text-gray-900 mb-3">
             Întrebări frecvente
           </h2>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-3">
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className="bg-white rounded-xl border border-gray-100 overflow-hidden"
+              className="bg-white rounded-lg border border-gray-100 overflow-hidden"
             >
               <button
                 onClick={() => toggleFAQ(index)}
-                className="w-full text-left p-6 hover:bg-gray-50 transition-colors duration-200 flex items-center justify-between"
+                className="w-full text-left p-4 hover:bg-gray-50 transition-colors duration-200 flex items-center justify-between"
               >
-                <span className="font-semibold text-gray-900 pr-4">
+                <span className="font-semibold text-sm text-gray-900 pr-3">
                   {faq.question}
                 </span>
                 <ChevronDown 
-                  className={`w-5 h-5 text-gray-500 transition-transform duration-300 flex-shrink-0 ${
+                  className={`w-4 h-4 text-gray-500 transition-transform duration-300 flex-shrink-0 ${
                     openIndex === index ? 'rotate-180' : ''
                   }`}
                 />
@@ -71,8 +71,8 @@ const FAQSection = () => {
                     : 'max-h-0 opacity-0'
                 }`}
               >
-                <div className="px-6 pb-6">
-                  <p className="body text-gray-600 leading-relaxed">
+                <div className="px-4 pb-4">
+                  <p className="text-sm text-gray-600">
                     {faq.answer}
                   </p>
                 </div>

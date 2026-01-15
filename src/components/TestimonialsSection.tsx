@@ -66,8 +66,8 @@ const TestimonialsSection = () => {
   };
   return <section id="testimonials" ref={sectionRef} className="section-padding-reduced bg-white border-t border-gray-100">
       <div className="container-custom">
-        <div className="text-center mb-8 md:mb-12">
-          <h2 className="subheadline text-gray-900 mb-6">
+        <div className="text-center mb-6">
+          <h2 className="subheadline text-gray-900 mb-3">
             Folosit de companiile care iau decizii bazate pe date
           </h2>
         </div>
