@@ -49,16 +49,20 @@ const ProblemSection = () => {
   return (
     <section 
       ref={sectionRef}
-      className="section-padding-reduced bg-gradient-to-b from-white to-surface"
+      className="section-padding bg-gradient-to-b from-white to-surface"
     >
       <div className="container-narrow">
-        <div className="text-center mb-6">
-          <h2 className="subheadline text-gray-900 mb-3">
+        {/* Header with proper hierarchy */}
+        <div className="text-center mb-10">
+          <h2 className="section-title text-gray-900 mb-4">
             Cunosc frustrarea: zile întregi consumate de analiza manuală
           </h2>
+          <p className="body-large text-gray-600 max-w-2xl mx-auto">
+            Probleme pe care le întâlnesc zilnic antreprenorii și contabilii
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid md:grid-cols-3 gap-6">
           {problems.map((problem, index) => {
             const IconComponent = problem.icon;
             return (
@@ -74,11 +78,11 @@ const ProblemSection = () => {
                   transitionDelay: `${index * 0.1}s`
                 }}
               >
-                <div className={`w-12 h-12 ${problem.bgColor} rounded-xl flex items-center justify-center mx-auto mb-4`}>
-                  <IconComponent className={`w-6 h-6 ${problem.iconColor}`} />
+                <div className={`w-14 h-14 ${problem.bgColor} rounded-xl flex items-center justify-center mx-auto mb-4`}>
+                  <IconComponent className={`w-7 h-7 ${problem.iconColor}`} />
                 </div>
                 
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg font-bold text-gray-900 mb-3">
                   {problem.title}
                 </h3>
                 
