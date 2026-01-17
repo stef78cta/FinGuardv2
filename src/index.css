@@ -359,6 +359,164 @@
   .micro-copy {
     @apply text-xs text-gray-500 mt-2;
   }
+
+  /* ============================================
+     APP-SPECIFIC DESIGN SYSTEM
+     ============================================ */
+
+  /* Page Headers - Application Pages */
+  .page-header {
+    @apply mb-8;
+  }
+
+  .page-title {
+    @apply text-2xl md:text-3xl font-bold tracking-tight mb-2;
+    color: hsl(var(--foreground));
+  }
+
+  .page-description {
+    @apply text-sm md:text-base;
+    color: hsl(var(--foreground-secondary));
+  }
+
+  /* App Container - Slightly tighter than landing */
+  .container-app {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8;
+  }
+
+  /* App Cards - Standardized */
+  .card-app {
+    @apply bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
+  .card-app-header {
+    @apply px-5 py-4 border-b border-gray-100;
+  }
+
+  .card-app-content {
+    @apply p-5;
+  }
+
+  /* KPI Cards */
+  .kpi-card {
+    @apply bg-white rounded-xl border border-gray-100 p-5 hover:shadow-md transition-all duration-300 hover:border-indigo-100;
+  }
+
+  .kpi-value {
+    @apply text-2xl md:text-3xl font-bold tracking-tight;
+    color: hsl(var(--foreground));
+  }
+
+  .kpi-label {
+    @apply text-sm font-medium;
+    color: hsl(var(--foreground-secondary));
+  }
+
+  .kpi-trend-up {
+    @apply text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-xs font-medium inline-flex items-center gap-1;
+  }
+
+  .kpi-trend-down {
+    @apply text-red-600 bg-red-50 px-2 py-0.5 rounded-full text-xs font-medium inline-flex items-center gap-1;
+  }
+
+  /* Financial Tables */
+  .table-financial {
+    @apply w-full text-sm;
+  }
+
+  .table-financial th {
+    @apply px-4 py-3 text-left font-semibold bg-gray-50 border-b border-gray-200 text-foreground;
+  }
+
+  .table-financial td {
+    @apply px-4 py-3 border-b border-gray-100;
+  }
+
+  .table-row-total {
+    @apply bg-gray-50 font-bold;
+  }
+
+  .table-row-subtotal {
+    @apply bg-gray-50/50 font-semibold;
+  }
+
+  /* App Section Title */
+  .app-section-title {
+    @apply text-lg font-semibold tracking-tight mb-4;
+    color: hsl(var(--foreground));
+  }
+
+  /* Chart Card Wrapper */
+  .chart-card {
+    @apply bg-white rounded-xl border border-gray-100 overflow-hidden;
+  }
+
+  .chart-card-header {
+    @apply px-5 py-4 border-b border-gray-100 flex items-center justify-between;
+  }
+
+  .chart-card-content {
+    @apply p-5;
+  }
+
+  /* Quick Action Button */
+  .btn-action {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200;
+    @apply bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-foreground border border-gray-200;
+  }
+
+  .btn-action:hover {
+    @apply border-gray-300 shadow-sm;
+  }
+
+  /* Stat Badge */
+  .stat-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+
+  .stat-badge-success {
+    @apply bg-emerald-50 text-emerald-700;
+  }
+
+  .stat-badge-warning {
+    @apply bg-amber-50 text-amber-700;
+  }
+
+  .stat-badge-danger {
+    @apply bg-red-50 text-red-700;
+  }
+
+  .stat-badge-info {
+    @apply bg-blue-50 text-blue-700;
+  }
+
+  /* App Header Bar */
+  .app-header {
+    @apply h-14 border-b border-gray-200 bg-white/80 backdrop-blur-sm flex items-center px-4 sticky top-0 z-20;
+  }
+
+  /* Sidebar Active State with Gradient */
+  .sidebar-item-active {
+    @apply bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 font-semibold border-l-4 border-indigo-600;
+  }
+
+  /* Empty State */
+  .empty-state {
+    @apply flex flex-col items-center justify-center py-12 text-center;
+  }
+
+  .empty-state-icon {
+    @apply w-16 h-16 text-gray-300 mb-4;
+  }
+
+  .empty-state-title {
+    @apply text-lg font-semibold text-foreground mb-1;
+  }
+
+  .empty-state-description {
+    @apply text-sm text-foreground-secondary;
+  }
 }
 
 @keyframes fadeInUp {
