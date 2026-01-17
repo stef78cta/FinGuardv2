@@ -468,11 +468,11 @@ const RapoarteFinanciare = () => {
 
   if (!selectedBalanta || !selectedBalance) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container-app">
         {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Rapoarte Financiare</h1>
-          <p className="text-foreground-secondary">
+        <div className="page-header">
+          <h1 className="page-title">Rapoarte Financiare</h1>
+          <p className="page-description">
             Generați și vizualizați rapoarte financiare detaliate
           </p>
         </div>

@@ -497,19 +497,17 @@ const AlteAnalize = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container-app">
       {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground mb-2">
-          Alte Analize
-        </h1>
-        <p className="text-foreground-secondary">
+      <div className="page-header">
+        <h1 className="page-title">Alte Analize</h1>
+        <p className="page-description">
           Analize suplimentare și rapoarte personalizate
         </p>
       </div>
 
       {/* Explanatory Text */}
-      <div className="bg-muted/50 border border-border rounded-lg p-4 mb-8">
+      <div className="card-app p-4 mb-6">
         <p className="text-sm text-foreground leading-relaxed">
           Selectați lunile ale căror valori doriți să le vizualizați. Rapoartele redau informații 
           despre datele realizate în cadrul unei luni. Se pot compara rezultate realizate lunar 
