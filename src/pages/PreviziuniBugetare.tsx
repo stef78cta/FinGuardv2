@@ -169,9 +169,9 @@ const PreviziuniBugetare = () => {
       />
 
       {/* Timeline & Controls */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
         {/* Timeline */}
-        <Card className="p-5">
+        <Card className="p-5 lg:col-span-1">
           <h3 className="app-section-title">Etape Previziune</h3>
           <div className="space-y-2">
             <TimelineStep step={1} title="Încărcare date istorice" status="completed" />
@@ -182,7 +182,7 @@ const PreviziuniBugetare = () => {
         </Card>
 
         {/* Scenario Cards */}
-        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-3 gap-4">
           <ScenarioCard 
             title="Optimist"
             type="optimist"
@@ -292,7 +292,9 @@ const PreviziuniBugetare = () => {
       </ChartCard>
 
       {/* Monthly Breakdown Table */}
-      <div className="card-app">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-4 lg:col-start-2">
+          <div className="card-app">
         <div className="card-app-header">
           <h3 className="font-semibold text-foreground">Detaliere Lunară Previziuni</h3>
         </div>
@@ -326,6 +328,8 @@ const PreviziuniBugetare = () => {
               ))}
             </tbody>
           </table>
+        </div>
+          </div>
         </div>
       </div>
     </div>

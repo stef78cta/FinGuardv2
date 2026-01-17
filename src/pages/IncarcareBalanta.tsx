@@ -249,7 +249,7 @@ const IncarcareBalanta = () => {
 
         {/* Date Picker Section */}
         <div className="p-6 border-b">
-          <div className="max-w-md">
+          <div className="max-w-sm">
             <Label htmlFor="reference-date" className="text-sm font-semibold mb-2 block">
               Data de Referință <span className="text-destructive">*</span>
             </Label>
