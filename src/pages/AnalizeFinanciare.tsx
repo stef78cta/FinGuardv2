@@ -137,8 +137,8 @@ const AnalizeFinanciare = () => {
 
         {/* Structura Cheltuielilor */}
         <TabsContent value="cheltuieli" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ChartCard title="Distribuția Cheltuielilor" subtitle="Ponderea fiecărei categorii">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <ChartCard title="Distribuția Cheltuielilor" subtitle="Ponderea fiecărei categorii" className="lg:col-span-3">
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartsPieChart>
@@ -162,7 +162,7 @@ const AnalizeFinanciare = () => {
               </div>
             </ChartCard>
 
-            <div className="card-app">
+            <div className="card-app lg:col-span-2">
               <div className="card-app-header">
                 <h3 className="font-semibold text-foreground">Detalii Cheltuieli</h3>
               </div>

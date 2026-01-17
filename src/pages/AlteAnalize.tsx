@@ -267,12 +267,12 @@ const ChartSection = ({
   }, [chartData, filters]);
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
+    <div className="p-5">
+      <h2 className="text-xl font-bold text-foreground mb-5 text-center">
         ANALIZA CHELTUIELILOR
       </h2>
       
-      <div className="h-[400px] mb-6">
+      <div className="h-[380px] mb-5">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={filteredData}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />

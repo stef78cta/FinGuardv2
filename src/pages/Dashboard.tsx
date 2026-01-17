@@ -104,9 +104,9 @@ const Dashboard = () => {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Monthly Evolution Chart - Takes 2 columns */}
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+        {/* Monthly Evolution Chart - Takes 3 columns */}
+        <div className="lg:col-span-3">
           <ChartCard 
             title="Evoluție Lunară" 
             subtitle="Venituri, cheltuieli și profit din ultimele 6 luni"
@@ -178,7 +178,9 @@ const Dashboard = () => {
       </div>
 
       {/* Top Accounts Table */}
-      <div className="card-app">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3">
+          <div className="card-app">
         <div className="card-app-header flex items-center justify-between">
           <div>
             <h3 className="font-semibold text-foreground">Top 5 Conturi</h3>
@@ -213,6 +215,8 @@ const Dashboard = () => {
               ))}
             </tbody>
           </table>
+        </div>
+          </div>
         </div>
       </div>
     </div>
