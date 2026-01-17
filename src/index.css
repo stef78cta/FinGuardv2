@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap");
@@ -24,10 +24,10 @@
     --surface: 210 40% 98%;
     --surface-elevated: 0 0% 100%;
 
-    /* Text Colors */
+    /* Text Colors - Improved contrast */
     --foreground: 0 0% 9%;
-    --foreground-secondary: 215 16% 47%;
-    --foreground-muted: 215 14% 61%;
+    --foreground-secondary: 215 20% 40%;
+    --foreground-muted: 215 16% 50%;
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary-indigo)), hsl(var(--primary-indigo-dark)));
@@ -58,6 +58,7 @@
     --shadow-medium: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-large: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
+    --shadow-hero: 0 20px 40px -15px hsl(243 75% 58% / 0.35);
 
     /* Animations */
     --transition-fast: 0.15s ease-out;
@@ -67,59 +68,35 @@
     --radius: 1.25rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 0 0% 9%;
-
     --sidebar-primary: 243 75% 58%;
-
     --sidebar-primary-foreground: 225 100% 96%;
-
     --sidebar-accent: 0 0% 32%;
-
     --sidebar-accent-foreground: 0 0% 98%;
-
     --sidebar-border: 0 0% 83%;
-
     --sidebar-ring: 243 75% 58%;
-
     --popover: 0 0% 89%;
-
     --popover-foreground: 0 0% 9%;
-
     --chart-1: 234 89% 73%;
-
     --chart-2: 255 91% 76%;
-
     --chart-3: 270 95% 75%;
-
     --chart-4: 238 83% 66%;
-
     --chart-5: 0 0% 45%;
-
     --sidebar: 0 0% 98%;
 
     --font-sans: 'Lato', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-
     --font-serif: 'EB Garamond', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-
     --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 
     --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-
     --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-
     --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-
     --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-
     --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
-
     --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
-
     --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
 
     --tracking-normal: 0em;
-
     --spacing: 0.25rem;
   }
 
@@ -189,57 +166,91 @@
 }
 
 @layer components {
-  /* Typography Scale - Compact */
+  /* ============================================
+     TYPOGRAPHY SCALE - Enhanced Hierarchy
+     ============================================ */
+  
+  /* Headline - Significantly larger for visual dominance */
   .headline {
-    @apply text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight;
-    font-weight: 800;
-    line-height: 1.05;
+    @apply text-4xl md:text-5xl lg:text-6xl tracking-tight;
+    font-weight: 900;
+    line-height: 1.0;
   }
 
+  /* Subheadline - Clear differentiation from headline */
   .subheadline {
-    @apply text-lg md:text-xl font-semibold;
-    font-weight: 600;
-    line-height: 1.3;
+    @apply text-base md:text-lg;
+    font-weight: 500;
+    line-height: 1.5;
+    color: hsl(var(--foreground-secondary));
   }
 
+  /* Section Title - Distinct from subheadline */
+  .section-title {
+    @apply text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight;
+    line-height: 1.15;
+    color: hsl(var(--foreground));
+  }
+
+  /* Body text - Enhanced line-height for readability */
   .body-large {
     @apply text-base md:text-lg;
     font-weight: 400;
-    line-height: 1.5;
+    line-height: 1.65;
   }
 
   .body {
     @apply text-sm md:text-base;
     font-weight: 400;
-    line-height: 1.5;
+    line-height: 1.6;
   }
 
   .text-small {
     @apply text-xs md:text-sm leading-normal font-medium;
     font-weight: 500;
-    line-height: 1.4;
+    line-height: 1.5;
   }
 
-  /* Button Variants - Compact */
-  .btn-primary {
-    @apply bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold text-base shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02];
-  }
+  /* ============================================
+     BUTTON SYSTEM - Hierarchical Differentiation
+     ============================================ */
 
-  .btn-secondary {
-    @apply bg-white text-gray-900 border border-gray-200 px-6 py-3 rounded-lg font-semibold text-base hover:border-indigo-300 hover:bg-gray-50 transition-all duration-300;
-  }
-
+  /* CTA Principal (Hero Only) - Dominant, eye-catching */
   .btn-hero {
-    @apply bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 text-white px-8 py-3.5 rounded-xl font-bold text-lg shadow-xl hover:shadow-indigo-500/25 hover:scale-[1.02] transition-all duration-300;
+    @apply bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 text-white px-10 py-4 rounded-xl font-bold text-lg shadow-xl hover:scale-[1.03] transition-all duration-300;
+    box-shadow: var(--shadow-hero);
   }
 
+  .btn-hero:hover {
+    box-shadow: 0 25px 50px -15px hsl(243 75% 58% / 0.45);
+  }
+
+  /* CTA Primar (Secțiuni) - Prominent but secondary to hero */
+  .btn-primary {
+    @apply bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-7 py-3.5 rounded-lg font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02];
+  }
+
+  /* CTA Secundar - Visually distinct, less prominent */
+  .btn-secondary {
+    @apply bg-white text-gray-700 border border-gray-300 px-5 py-2.5 rounded-lg font-medium text-sm hover:border-gray-400 hover:bg-gray-50 transition-all duration-300;
+  }
+
+  /* Ghost Button - Minimal, for secondary actions */
   .btn-ghost {
-    @apply bg-transparent text-indigo-600 border border-indigo-200 px-6 py-3 rounded-lg font-semibold text-base hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-300;
+    @apply bg-transparent text-gray-600 border border-gray-200 px-5 py-2.5 rounded-lg font-medium text-sm hover:bg-gray-50 hover:border-gray-300 transition-all duration-300;
   }
 
-  /* Card Styles - Compact */
+  /* ============================================
+     CARD STYLES - Compact & Consistent
+     ============================================ */
+  
   .card-feature {
     @apply bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 border border-gray-100;
+  }
+
+  /* Featured card for high-impact items */
+  .card-feature-highlight {
+    @apply bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 border-indigo-100;
   }
 
   .card-testimonial {
@@ -254,13 +265,16 @@
     @apply bg-gradient-to-br from-indigo-50 to-purple-50 p-5 rounded-xl shadow-md border-2 border-indigo-200 transform scale-[1.02];
   }
 
-  /* Section Spacing - Compact (reduced ~35%) */
+  /* ============================================
+     SECTION SPACING - Standardized
+     ============================================ */
+  
   .section-padding {
-    @apply py-14 md:py-20;
+    @apply py-16 md:py-20;
   }
 
   .section-padding-reduced {
-    @apply py-10 md:py-14;
+    @apply py-12 md:py-16;
   }
 
   .container-custom {
@@ -271,7 +285,10 @@
     @apply max-w-4xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
-  /* Animations */
+  /* ============================================
+     ANIMATIONS
+     ============================================ */
+  
   .fade-in-up {
     animation: fadeInUp 0.6s ease-out forwards;
     opacity: 0;
@@ -290,13 +307,57 @@
     animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
-  /* Gradient Text */
+  /* ============================================
+     GRADIENT TEXT - Reserved for emphasis only
+     ============================================ */
+  
   .gradient-text {
     @apply bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent;
   }
 
   .gradient-text-success {
     @apply bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent;
+  }
+
+  /* ============================================
+     STEPPER ANIMATION STYLES
+     ============================================ */
+  
+  .step-circle {
+    @apply w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500;
+  }
+
+  .step-circle-active {
+    @apply bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg scale-110;
+    box-shadow: 0 0 20px hsl(243 75% 58% / 0.4);
+  }
+
+  .step-circle-completed {
+    @apply bg-gradient-to-r from-indigo-400 to-purple-500 text-white shadow-md;
+  }
+
+  .step-circle-pending {
+    @apply bg-gray-100 text-gray-400 border-2 border-gray-200;
+  }
+
+  .step-content {
+    @apply transition-all duration-500;
+  }
+
+  .step-content-active {
+    @apply opacity-100 transform scale-100;
+  }
+
+  .step-content-pending {
+    @apply opacity-40 transform scale-95;
+  }
+
+  /* ============================================
+     MICRO-COPY HELPER
+     ============================================ */
+  
+  .micro-copy {
+    @apply text-xs text-gray-500 mt-2;
   }
 }
 
@@ -339,5 +400,14 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes progressLine {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
   }
 }

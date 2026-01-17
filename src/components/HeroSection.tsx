@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Play, ArrowRight } from 'lucide-react';
+import { Play, ArrowRight, Shield, Clock } from 'lucide-react';
 import dashboardMockup from '../assets/dashboard-mockup.png';
 
 const HeroSection = () => {
@@ -53,7 +53,7 @@ const HeroSection = () => {
     <section 
       id="hero"
       ref={heroRef}
-      className="relative min-h-[85vh] flex items-center section-padding-reduced overflow-hidden pt-20"
+      className="relative min-h-[auto] py-12 md:min-h-[80vh] md:py-0 flex items-center overflow-hidden pt-20 md:pt-24"
     >
       {/* Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/50"></div>
@@ -61,16 +61,21 @@ const HeroSection = () => {
       <div className="absolute bottom-10 left-10 w-64 h-64 bg-gradient-to-br from-emerald-400/10 to-teal-500/10 rounded-full blur-3xl"></div>
 
       <div className="container-custom relative z-10">
-        <div className="grid lg:grid-cols-2 gap-10 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left Content */}
-          <div className="space-y-5">
-            <div className="space-y-4">
-              <h1 className="headline text-gray-900 animate-fade-in-up">
-                Cum să obții 
-                <span className="gradient-text block">
+          <div className="space-y-6">
+            {/* Headline with clear hierarchy */}
+            <div className="space-y-5">
+              <h1 className="animate-fade-in-up">
+                <span className="block text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-2">
+                  Cum să obții
+                </span>
+                <span className="block headline gradient-text">
                   analiză financiară de nivel CFO
                 </span>
-                în 30 de secunde, fără consultanți scumpi
+                <span className="block text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-700 mt-2">
+                  în 30 de secunde, fără consultanți scumpi
+                </span>
               </h1>
               
               <p className="body-large text-gray-600 max-w-xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
@@ -79,45 +84,59 @@ const HeroSection = () => {
               </p>
             </div>
 
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-3 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-              <button className="btn-hero group">
-                Analizează gratuit o balanță de verificare
-              </button>
+            {/* CTAs with clear differentiation */}
+            <div className="flex flex-col gap-3 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+              {/* Primary CTA - Dominant */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button className="btn-hero group inline-flex items-center justify-center">
+                  <ArrowRight className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform duration-200" />
+                  Analizează gratuit o balanță
+                </button>
+                
+                {/* Secondary CTA - Clearly different */}
+                <button 
+                  onClick={scrollToDemo}
+                  className="btn-ghost group inline-flex items-center justify-center"
+                >
+                  <Play className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-200" />
+                  Vezi demo
+                </button>
+              </div>
               
-              <button 
-                onClick={scrollToDemo}
-                className="btn-ghost group inline-flex items-center justify-center"
-              >
-                <Play className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-200" />
-                Vezi analiză demo
-              </button>
+              {/* Micro-copy for reassurance */}
+              <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                <span className="inline-flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-emerald-500" />
+                  Fără card de credit
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                  Rezultate în 30 secunde
+                </span>
+              </div>
             </div>
 
-            {/* Trust Bar */}
-            <div className="animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-              <p className="text-small text-gray-500 mb-3">
-                Peste 500 de companii românești folosesc FinGuard zilnic
+            {/* Trust Bar - Hidden on mobile for CTA visibility */}
+            <div className="hidden sm:block animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+              <p className="text-small text-gray-500 mb-2">
+                Peste 500 de companii românești folosesc FinGuard
               </p>
-              <div className="flex items-center space-x-6 opacity-60">
-                <div className="w-20 h-6 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-500">COMPANY</span>
+              <div className="flex items-center space-x-4 opacity-50">
+                <div className="w-16 h-5 bg-gray-200 rounded flex items-center justify-center">
+                  <span className="text-[10px] font-medium text-gray-500">COMPANY</span>
                 </div>
-                <div className="w-20 h-6 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-500">BRAND</span>
+                <div className="w-16 h-5 bg-gray-200 rounded flex items-center justify-center">
+                  <span className="text-[10px] font-medium text-gray-500">BRAND</span>
                 </div>
-                <div className="w-20 h-6 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-500">CORP</span>
-                </div>
-                <div className="w-20 h-6 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-500">FIRM</span>
+                <div className="w-16 h-5 bg-gray-200 rounded flex items-center justify-center">
+                  <span className="text-[10px] font-medium text-gray-500">CORP</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Right Content - Dashboard Mockup */}
-          <div className="relative animate-slide-in-right lg:mt-0">
+          <div className="relative animate-slide-in-right lg:mt-0 order-first lg:order-last">
             <div className="relative">
               <img 
                 src={dashboardMockup}
@@ -126,25 +145,25 @@ const HeroSection = () => {
               />
               
               {/* Floating Metric Cards - Compact */}
-              <div className="hidden md:block absolute -top-4 -left-4 bg-white p-3 rounded-lg shadow-md border border-gray-100 float-animation">
-                <div className="text-xl font-bold gradient-text">
+              <div className="hidden md:block absolute -top-3 -left-3 bg-white p-3 rounded-lg shadow-md border border-gray-100 float-animation">
+                <div className="text-lg font-bold gradient-text">
                   {Math.round(counters.saved)}%
                 </div>
-                <div className="text-xs text-gray-600">timp economisit</div>
+                <div className="text-[10px] text-gray-600">timp economisit</div>
               </div>
 
-              <div className="hidden md:block absolute top-6 -right-6 bg-white p-3 rounded-lg shadow-md border border-gray-100 float-animation" style={{ animationDelay: '0.5s' }}>
-                <div className="text-xl font-bold gradient-text">
+              <div className="hidden md:block absolute top-4 -right-4 bg-white p-3 rounded-lg shadow-md border border-gray-100 float-animation" style={{ animationDelay: '0.5s' }}>
+                <div className="text-lg font-bold gradient-text">
                   {Math.round(counters.kpis)}
                 </div>
-                <div className="text-xs text-gray-600">KPI-uri calculate</div>
+                <div className="text-[10px] text-gray-600">KPI-uri calculate</div>
               </div>
 
-              <div className="hidden md:block absolute -bottom-3 -left-6 bg-white p-3 rounded-lg shadow-md border border-gray-100 float-animation" style={{ animationDelay: '1s' }}>
-                <div className="text-xl font-bold gradient-text-success">
+              <div className="hidden md:block absolute -bottom-2 -left-4 bg-white p-3 rounded-lg shadow-md border border-gray-100 float-animation" style={{ animationDelay: '1s' }}>
+                <div className="text-lg font-bold gradient-text-success">
                   {counters.accuracy.toFixed(1)}%
                 </div>
-                <div className="text-xs text-gray-600">acuratețe</div>
+                <div className="text-[10px] text-gray-600">acuratețe</div>
               </div>
             </div>
           </div>
