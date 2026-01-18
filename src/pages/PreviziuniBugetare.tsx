@@ -1,20 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Calendar, 
   TrendingUp, 
   TrendingDown,
   Target,
-  AlertCircle,
-  CheckCircle,
-  ChevronRight,
-  Settings,
-  Play
+  Play,
+  Upload,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { PageHeader } from '@/components/app/PageHeader';
 import { ChartCard } from '@/components/app/ChartCard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -30,31 +29,10 @@ import {
   Line,
   ComposedChart
 } from 'recharts';
-
-// Mock forecast data
-const forecastData = [
-  { month: 'Ian', actual: 245000, forecast: null, optimist: null, pesimist: null },
-  { month: 'Feb', actual: 268000, forecast: null, optimist: null, pesimist: null },
-  { month: 'Mar', actual: 285000, forecast: null, optimist: null, pesimist: null },
-  { month: 'Apr', actual: 295000, forecast: null, optimist: null, pesimist: null },
-  { month: 'Mai', actual: 310000, forecast: null, optimist: null, pesimist: null },
-  { month: 'Iun', actual: 328000, forecast: null, optimist: null, pesimist: null },
-  { month: 'Iul', actual: null, forecast: 345000, optimist: 365000, pesimist: 325000 },
-  { month: 'Aug', actual: null, forecast: 358000, optimist: 385000, pesimist: 335000 },
-  { month: 'Sep', actual: null, forecast: 372000, optimist: 410000, pesimist: 340000 },
-  { month: 'Oct', actual: null, forecast: 385000, optimist: 430000, pesimist: 350000 },
-  { month: 'Nov', actual: null, forecast: 398000, optimist: 455000, pesimist: 355000 },
-  { month: 'Dec', actual: null, forecast: 415000, optimist: 480000, pesimist: 365000 },
-];
-
-const monthlyBreakdown = [
-  { month: 'Iulie 2025', venituri: 345000, cheltuieli: 275000, profit: 70000, variation: 5.2 },
-  { month: 'August 2025', venituri: 358000, cheltuieli: 282000, profit: 76000, variation: 8.6 },
-  { month: 'Septembrie 2025', venituri: 372000, cheltuieli: 290000, profit: 82000, variation: 7.9 },
-  { month: 'Octombrie 2025', venituri: 385000, cheltuieli: 298000, profit: 87000, variation: 6.1 },
-  { month: 'Noiembrie 2025', venituri: 398000, cheltuieli: 308000, profit: 90000, variation: 3.4 },
-  { month: 'Decembrie 2025', venituri: 415000, cheltuieli: 318000, profit: 97000, variation: 7.8 },
-];
+import { useBalante, BalanceWithAccounts } from '@/hooks/useBalante';
+import { useFinancialCalculations } from '@/hooks/useFinancialCalculations';
+import { format, addMonths } from 'date-fns';
+import { ro } from 'date-fns/locale';
 
 const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat('ro-RO', {
@@ -64,43 +42,6 @@ const formatCurrency = (value: number): string => {
     maximumFractionDigits: 0,
   }).format(value);
 };
-
-const TimelineStep = ({ 
-  step, 
-  title, 
-  status, 
-  isLast 
-}: { 
-  step: number; 
-  title: string; 
-  status: 'completed' | 'current' | 'pending'; 
-  isLast?: boolean;
-}) => (
-  <div className="flex items-start gap-3">
-    <div className="flex flex-col items-center">
-      <div className={cn(
-        "step-circle text-sm",
-        status === 'completed' && "step-circle-completed",
-        status === 'current' && "step-circle-active",
-        status === 'pending' && "step-circle-pending"
-      )}>
-        {status === 'completed' ? <CheckCircle className="w-5 h-5" /> : step}
-      </div>
-      {!isLast && (
-        <div className={cn(
-          "w-0.5 h-12 mt-2",
-          status === 'completed' ? "bg-gradient-to-b from-indigo-500 to-purple-500" : "bg-gray-200"
-        )} />
-      )}
-    </div>
-    <div className="pt-2">
-      <span className={cn(
-        "font-medium",
-        status === 'current' ? "text-indigo-600" : "text-foreground"
-      )}>{title}</span>
-    </div>
-  </div>
-);
 
 const ScenarioCard = ({ 
   title, 
@@ -117,23 +58,23 @@ const ScenarioCard = ({
 }) => (
   <div className={cn(
     "card-app p-5",
-    type === 'optimist' && "border-emerald-200 bg-gradient-to-br from-emerald-50/50 to-green-50/50",
-    type === 'realistic' && "border-indigo-200 bg-gradient-to-br from-indigo-50/50 to-purple-50/50",
-    type === 'pesimist' && "border-amber-200 bg-gradient-to-br from-amber-50/50 to-orange-50/50"
+    type === 'optimist' && "border-accent/30 bg-gradient-to-br from-accent/5 to-accent/10",
+    type === 'realistic' && "border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10",
+    type === 'pesimist' && "border-warning/30 bg-gradient-to-br from-warning/5 to-warning/10"
   )}>
     <div className="flex items-center justify-between mb-3">
       <Badge variant="outline" className={cn(
-        type === 'optimist' && "border-emerald-300 text-emerald-700",
-        type === 'realistic' && "border-indigo-300 text-indigo-700",
-        type === 'pesimist' && "border-amber-300 text-amber-700"
+        type === 'optimist' && "border-accent text-accent",
+        type === 'realistic' && "border-primary text-primary",
+        type === 'pesimist' && "border-warning text-warning"
       )}>
         {title}
       </Badge>
       <Target className={cn(
         "w-5 h-5",
-        type === 'optimist' && "text-emerald-500",
-        type === 'realistic' && "text-indigo-500",
-        type === 'pesimist' && "text-amber-500"
+        type === 'optimist' && "text-accent",
+        type === 'realistic' && "text-primary",
+        type === 'pesimist' && "text-warning"
       )} />
     </div>
     <div className="text-2xl font-bold text-foreground mb-1">
@@ -142,75 +83,257 @@ const ScenarioCard = ({
     <div className="flex items-center gap-2 text-sm">
       <span className={cn(
         "font-medium",
-        change > 0 ? "text-emerald-600" : "text-red-600"
+        change > 0 ? "text-accent" : "text-destructive"
       )}>
-        {change > 0 ? '+' : ''}{change}%
+        {change > 0 ? '+' : ''}{change.toFixed(1)}%
       </span>
-      <span className="text-gray-500">vs. actual</span>
+      <span className="text-muted-foreground">vs. actual</span>
     </div>
-    <p className="text-xs text-gray-500 mt-2">{description}</p>
+    <p className="text-xs text-muted-foreground mt-2">{description}</p>
   </div>
 );
 
 const PreviziuniBugetare = () => {
+  const { balances, loading, hasData, getAllBalancesWithAccounts } = useBalante();
+  const [allBalances, setAllBalances] = useState<BalanceWithAccounts[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
   const [forecastPeriod, setForecastPeriod] = useState('6');
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!loading && hasData) {
+        try {
+          setDataLoading(true);
+          const all = await getAllBalancesWithAccounts();
+          setAllBalances(all);
+        } catch (error) {
+          console.error('Error loading data:', error);
+        } finally {
+          setDataLoading(false);
+        }
+      } else if (!loading) {
+        setDataLoading(false);
+      }
+    };
+
+    loadData();
+  }, [loading, hasData, getAllBalancesWithAccounts]);
+
+  // Calculate historical data and projections
+  const { forecastData, scenarioValues, monthlyBreakdown } = useMemo(() => {
+    if (allBalances.length === 0) {
+      return { forecastData: [], scenarioValues: null, monthlyBreakdown: [] };
+    }
+
+    // Get historical revenue data
+    const historicalData = allBalances.map(balance => {
+      const { profitPierdereData } = useFinancialCalculations(balance.accounts);
+      return {
+        date: new Date(balance.period_end),
+        venituri: profitPierdereData.venituri.total,
+        cheltuieli: profitPierdereData.cheltuieli.total,
+        profit: profitPierdereData.rezultatNet,
+      };
+    }).sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    // Calculate growth trend
+    let avgGrowth = 0.05; // Default 5% growth
+    if (historicalData.length >= 2) {
+      const first = historicalData[0].venituri;
+      const last = historicalData[historicalData.length - 1].venituri;
+      if (first > 0) {
+        const periods = historicalData.length - 1;
+        avgGrowth = Math.pow(last / first, 1 / periods) - 1;
+      }
+    }
+
+    const lastPeriod = historicalData[historicalData.length - 1];
+    const lastDate = lastPeriod?.date || new Date();
+    const numForecast = parseInt(forecastPeriod);
+
+    // Build forecast data
+    const data: any[] = [];
+    
+    // Add historical data
+    historicalData.forEach(h => {
+      data.push({
+        month: format(h.date, 'MMM', { locale: ro }),
+        actual: h.venituri,
+        forecast: null,
+        optimist: null,
+        pesimist: null,
+      });
+    });
+
+    // Add forecast data
+    let baseValue = lastPeriod?.venituri || 100000;
+    const forecastMonths: any[] = [];
+    
+    for (let i = 1; i <= numForecast; i++) {
+      const forecastDate = addMonths(lastDate, i);
+      const realisticGrowth = 1 + avgGrowth;
+      const optimistGrowth = 1 + avgGrowth * 1.5;
+      const pesimistGrowth = 1 + avgGrowth * 0.3;
+
+      const realistic = baseValue * Math.pow(realisticGrowth, i);
+      const optimist = baseValue * Math.pow(optimistGrowth, i);
+      const pesimist = baseValue * Math.pow(pesimistGrowth, i);
+
+      data.push({
+        month: format(forecastDate, 'MMM', { locale: ro }),
+        actual: null,
+        forecast: realistic,
+        optimist: optimist,
+        pesimist: pesimist,
+      });
+
+      // Calculate estimated expenses and profit
+      const expenseRatio = lastPeriod 
+        ? lastPeriod.cheltuieli / lastPeriod.venituri 
+        : 0.8;
+      
+      forecastMonths.push({
+        month: format(forecastDate, 'MMMM yyyy', { locale: ro }),
+        venituri: realistic,
+        cheltuieli: realistic * expenseRatio,
+        profit: realistic * (1 - expenseRatio),
+        variation: ((Math.pow(realisticGrowth, i) - 1) * 100),
+      });
+    }
+
+    // Calculate scenario values for cards
+    const lastForecast = data[data.length - 1];
+    const scenarios = lastForecast ? {
+      optimist: {
+        value: lastForecast.optimist,
+        change: baseValue > 0 ? ((lastForecast.optimist - baseValue) / baseValue) * 100 : 0,
+      },
+      realistic: {
+        value: lastForecast.forecast,
+        change: baseValue > 0 ? ((lastForecast.forecast - baseValue) / baseValue) * 100 : 0,
+      },
+      pesimist: {
+        value: lastForecast.pesimist,
+        change: baseValue > 0 ? ((lastForecast.pesimist - baseValue) / baseValue) * 100 : 0,
+      },
+    } : null;
+
+    return { 
+      forecastData: data, 
+      scenarioValues: scenarios,
+      monthlyBreakdown: forecastMonths,
+    };
+  }, [allBalances, forecastPeriod]);
+
+  const isLoading = loading || dataLoading;
+
+  if (isLoading) {
+    return (
+      <div className="container-app flex items-center justify-center py-16">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!hasData) {
+    return (
+      <div className="container-app">
+        <PageHeader 
+          title="Previziuni Bugetare"
+          description="Planificați și previzionați performanța financiară viitoare"
+        />
+
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+            <Upload className="w-10 h-10 text-primary" />
+          </div>
+          <h2 className="text-2xl font-bold text-foreground mb-3">
+            Încarcă balanțe pentru previziuni
+          </h2>
+          <p className="text-muted-foreground max-w-md mb-8">
+            Previziunile sunt generate pe baza tendințelor din balanțele tale istorice.
+          </p>
+          <Link to="/app/incarcare-balanta">
+            <Button className="btn-primary" size="lg">
+              <Upload className="w-5 h-5 mr-2" />
+              Încarcă balanță
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (allBalances.length < 2) {
+    return (
+      <div className="container-app">
+        <PageHeader 
+          title="Previziuni Bugetare"
+          description="Planificați și previzionați performanța financiară viitoare"
+        />
+
+        <Card className="p-8 text-center">
+          <AlertCircle className="w-12 h-12 text-warning mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Date insuficiente pentru previziuni</h3>
+          <p className="text-muted-foreground mb-6">
+            Pentru a genera previziuni precise, ai nevoie de cel puțin 2 balanțe încărcate.
+            Momentan ai {allBalances.length} balanță.
+          </p>
+          <Link to="/app/incarcare-balanta">
+            <Button>
+              <Upload className="w-4 h-4 mr-2" />
+              Încarcă mai multe balanțe
+            </Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container-app">
       <PageHeader 
         title="Previziuni Bugetare"
-        description="Planificați și previzionați performanța financiară viitoare"
+        description={`Previziuni bazate pe ${allBalances.length} perioade istorice`}
         actions={
-          <Button className="btn-primary">
+          <Button className="btn-primary" disabled>
             <Play className="w-4 h-4 mr-2" />
-            Generează previziuni
+            Previziuni generate
           </Button>
         }
       />
 
-      {/* Timeline & Controls - Extended grid for better proportions */}
-      <div className="grid grid-cols-1 lg:grid-cols-6 2xl:grid-cols-7 gap-5 2xl:gap-6 mb-6">
-        {/* Timeline - Compact on 1 column */}
-        <Card className="p-5 lg:col-span-1">
-          <h3 className="app-section-title">Etape Previziune</h3>
-          <div className="space-y-2">
-            <TimelineStep step={1} title="Încărcare date istorice" status="completed" />
-            <TimelineStep step={2} title="Analiză tendințe" status="completed" />
-            <TimelineStep step={3} title="Generare previziuni" status="current" />
-            <TimelineStep step={4} title="Validare scenarii" status="pending" isLast />
-          </div>
-        </Card>
-
-        {/* Scenario Cards - Extended to 5 columns (lg), 6 columns (2xl) */}
-        <div className="lg:col-span-5 2xl:col-span-6 grid grid-cols-1 md:grid-cols-3 gap-4 2xl:gap-6">
+      {/* Scenario Cards */}
+      {scenarioValues && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 2xl:gap-6 mb-6">
           <ScenarioCard 
             title="Optimist"
             type="optimist"
-            value={480000}
-            change={26.5}
-            description="Creștere accelerată bazată pe tendințele pozitive"
+            value={scenarioValues.optimist.value}
+            change={scenarioValues.optimist.change}
+            description="Creștere accelerată bazată pe tendințe pozitive"
           />
           <ScenarioCard 
             title="Realist"
             type="realistic"
-            value={415000}
-            change={15.2}
+            value={scenarioValues.realistic.value}
+            change={scenarioValues.realistic.change}
             description="Estimare bazată pe media tendințelor istorice"
           />
           <ScenarioCard 
             title="Pesimist"
             type="pesimist"
-            value={365000}
-            change={3.8}
+            value={scenarioValues.pesimist.value}
+            change={scenarioValues.pesimist.change}
             description="Scenariu conservator cu factori de risc"
           />
         </div>
-      </div>
+      )}
 
       {/* Main Chart */}
       <ChartCard 
         title="Previziuni vs. Realizat"
-        subtitle="Comparație între datele actuale și proiecțiile pentru următoarele 6 luni"
+        subtitle={`Date istorice și proiecții pentru următoarele ${forecastPeriod} luni`}
         className="mb-6"
         actions={
           <Select value={forecastPeriod} onValueChange={setForecastPeriod}>
@@ -230,23 +353,22 @@ const PreviziuniBugetare = () => {
             <ComposedChart data={forecastData}>
               <defs>
                 <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                 </linearGradient>
                 <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
                   <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} tickFormatter={(v) => `${v/1000}k`} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} tickFormatter={(v) => `${(v/1000000).toFixed(1)}M`} />
               <Tooltip 
                 contentStyle={{ 
-                  backgroundColor: 'white', 
-                  border: '1px solid #e2e8f0', 
+                  backgroundColor: 'hsl(var(--card))', 
+                  border: '1px solid hsl(var(--border))', 
                   borderRadius: '0.75rem',
-                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                 }}
                 formatter={(value: number) => value ? formatCurrency(value) : '-'}
               />
@@ -254,7 +376,7 @@ const PreviziuniBugetare = () => {
               <Area 
                 type="monotone" 
                 dataKey="actual" 
-                stroke="#6366f1" 
+                stroke="hsl(var(--primary))" 
                 strokeWidth={2} 
                 fill="url(#colorActual)" 
                 name="Realizat"
@@ -271,7 +393,7 @@ const PreviziuniBugetare = () => {
               <Line 
                 type="monotone" 
                 dataKey="optimist" 
-                stroke="#10b981" 
+                stroke="hsl(var(--accent))" 
                 strokeWidth={1} 
                 strokeDasharray="3 3"
                 dot={false}
@@ -280,7 +402,7 @@ const PreviziuniBugetare = () => {
               <Line 
                 type="monotone" 
                 dataKey="pesimist" 
-                stroke="#f59e0b" 
+                stroke="hsl(var(--warning))" 
                 strokeWidth={1} 
                 strokeDasharray="3 3"
                 dot={false}
@@ -291,47 +413,45 @@ const PreviziuniBugetare = () => {
         </div>
       </ChartCard>
 
-      {/* Monthly Breakdown Table - Full width */}
-      <div className="grid grid-cols-1">
-        <div>
-          <div className="card-app">
-        <div className="card-app-header">
-          <h3 className="font-semibold text-foreground">Detaliere Lunară Previziuni</h3>
-        </div>
-        <div className="card-app-content p-0">
-          <table className="table-financial">
-            <thead>
-              <tr>
-                <th>Lună</th>
-                <th className="text-right">Venituri Previzionate</th>
-                <th className="text-right">Cheltuieli Estimate</th>
-                <th className="text-right">Profit Estimat</th>
-                <th className="text-right">Variație</th>
-              </tr>
-            </thead>
-            <tbody>
-              {monthlyBreakdown.map((row, idx) => (
-                <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                  <td className="font-medium">{row.month}</td>
-                  <td className="text-right font-mono">{formatCurrency(row.venituri)}</td>
-                  <td className="text-right font-mono">{formatCurrency(row.cheltuieli)}</td>
-                  <td className="text-right font-mono font-semibold text-emerald-600">
-                    {formatCurrency(row.profit)}
-                  </td>
-                  <td className="text-right">
-                    <span className="inline-flex items-center gap-1 text-emerald-600">
-                      <TrendingUp className="w-3 h-3" />
-                      +{row.variation}%
-                    </span>
-                  </td>
+      {/* Monthly Breakdown Table */}
+      {monthlyBreakdown.length > 0 && (
+        <div className="card-app">
+          <div className="card-app-header">
+            <h3 className="font-semibold text-foreground">Detaliere Lunară Previziuni</h3>
+          </div>
+          <div className="card-app-content p-0">
+            <table className="table-financial">
+              <thead>
+                <tr>
+                  <th>Lună</th>
+                  <th className="text-right">Venituri Previzionate</th>
+                  <th className="text-right">Cheltuieli Estimate</th>
+                  <th className="text-right">Profit Estimat</th>
+                  <th className="text-right">Variație</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {monthlyBreakdown.map((row, idx) => (
+                  <tr key={idx} className="hover:bg-muted/50 transition-colors">
+                    <td className="font-medium">{row.month}</td>
+                    <td className="text-right font-mono">{formatCurrency(row.venituri)}</td>
+                    <td className="text-right font-mono">{formatCurrency(row.cheltuieli)}</td>
+                    <td className="text-right font-mono font-semibold text-accent">
+                      {formatCurrency(row.profit)}
+                    </td>
+                    <td className="text-right">
+                      <span className="inline-flex items-center gap-1 text-accent">
+                        <TrendingUp className="w-3 h-3" />
+                        +{row.variation.toFixed(1)}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

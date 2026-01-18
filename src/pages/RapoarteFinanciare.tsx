@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import {
@@ -6,12 +6,10 @@ import {
   Printer,
   FileText,
   Mail,
-  TrendingUp,
-  Layers,
-  DollarSign,
-  FileX,
   Upload,
+  Loader2,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -22,12 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import {
   Dialog,
   DialogContent,
@@ -43,176 +35,8 @@ import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-
-// ============ INTERFACES & TYPES ============
-
-interface BalanceSelection {
-  id: string;
-  fileName: string;
-  referenceDate: Date;
-}
-
-interface BilantData {
-  active: {
-    imobilizate: {
-      corporale: number;
-      necorporale: number;
-      financiare: number;
-      subtotal: number;
-    };
-    circulante: {
-      stocuri: number;
-      creante: number;
-      casaBanci: number;
-      subtotal: number;
-    };
-    total: number;
-  };
-  pasive: {
-    capitaluri: {
-      capitalSocial: number;
-      rezerve: number;
-      profitPierdere: number;
-      subtotal: number;
-    };
-    datorii: {
-      termenLung: number;
-      termenScurt: number;
-      subtotal: number;
-    };
-    total: number;
-  };
-}
-
-interface ProfitPierdereData {
-  venituri: {
-    vanzari: number;
-    altele: number;
-    total: number;
-  };
-  cheltuieli: {
-    materiale: number;
-    personal: number;
-    altele: number;
-    total: number;
-  };
-  rezultatBrut: number;
-  impozit: number;
-  rezultatNet: number;
-}
-
-interface CashFlowData {
-  operational: {
-    incasariClienti: number;
-    platiFurnizori: number;
-    platiSalarii: number;
-    flux: number;
-  };
-  investitii: {
-    achizitiiImobilizari: number;
-    vanzariImobilizari: number;
-    flux: number;
-  };
-  finantare: {
-    imprumuturiPrimite: number;
-    rambursari: number;
-    flux: number;
-  };
-  variatieNeta: number;
-  numerarInceput: number;
-  numerarSfarsit: number;
-}
-
-// ============ MOCK DATA ============
-
-const mockBalances: BalanceSelection[] = [
-  {
-    id: '1',
-    fileName: 'balanta_decembrie_2024.xlsx',
-    referenceDate: new Date('2024-12-31'),
-  },
-  {
-    id: '2',
-    fileName: 'balanta_noiembrie_2024.xlsx',
-    referenceDate: new Date('2024-11-30'),
-  },
-  {
-    id: '3',
-    fileName: 'balanta_octombrie_2024.xlsx',
-    referenceDate: new Date('2024-10-31'),
-  },
-];
-
-const mockBilantData: BilantData = {
-  active: {
-    imobilizate: {
-      corporale: 450000,
-      necorporale: 75000,
-      financiare: 120000,
-      subtotal: 645000,
-    },
-    circulante: {
-      stocuri: 235000,
-      creante: 187500,
-      casaBanci: 98750,
-      subtotal: 521250,
-    },
-    total: 1166250,
-  },
-  pasive: {
-    capitaluri: {
-      capitalSocial: 500000,
-      rezerve: 150000,
-      profitPierdere: 125000,
-      subtotal: 775000,
-    },
-    datorii: {
-      termenLung: 250000,
-      termenScurt: 141250,
-      subtotal: 391250,
-    },
-    total: 1166250,
-  },
-};
-
-const mockPLData: ProfitPierdereData = {
-  venituri: {
-    vanzari: 1250000,
-    altele: 45000,
-    total: 1295000,
-  },
-  cheltuieli: {
-    materiale: 620000,
-    personal: 385000,
-    altele: 165000,
-    total: 1170000,
-  },
-  rezultatBrut: 125000,
-  impozit: 20000,
-  rezultatNet: 105000,
-};
-
-const mockCashFlowData: CashFlowData = {
-  operational: {
-    incasariClienti: 1180000,
-    platiFurnizori: -580000,
-    platiSalarii: -375000,
-    flux: 225000,
-  },
-  investitii: {
-    achizitiiImobilizari: -125000,
-    vanzariImobilizari: 35000,
-    flux: -90000,
-  },
-  finantare: {
-    imprumuturiPrimite: 100000,
-    rambursari: -75000,
-    flux: 25000,
-  },
-  variatieNeta: 160000,
-  numerarInceput: 78750,
-  numerarSfarsit: 238750,
-};
+import { useBalante, BalanceWithAccounts } from '@/hooks/useBalante';
+import { useFinancialCalculations, BilantData, ProfitPierdereData, CashFlowData } from '@/hooks/useFinancialCalculations';
 
 // ============ UTILITY FUNCTIONS ============
 
@@ -246,7 +70,7 @@ const BilantRow = ({ label, value, className, indent = false }: BilantRowProps) 
       )}
     >
       <span className="text-sm">{label}</span>
-      <span className="text-sm font-mono tabular-nums text-gray-700">
+      <span className="text-sm font-mono tabular-nums text-foreground">
         {isNegative && '('}
         {formatCurrency(Math.abs(value))}
         {isNegative && ')'}
@@ -255,94 +79,93 @@ const BilantRow = ({ label, value, className, indent = false }: BilantRowProps) 
   );
 };
 
-interface PLRowProps {
-  label: string;
-  value: number;
-  type?: 'income' | 'expense' | 'neutral';
-  className?: string;
-}
-
-const PLRow = ({ label, value, type = 'neutral', className }: PLRowProps) => {
-  const displayValue =
-    type === 'expense' || value < 0
-      ? `(${formatCurrency(Math.abs(value))})`
-      : formatCurrency(value);
-
-  return (
-    <div className={cn('flex justify-between items-center py-2', className)}>
-      <span className="text-sm">{label}</span>
-      <span className="text-sm font-mono tabular-nums text-gray-700">
-        {displayValue}
-      </span>
-    </div>
-  );
-};
-
 // ============ MAIN COMPONENT ============
 
 const RapoarteFinanciare = () => {
+  const { balances, loading, hasData, getBalanceAccounts } = useBalante();
   const [selectedBalanta, setSelectedBalanta] = useState<string>('');
   const [activeTab, setActiveTab] = useState<string>('bilant');
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState('');
+  const [balanceData, setBalanceData] = useState<BalanceWithAccounts | null>(null);
+  const [dataLoading, setDataLoading] = useState(false);
 
-  const selectedBalance = mockBalances.find((b) => b.id === selectedBalanta);
+  const { bilantData, profitPierdereData, cashFlowData } = useFinancialCalculations(
+    balanceData?.accounts || []
+  );
+
+  // Load accounts when balance is selected
+  useEffect(() => {
+    const loadAccounts = async () => {
+      if (!selectedBalanta) {
+        setBalanceData(null);
+        return;
+      }
+
+      setDataLoading(true);
+      try {
+        const accounts = await getBalanceAccounts(selectedBalanta);
+        const balance = balances.find(b => b.id === selectedBalanta);
+        if (balance) {
+          setBalanceData({ ...balance, accounts });
+        }
+      } catch (error) {
+        console.error('Error loading accounts:', error);
+        toast.error('Eroare la încărcarea datelor');
+      } finally {
+        setDataLoading(false);
+      }
+    };
+
+    loadAccounts();
+  }, [selectedBalanta, balances, getBalanceAccounts]);
 
   // ============ EXPORT FUNCTIONS ============
 
   const handlePrint = () => {
-    const hideElements = document.querySelectorAll('.no-print');
-    hideElements.forEach((el) => el.classList.add('hidden'));
-
     window.print();
-
-    setTimeout(() => {
-      hideElements.forEach((el) => el.classList.remove('hidden'));
-    }, 500);
   };
 
   const handleExportExcel = () => {
     const wb = XLSX.utils.book_new();
 
     if (activeTab === 'bilant') {
-      // Active sheet
       const activeData = [
         ['ACTIVE', ''],
         ['', ''],
         ['A. Active imobilizate', ''],
-        ['Imobilizări corporale', mockBilantData.active.imobilizate.corporale],
-        ['Imobilizări necorporale', mockBilantData.active.imobilizate.necorporale],
-        ['Imobilizări financiare', mockBilantData.active.imobilizate.financiare],
-        ['Subtotal Active imobilizate', mockBilantData.active.imobilizate.subtotal],
+        ['Imobilizări corporale', bilantData.active.imobilizate.corporale],
+        ['Imobilizări necorporale', bilantData.active.imobilizate.necorporale],
+        ['Imobilizări financiare', bilantData.active.imobilizate.financiare],
+        ['Subtotal Active imobilizate', bilantData.active.imobilizate.subtotal],
         ['', ''],
         ['B. Active circulante', ''],
-        ['Stocuri', mockBilantData.active.circulante.stocuri],
-        ['Creanțe', mockBilantData.active.circulante.creante],
-        ['Casa și bănci', mockBilantData.active.circulante.casaBanci],
-        ['Subtotal Active circulante', mockBilantData.active.circulante.subtotal],
+        ['Stocuri', bilantData.active.circulante.stocuri],
+        ['Creanțe', bilantData.active.circulante.creante],
+        ['Casa și bănci', bilantData.active.circulante.casaBanci],
+        ['Subtotal Active circulante', bilantData.active.circulante.subtotal],
         ['', ''],
-        ['TOTAL ACTIVE', mockBilantData.active.total],
+        ['TOTAL ACTIVE', bilantData.active.total],
       ];
 
       const wsActive = XLSX.utils.aoa_to_sheet(activeData);
       XLSX.utils.book_append_sheet(wb, wsActive, 'Active');
 
-      // Pasive sheet
       const pasiveData = [
         ['PASIVE', ''],
         ['', ''],
         ['A. Capitaluri proprii', ''],
-        ['Capital social', mockBilantData.pasive.capitaluri.capitalSocial],
-        ['Rezerve', mockBilantData.pasive.capitaluri.rezerve],
-        ['Profit/Pierdere', mockBilantData.pasive.capitaluri.profitPierdere],
-        ['Subtotal Capitaluri', mockBilantData.pasive.capitaluri.subtotal],
+        ['Capital social', bilantData.pasive.capitaluri.capitalSocial],
+        ['Rezerve', bilantData.pasive.capitaluri.rezerve],
+        ['Profit/Pierdere', bilantData.pasive.capitaluri.profitPierdere],
+        ['Subtotal Capitaluri', bilantData.pasive.capitaluri.subtotal],
         ['', ''],
         ['B. Datorii', ''],
-        ['Datorii pe termen lung', mockBilantData.pasive.datorii.termenLung],
-        ['Datorii pe termen scurt', mockBilantData.pasive.datorii.termenScurt],
-        ['Subtotal Datorii', mockBilantData.pasive.datorii.subtotal],
+        ['Datorii pe termen lung', bilantData.pasive.datorii.termenLung],
+        ['Datorii pe termen scurt', bilantData.pasive.datorii.termenScurt],
+        ['Subtotal Datorii', bilantData.pasive.datorii.subtotal],
         ['', ''],
-        ['TOTAL PASIVE', mockBilantData.pasive.total],
+        ['TOTAL PASIVE', bilantData.pasive.total],
       ];
 
       const wsPasive = XLSX.utils.aoa_to_sheet(pasiveData);
@@ -352,19 +175,19 @@ const RapoarteFinanciare = () => {
         ['PROFIT ȘI PIERDERE', ''],
         ['', ''],
         ['I. VENITURI', ''],
-        ['Venituri din vânzări', mockPLData.venituri.vanzari],
-        ['Alte venituri operaționale', mockPLData.venituri.altele],
-        ['TOTAL VENITURI', mockPLData.venituri.total],
+        ['Venituri din vânzări', profitPierdereData.venituri.vanzari],
+        ['Alte venituri operaționale', profitPierdereData.venituri.altele],
+        ['TOTAL VENITURI', profitPierdereData.venituri.total],
         ['', ''],
         ['II. CHELTUIELI', ''],
-        ['Cheltuieli cu materiile prime', -mockPLData.cheltuieli.materiale],
-        ['Cheltuieli cu personalul', -mockPLData.cheltuieli.personal],
-        ['Alte cheltuieli operaționale', -mockPLData.cheltuieli.altele],
-        ['TOTAL CHELTUIELI', -mockPLData.cheltuieli.total],
+        ['Cheltuieli cu materiile prime', -profitPierdereData.cheltuieli.materiale],
+        ['Cheltuieli cu personalul', -profitPierdereData.cheltuieli.personal],
+        ['Alte cheltuieli operaționale', -profitPierdereData.cheltuieli.altele],
+        ['TOTAL CHELTUIELI', -profitPierdereData.cheltuieli.total],
         ['', ''],
-        ['Rezultat brut', mockPLData.rezultatBrut],
-        ['Impozit pe profit', -mockPLData.impozit],
-        ['PROFIT/PIERDERE NET', mockPLData.rezultatNet],
+        ['Rezultat brut', profitPierdereData.rezultatBrut],
+        ['Impozit pe profit', -profitPierdereData.impozit],
+        ['PROFIT/PIERDERE NET', profitPierdereData.rezultatNet],
       ];
 
       const wsPL = XLSX.utils.aoa_to_sheet(plData);
@@ -374,24 +197,24 @@ const RapoarteFinanciare = () => {
         ['SITUAȚIA FLUXURILOR DE NUMERAR', ''],
         ['', ''],
         ['A. ACTIVITĂȚI OPERAȚIONALE', ''],
-        ['Încasări de la clienți', mockCashFlowData.operational.incasariClienti],
-        ['Plăți către furnizori', mockCashFlowData.operational.platiFurnizori],
-        ['Plăți salarii și contribuții', mockCashFlowData.operational.platiSalarii],
-        ['Flux net din activități operaționale', mockCashFlowData.operational.flux],
+        ['Încasări de la clienți', cashFlowData.operational.incasariClienti],
+        ['Plăți către furnizori', cashFlowData.operational.platiFurnizori],
+        ['Plăți salarii și contribuții', cashFlowData.operational.platiSalarii],
+        ['Flux net din activități operaționale', cashFlowData.operational.flux],
         ['', ''],
         ['B. ACTIVITĂȚI DE INVESTIȚII', ''],
-        ['Achiziții de imobilizări', mockCashFlowData.investitii.achizitiiImobilizari],
-        ['Vânzări de imobilizări', mockCashFlowData.investitii.vanzariImobilizari],
-        ['Flux net din activități de investiții', mockCashFlowData.investitii.flux],
+        ['Achiziții de imobilizări', cashFlowData.investitii.achizitiiImobilizari],
+        ['Vânzări de imobilizări', cashFlowData.investitii.vanzariImobilizari],
+        ['Flux net din activități de investiții', cashFlowData.investitii.flux],
         ['', ''],
         ['C. ACTIVITĂȚI DE FINANȚARE', ''],
-        ['Împrumuturi primite', mockCashFlowData.finantare.imprumuturiPrimite],
-        ['Rambursări de împrumuturi', mockCashFlowData.finantare.rambursari],
-        ['Flux net din activități de finanțare', mockCashFlowData.finantare.flux],
+        ['Împrumuturi primite', cashFlowData.finantare.imprumuturiPrimite],
+        ['Rambursări de împrumuturi', cashFlowData.finantare.rambursari],
+        ['Flux net din activități de finanțare', cashFlowData.finantare.flux],
         ['', ''],
-        ['VARIAȚIA NETĂ A NUMERARULUI', mockCashFlowData.variatieNeta],
-        ['Numerar la începutul perioadei', mockCashFlowData.numerarInceput],
-        ['NUMERAR LA SFÂRȘITUL PERIOADEI', mockCashFlowData.numerarSfarsit],
+        ['VARIAȚIA NETĂ A NUMERARULUI', cashFlowData.variatieNeta],
+        ['Numerar la începutul perioadei', cashFlowData.numerarInceput],
+        ['NUMERAR LA SFÂRȘITUL PERIOADEI', cashFlowData.numerarSfarsit],
       ];
 
       const wsCF = XLSX.utils.aoa_to_sheet(cfData);
@@ -400,16 +223,12 @@ const RapoarteFinanciare = () => {
 
     const fileName = `Raport_${activeTab}_${format(new Date(), 'dd-MM-yyyy')}.xlsx`;
     XLSX.writeFile(wb, fileName);
-
     toast.success('Raportul a fost exportat în Excel');
   };
 
   const handleExportPDF = async () => {
     const reportElement = document.getElementById('report-content');
     if (!reportElement) return;
-
-    const actionsElement = document.querySelector('.report-actions');
-    if (actionsElement) actionsElement.classList.add('hidden');
 
     try {
       const canvas = await html2canvas(reportElement, {
@@ -435,41 +254,22 @@ const RapoarteFinanciare = () => {
       toast.success('Raportul a fost exportat în PDF');
     } catch (error) {
       toast.error('Eroare la generarea PDF-ului');
-    } finally {
-      if (actionsElement) actionsElement.classList.remove('hidden');
     }
-  };
-
-  const handleEmailPDF = () => {
-    setEmailDialogOpen(true);
-  };
-
-  const sendEmailWithPDF = async () => {
-    if (!recipientEmail) {
-      toast.error('Vă rugăm să introduceți o adresă de email');
-      return;
-    }
-
-    // Mock API call
-    toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 2000)),
-      {
-        loading: 'Se trimite raportul...',
-        success: `Raportul a fost trimis cu succes la ${recipientEmail}`,
-        error: 'Eroare la trimiterea email-ului',
-      }
-    );
-
-    setEmailDialogOpen(false);
-    setRecipientEmail('');
   };
 
   // ============ RENDER ============
 
-  if (!selectedBalanta || !selectedBalance) {
+  if (loading) {
+    return (
+      <div className="container-app flex items-center justify-center py-16">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!hasData) {
     return (
       <div className="container-app">
-        {/* Page Header */}
         <div className="page-header">
           <h1 className="page-title">Rapoarte Financiare</h1>
           <p className="page-description">
@@ -477,7 +277,37 @@ const RapoarteFinanciare = () => {
           </p>
         </div>
 
-        {/* Balance Selector */}
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+            <Upload className="w-10 h-10 text-primary" />
+          </div>
+          <h2 className="text-2xl font-bold text-foreground mb-3">
+            Încarcă o balanță pentru a genera rapoarte
+          </h2>
+          <p className="text-muted-foreground max-w-md mb-8">
+            Pentru a vizualiza rapoartele financiare, trebuie să încarci cel puțin o balanță de verificare.
+          </p>
+          <Link to="/app/incarcare-balanta">
+            <Button className="btn-primary" size="lg">
+              <Upload className="w-5 h-5 mr-2" />
+              Încarcă balanță
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!selectedBalanta) {
+    return (
+      <div className="container-app">
+        <div className="page-header">
+          <h1 className="page-title">Rapoarte Financiare</h1>
+          <p className="page-description">
+            Generați și vizualizați rapoarte financiare detaliate
+          </p>
+        </div>
+
         <Card className="p-6 mb-6">
           <div className="space-y-4">
             <div>
@@ -489,13 +319,13 @@ const RapoarteFinanciare = () => {
                   <SelectValue placeholder="Alegeți o balanță" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockBalances.map((balance) => (
+                  {balances.map((balance) => (
                     <SelectItem key={balance.id} value={balance.id}>
                       <div className="flex items-center gap-2">
                         <FileSpreadsheet className="w-4 h-4 text-primary" />
-                        <span>{balance.fileName}</span>
+                        <span>{balance.source_file_name}</span>
                         <span className="text-muted-foreground text-xs">
-                          ({format(balance.referenceDate, 'dd.MM.yyyy')})
+                          ({format(new Date(balance.period_end), 'dd.MM.yyyy')})
                         </span>
                       </div>
                     </SelectItem>
@@ -503,539 +333,232 @@ const RapoarteFinanciare = () => {
                 </SelectContent>
               </Select>
             </div>
-
-            {mockBalances.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                Nu există balanțe încărcate. Vă rugăm să încărcați o balanță.
-              </p>
-            )}
-          </div>
-        </Card>
-
-        {/* Empty State */}
-        <Card className="p-12">
-          <div className="text-center">
-            <FileX className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Nicio balanță selectată
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Vă rugăm să selectați o balanță pentru a genera raportul
-            </p>
-            <Button onClick={() => window.location.href = '/app/incarcare-balanta'}>
-              <Upload className="w-4 h-4 mr-2" />
-              Încarcă balanță
-            </Button>
           </div>
         </Card>
       </div>
     );
   }
 
-  const getReportTitle = () => {
-    switch (activeTab) {
-      case 'bilant':
-        return 'Bilanț Contabil';
-      case 'pl':
-        return 'Profit și Pierdere';
-      case 'cashflow':
-        return 'Situația Fluxurilor de Numerar';
-      default:
-        return '';
-    }
-  };
-
   return (
     <div className="container-app">
-      {/* Page Header */}
       <div className="page-header">
         <h1 className="page-title">Rapoarte Financiare</h1>
         <p className="page-description">
-          Generați și vizualizați rapoarte financiare detaliate
+          Rapoarte generate din balanța: {balanceData?.source_file_name}
         </p>
       </div>
 
       {/* Balance Selector */}
-      <Card className="p-5 2xl:p-8 mb-5">
-        <div className="flex flex-col md:flex-row md:items-center gap-4 2xl:gap-6">
-          <div className="flex-1">
-            <Label htmlFor="balance-select-main" className="text-sm font-semibold mb-2 block">
-              Selectați balanța de referință
-            </Label>
+      <Card className="p-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          <div className="flex-1 max-w-md">
+            <Label className="text-xs text-muted-foreground mb-1 block">Balanță selectată</Label>
             <Select value={selectedBalanta} onValueChange={setSelectedBalanta}>
-              <SelectTrigger id="balance-select-main" className="w-full">
-                <SelectValue placeholder="Alegeți o balanță" />
+              <SelectTrigger>
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {mockBalances.map((balance) => (
+                {balances.map((balance) => (
                   <SelectItem key={balance.id} value={balance.id}>
                     <div className="flex items-center gap-2">
                       <FileSpreadsheet className="w-4 h-4 text-primary" />
-                      <span>{balance.fileName}</span>
-                      <span className="text-muted-foreground text-xs">
-                        ({format(balance.referenceDate, 'dd.MM.yyyy')})
-                      </span>
+                      <span>{balance.source_file_name}</span>
                     </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handlePrint}>
+              <Printer className="w-4 h-4 mr-2" />
+              Print
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportExcel}>
+              <FileSpreadsheet className="w-4 h-4 mr-2" />
+              Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportPDF}>
+              <FileText className="w-4 h-4 mr-2" />
+              PDF
+            </Button>
+          </div>
         </div>
       </Card>
 
-      {/* KPIs Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 2xl:grid-cols-3 gap-4 2xl:gap-6 mb-5 no-print">
-        <Card className="p-4 2xl:p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Profit Net</p>
-              <p className="text-2xl font-bold text-accent-emerald">
-                {formatCurrency(mockPLData.rezultatNet)}
-              </p>
-            </div>
-            <TrendingUp className="w-8 h-8 text-accent-emerald" />
-          </div>
-        </Card>
-
-        <Card className="p-4 2xl:p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Total Active</p>
-              <p className="text-2xl font-bold text-primary-indigo">
-                {formatCurrency(mockBilantData.active.total)}
-              </p>
-            </div>
-            <Layers className="w-8 h-8 text-primary-indigo" />
-          </div>
-        </Card>
-
-        <Card className="p-4 2xl:p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Cash Flow</p>
-              <p className="text-2xl font-bold text-primary">
-                {formatCurrency(mockCashFlowData.variatieNeta)}
-              </p>
-            </div>
-            <DollarSign className="w-8 h-8 text-primary" />
-          </div>
-        </Card>
-      </div>
-
-      {/* Main Report Card */}
-      <Card className="overflow-hidden">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          {/* Tabs List */}
-          <div className="border-b bg-surface p-2 2xl:p-3">
-            <TabsList className="grid w-full grid-cols-3 gap-2 2xl:gap-3 bg-transparent p-0">
-              <TabsTrigger
-                value="bilant"
-                className="data-[state=active]:bg-primary-indigo data-[state=active]:text-white border-2 border-border data-[state=active]:border-primary-indigo rounded-lg px-6 py-3 transition-all"
-              >
-                Bilanț Contabil
-              </TabsTrigger>
-              <TabsTrigger
-                value="pl"
-                className="data-[state=active]:bg-primary-indigo data-[state=active]:text-white border-2 border-border data-[state=active]:border-primary-indigo rounded-lg px-6 py-3 transition-all"
-              >
-                Profit și Pierdere
-              </TabsTrigger>
-              <TabsTrigger
-                value="cashflow"
-                className="data-[state=active]:bg-primary-indigo data-[state=active]:text-white border-2 border-border data-[state=active]:border-primary-indigo rounded-lg px-6 py-3 transition-all"
-              >
-                Cash Flow
-              </TabsTrigger>
+      {dataLoading ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      ) : (
+        <div id="report-content">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-6">
+              <TabsTrigger value="bilant">Bilanț</TabsTrigger>
+              <TabsTrigger value="pl">Profit & Pierdere</TabsTrigger>
+              <TabsTrigger value="cashflow">Cash Flow</TabsTrigger>
             </TabsList>
-          </div>
 
-          {/* Report Content */}
-          <div id="report-content" className="p-6">
-            {/* Report Header */}
-            <div className="flex items-center justify-between border-b pb-4 mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-foreground">{getReportTitle()}</h2>
-                <p className="text-sm text-muted-foreground">
-                  Data referință: {format(selectedBalance.referenceDate, 'dd.MM.yyyy', { locale: ro })}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2 report-actions no-print">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="sm" onClick={handlePrint}>
-                        <Printer className="w-4 h-4 mr-2" />
-                        Printează
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Printează raportul</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="sm" onClick={handleExportExcel}>
-                        <FileSpreadsheet className="w-4 h-4 mr-2" />
-                        Excel
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Export în Excel</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="sm" onClick={handleExportPDF}>
-                        <FileText className="w-4 h-4 mr-2" />
-                        PDF
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Export în PDF</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <Button variant="default" size="sm" onClick={handleEmailPDF}>
-                  <Mail className="w-4 h-4 mr-2" />
-                  Email
-                </Button>
-              </div>
-            </div>
-
-            {/* Bilanț Contabil */}
-            <TabsContent value="bilant" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Coloană Active */}
-                <div className="border-r pr-6">
-                  <h3 className="text-lg font-bold text-foreground mb-4 pb-2 border-b">
-                    ACTIVE
-                  </h3>
-
-                  <div className="mb-6">
-                    <h4 className="font-semibold text-sm text-foreground mb-3">
-                      A. Active imobilizate
-                    </h4>
-                    <div className="space-y-2 pl-4">
-                      <BilantRow
-                        label="Imobilizări corporale"
-                        value={mockBilantData.active.imobilizate.corporale}
-                      />
-                      <BilantRow
-                        label="Imobilizări necorporale"
-                        value={mockBilantData.active.imobilizate.necorporale}
-                      />
-                      <BilantRow
-                        label="Imobilizări financiare"
-                        value={mockBilantData.active.imobilizate.financiare}
-                      />
+            {/* Bilant Tab */}
+            <TabsContent value="bilant">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Active */}
+                <Card className="p-6">
+                  <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">ACTIVE</h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-sm text-muted-foreground mb-2">A. Active imobilizate</h4>
+                      <BilantRow label="Imobilizări corporale" value={bilantData.active.imobilizate.corporale} indent />
+                      <BilantRow label="Imobilizări necorporale" value={bilantData.active.imobilizate.necorporale} indent />
+                      <BilantRow label="Imobilizări financiare" value={bilantData.active.imobilizate.financiare} indent />
+                      <BilantRow label="Subtotal Active imobilizate" value={bilantData.active.imobilizate.subtotal} className="font-semibold bg-muted/50 rounded px-2 -mx-2" />
                     </div>
-                    <BilantRow
-                      label="Subtotal Active imobilizate"
-                      value={mockBilantData.active.imobilizate.subtotal}
-                      className="font-semibold mt-2 pt-2 border-t-[3px] border-indigo-500 text-gray-700"
-                    />
-                  </div>
 
-                  <div className="mb-6">
-                    <h4 className="font-semibold text-sm text-foreground mb-3">
-                      B. Active circulante
-                    </h4>
-                    <div className="space-y-2 pl-4">
-                      <BilantRow
-                        label="Stocuri"
-                        value={mockBilantData.active.circulante.stocuri}
-                      />
-                      <BilantRow
-                        label="Creanțe"
-                        value={mockBilantData.active.circulante.creante}
-                      />
-                      <BilantRow
-                        label="Casa și bănci"
-                        value={mockBilantData.active.circulante.casaBanci}
-                      />
+                    <div>
+                      <h4 className="font-semibold text-sm text-muted-foreground mb-2">B. Active circulante</h4>
+                      <BilantRow label="Stocuri" value={bilantData.active.circulante.stocuri} indent />
+                      <BilantRow label="Creanțe" value={bilantData.active.circulante.creante} indent />
+                      <BilantRow label="Casa și bănci" value={bilantData.active.circulante.casaBanci} indent />
+                      <BilantRow label="Subtotal Active circulante" value={bilantData.active.circulante.subtotal} className="font-semibold bg-muted/50 rounded px-2 -mx-2" />
                     </div>
-                    <BilantRow
-                      label="Subtotal Active circulante"
-                      value={mockBilantData.active.circulante.subtotal}
-                      className="font-semibold mt-2 pt-2 border-t-[3px] border-indigo-500 text-gray-700"
-                    />
+
+                    <BilantRow label="TOTAL ACTIVE" value={bilantData.active.total} className="font-bold text-lg border-t pt-4 mt-4" />
                   </div>
+                </Card>
 
-                  <BilantRow
-                    label="TOTAL ACTIVE"
-                    value={mockBilantData.active.total}
-                    className="font-bold text-lg mt-6 pt-4 border-t-[3px] border-indigo-500 pb-4 border-b-[3px] text-gray-700"
-                  />
-                </div>
-
-                {/* Coloană Pasive */}
-                <div className="pl-0 md:pl-6">
-                  <h3 className="text-lg font-bold text-foreground mb-4 pb-2 border-b">
-                    PASIVE
-                  </h3>
-
-                  <div className="mb-6">
-                    <h4 className="font-semibold text-sm text-foreground mb-3">
-                      A. Capitaluri proprii
-                    </h4>
-                    <div className="space-y-2 pl-4">
-                      <BilantRow
-                        label="Capital social"
-                        value={mockBilantData.pasive.capitaluri.capitalSocial}
-                      />
-                      <BilantRow
-                        label="Rezerve"
-                        value={mockBilantData.pasive.capitaluri.rezerve}
-                      />
-                      <BilantRow
-                        label="Profit/Pierdere"
-                        value={mockBilantData.pasive.capitaluri.profitPierdere}
-                      />
+                {/* Pasive */}
+                <Card className="p-6">
+                  <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">PASIVE</h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-sm text-muted-foreground mb-2">A. Capitaluri proprii</h4>
+                      <BilantRow label="Capital social" value={bilantData.pasive.capitaluri.capitalSocial} indent />
+                      <BilantRow label="Rezerve" value={bilantData.pasive.capitaluri.rezerve} indent />
+                      <BilantRow label="Profit/Pierdere" value={bilantData.pasive.capitaluri.profitPierdere} indent />
+                      <BilantRow label="Subtotal Capitaluri" value={bilantData.pasive.capitaluri.subtotal} className="font-semibold bg-muted/50 rounded px-2 -mx-2" />
                     </div>
-                    <BilantRow
-                      label="Subtotal Capitaluri proprii"
-                      value={mockBilantData.pasive.capitaluri.subtotal}
-                      className="font-semibold mt-2 pt-2 border-t-[3px] border-indigo-500 text-gray-700"
-                    />
-                  </div>
 
-                  <div className="mb-6">
-                    <h4 className="font-semibold text-sm text-foreground mb-3">B. Datorii</h4>
-                    <div className="space-y-2 pl-4">
-                      <BilantRow
-                        label="Datorii pe termen lung"
-                        value={mockBilantData.pasive.datorii.termenLung}
-                      />
-                      <BilantRow
-                        label="Datorii pe termen scurt"
-                        value={mockBilantData.pasive.datorii.termenScurt}
-                      />
+                    <div>
+                      <h4 className="font-semibold text-sm text-muted-foreground mb-2">B. Datorii</h4>
+                      <BilantRow label="Datorii pe termen lung" value={bilantData.pasive.datorii.termenLung} indent />
+                      <BilantRow label="Datorii pe termen scurt" value={bilantData.pasive.datorii.termenScurt} indent />
+                      <BilantRow label="Subtotal Datorii" value={bilantData.pasive.datorii.subtotal} className="font-semibold bg-muted/50 rounded px-2 -mx-2" />
                     </div>
-                    <BilantRow
-                      label="Subtotal Datorii"
-                      value={mockBilantData.pasive.datorii.subtotal}
-                      className="font-semibold mt-2 pt-2 border-t-[3px] border-indigo-500 text-gray-700"
-                    />
-                  </div>
 
-                  <BilantRow
-                    label="TOTAL PASIVE"
-                    value={mockBilantData.pasive.total}
-                    className="font-bold text-lg mt-6 pt-4 border-t-[3px] border-indigo-500 pb-4 border-b-[3px] text-gray-700"
-                  />
-                </div>
+                    <BilantRow label="TOTAL PASIVE" value={bilantData.pasive.total} className="font-bold text-lg border-t pt-4 mt-4" />
+                  </div>
+                </Card>
               </div>
             </TabsContent>
 
-            {/* Profit și Pierdere */}
-            <TabsContent value="pl" className="mt-0">
-              <div className="max-w-3xl mx-auto">
-                {/* Secțiune Venituri */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-bold text-foreground mb-4 pb-2 border-b">
-                    I. VENITURI
-                  </h3>
-                  <div className="space-y-2">
-                    <PLRow
-                      label="Venituri din vânzări"
-                      value={mockPLData.venituri.vanzari}
-                      type="income"
-                    />
-                    <PLRow
-                      label="Alte venituri operaționale"
-                      value={mockPLData.venituri.altele}
-                      type="income"
+            {/* Profit & Pierdere Tab */}
+            <TabsContent value="pl">
+              <Card className="p-6">
+                <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">CONTUL DE PROFIT ȘI PIERDERE</h3>
+                
+                <div className="max-w-2xl space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-accent mb-2">I. VENITURI</h4>
+                    <BilantRow label="Venituri din vânzări" value={profitPierdereData.venituri.vanzari} />
+                    <BilantRow label="Alte venituri operaționale" value={profitPierdereData.venituri.altele} />
+                    <BilantRow label="TOTAL VENITURI" value={profitPierdereData.venituri.total} className="font-semibold bg-accent/10 rounded px-2 -mx-2 text-accent" />
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-destructive mb-2">II. CHELTUIELI</h4>
+                    <BilantRow label="Cheltuieli cu materiile prime" value={-profitPierdereData.cheltuieli.materiale} />
+                    <BilantRow label="Cheltuieli cu personalul" value={-profitPierdereData.cheltuieli.personal} />
+                    <BilantRow label="Alte cheltuieli operaționale" value={-profitPierdereData.cheltuieli.altele} />
+                    <BilantRow label="TOTAL CHELTUIELI" value={-profitPierdereData.cheltuieli.total} className="font-semibold bg-destructive/10 rounded px-2 -mx-2 text-destructive" />
+                  </div>
+
+                  <div className="border-t pt-4 space-y-2">
+                    <BilantRow label="Rezultat brut" value={profitPierdereData.rezultatBrut} className="font-semibold" />
+                    <BilantRow label="Impozit pe profit" value={-profitPierdereData.impozit} />
+                    <BilantRow 
+                      label="PROFIT/PIERDERE NET" 
+                      value={profitPierdereData.rezultatNet} 
+                      className={cn(
+                        "font-bold text-lg bg-primary/10 rounded px-2 -mx-2 py-2",
+                        profitPierdereData.rezultatNet >= 0 ? "text-accent" : "text-destructive"
+                      )} 
                     />
                   </div>
-                  <PLRow
-                    label="TOTAL VENITURI"
-                    value={mockPLData.venituri.total}
-                    className="font-bold mt-3 pt-3 border-t-[3px] border-indigo-500 pb-3 border-b-[3px] text-base text-gray-700"
-                    type="income"
-                  />
                 </div>
-
-                {/* Secțiune Cheltuieli */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-bold text-foreground mb-4 pb-2 border-b">
-                    II. CHELTUIELI
-                  </h3>
-                  <div className="space-y-2">
-                    <PLRow
-                      label="Cheltuieli cu materiile prime"
-                      value={mockPLData.cheltuieli.materiale}
-                      type="expense"
-                    />
-                    <PLRow
-                      label="Cheltuieli cu personalul"
-                      value={mockPLData.cheltuieli.personal}
-                      type="expense"
-                    />
-                    <PLRow
-                      label="Alte cheltuieli operaționale"
-                      value={mockPLData.cheltuieli.altele}
-                      type="expense"
-                    />
-                  </div>
-                  <PLRow
-                    label="TOTAL CHELTUIELI"
-                    value={mockPLData.cheltuieli.total}
-                    className="font-bold mt-3 pt-3 border-t-[3px] border-indigo-500 pb-3 border-b-[3px] text-base text-gray-700"
-                    type="expense"
-                  />
-                </div>
-
-                {/* Rezultate */}
-                <div className="bg-primary-indigo/10 p-6 rounded-xl border-2 border-primary-indigo/20">
-                  <PLRow
-                    label="Rezultat brut"
-                    value={mockPLData.rezultatBrut}
-                    className="text-base font-semibold mb-2"
-                  />
-                  <PLRow
-                    label="Impozit pe profit"
-                    value={mockPLData.impozit}
-                    type="expense"
-                    className="text-sm mb-3 pb-3 border-b border-primary-indigo/20"
-                  />
-                  <PLRow
-                    label="PROFIT/PIERDERE NET"
-                    value={mockPLData.rezultatNet}
-                    className="text-xl font-bold"
-                  />
-                </div>
-              </div>
+              </Card>
             </TabsContent>
 
-            {/* Cash Flow */}
-            <TabsContent value="cashflow" className="mt-0">
-              <div className="max-w-3xl mx-auto">
-                {/* Activități Operaționale */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-bold text-foreground mb-4 pb-2 border-b">
-                    A. ACTIVITĂȚI OPERAȚIONALE
-                  </h3>
-                  <div className="space-y-2">
-                    <PLRow
-                      label="Încasări de la clienți"
-                      value={mockCashFlowData.operational.incasariClienti}
-                      type="income"
-                    />
-                    <PLRow
-                      label="Plăți către furnizori"
-                      value={mockCashFlowData.operational.platiFurnizori}
-                    />
-                    <PLRow
-                      label="Plăți salarii și contribuții"
-                      value={mockCashFlowData.operational.platiSalarii}
-                    />
+            {/* Cash Flow Tab */}
+            <TabsContent value="cashflow">
+              <Card className="p-6">
+                <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">SITUAȚIA FLUXURILOR DE NUMERAR</h3>
+                
+                <div className="max-w-2xl space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-primary mb-2">A. ACTIVITĂȚI OPERAȚIONALE</h4>
+                    <BilantRow label="Încasări de la clienți" value={cashFlowData.operational.incasariClienti} />
+                    <BilantRow label="Plăți către furnizori" value={cashFlowData.operational.platiFurnizori} />
+                    <BilantRow label="Plăți salarii și contribuții" value={cashFlowData.operational.platiSalarii} />
+                    <BilantRow label="Flux net operațional" value={cashFlowData.operational.flux} className="font-semibold bg-primary/10 rounded px-2 -mx-2" />
                   </div>
-                  <PLRow
-                    label="Flux net din activități operaționale"
-                    value={mockCashFlowData.operational.flux}
-                    className="font-bold mt-3 pt-3 border-t-[3px] border-indigo-500 text-base text-gray-700"
-                  />
-                </div>
 
-                {/* Activități de Investiții */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-bold text-foreground mb-4 pb-2 border-b">
-                    B. ACTIVITĂȚI DE INVESTIȚII
-                  </h3>
-                  <div className="space-y-2">
-                    <PLRow
-                      label="Achiziții de imobilizări"
-                      value={mockCashFlowData.investitii.achizitiiImobilizari}
-                    />
-                    <PLRow
-                      label="Vânzări de imobilizări"
-                      value={mockCashFlowData.investitii.vanzariImobilizari}
-                      type="income"
-                    />
+                  <div>
+                    <h4 className="font-semibold text-primary mb-2">B. ACTIVITĂȚI DE INVESTIȚII</h4>
+                    <BilantRow label="Achiziții de imobilizări" value={cashFlowData.investitii.achizitiiImobilizari} />
+                    <BilantRow label="Vânzări de imobilizări" value={cashFlowData.investitii.vanzariImobilizari} />
+                    <BilantRow label="Flux net investiții" value={cashFlowData.investitii.flux} className="font-semibold bg-primary/10 rounded px-2 -mx-2" />
                   </div>
-                  <PLRow
-                    label="Flux net din activități de investiții"
-                    value={mockCashFlowData.investitii.flux}
-                    className="font-bold mt-3 pt-3 border-t-[3px] border-indigo-500 text-base text-gray-700"
-                  />
-                </div>
 
-                {/* Activități de Finanțare */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-bold text-foreground mb-4 pb-2 border-b">
-                    C. ACTIVITĂȚI DE FINANȚARE
-                  </h3>
-                  <div className="space-y-2">
-                    <PLRow
-                      label="Împrumuturi primite"
-                      value={mockCashFlowData.finantare.imprumuturiPrimite}
-                      type="income"
-                    />
-                    <PLRow
-                      label="Rambursări de împrumuturi"
-                      value={mockCashFlowData.finantare.rambursari}
-                    />
+                  <div>
+                    <h4 className="font-semibold text-primary mb-2">C. ACTIVITĂȚI DE FINANȚARE</h4>
+                    <BilantRow label="Împrumuturi primite" value={cashFlowData.finantare.imprumuturiPrimite} />
+                    <BilantRow label="Rambursări de împrumuturi" value={cashFlowData.finantare.rambursari} />
+                    <BilantRow label="Flux net finanțare" value={cashFlowData.finantare.flux} className="font-semibold bg-primary/10 rounded px-2 -mx-2" />
                   </div>
-                  <PLRow
-                    label="Flux net din activități de finanțare"
-                    value={mockCashFlowData.finantare.flux}
-                    className="font-bold mt-3 pt-3 border-t-[3px] border-indigo-500 text-base text-gray-700"
-                  />
-                </div>
 
-                {/* Rezultat Final */}
-                <div className="bg-primary-indigo/10 p-6 rounded-xl border-2 border-primary-indigo/20">
-                  <PLRow
-                    label="VARIAȚIA NETĂ A NUMERARULUI"
-                    value={mockCashFlowData.variatieNeta}
-                    className="text-base font-bold mb-3 pt-3 border-t-[3px] border-indigo-500 pb-3 border-b-[3px] text-gray-700"
-                  />
-                  <PLRow
-                    label="Numerar la începutul perioadei"
-                    value={mockCashFlowData.numerarInceput}
-                    className="text-sm mb-2"
-                  />
-                  <PLRow
-                    label="NUMERAR LA SFÂRȘITUL PERIOADEI"
-                    value={mockCashFlowData.numerarSfarsit}
-                    className="text-xl font-bold"
-                  />
+                  <div className="border-t pt-4 space-y-2">
+                    <BilantRow label="Variația netă a numerarului" value={cashFlowData.variatieNeta} className="font-semibold" />
+                    <BilantRow label="Numerar la începutul perioadei" value={cashFlowData.numerarInceput} />
+                    <BilantRow label="NUMERAR LA SFÂRȘITUL PERIOADEI" value={cashFlowData.numerarSfarsit} className="font-bold text-lg bg-accent/10 rounded px-2 -mx-2 py-2 text-accent" />
+                  </div>
                 </div>
-              </div>
+              </Card>
             </TabsContent>
-          </div>
-        </Tabs>
-      </Card>
+          </Tabs>
+        </div>
+      )}
 
       {/* Email Dialog */}
       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Trimite raport prin email</DialogTitle>
+            <DialogTitle>Trimite raportul pe email</DialogTitle>
             <DialogDescription>
-              Introduceți adresa de email unde doriți să trimiteți raportul în format PDF.
+              Introduceți adresa de email unde doriți să primiți raportul.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="email">Adresa de email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="exemplu@companie.ro"
-                value={recipientEmail}
-                onChange={(e) => setRecipientEmail(e.target.value)}
-              />
-            </div>
+          <div className="py-4">
+            <Label htmlFor="email">Adresa de email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={recipientEmail}
+              onChange={(e) => setRecipientEmail(e.target.value)}
+              placeholder="email@exemplu.ro"
+              className="mt-2"
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEmailDialogOpen(false)}>
               Anulează
             </Button>
-            <Button onClick={sendEmailWithPDF}>
+            <Button onClick={() => {
+              toast.success(`Raportul va fi trimis la ${recipientEmail}`);
+              setEmailDialogOpen(false);
+              setRecipientEmail('');
+            }}>
               <Mail className="w-4 h-4 mr-2" />
               Trimite
             </Button>
