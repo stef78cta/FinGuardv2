@@ -546,44 +546,46 @@ const RapoarteFinanciare = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container-app">
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Rapoarte Financiare</h1>
-        <p className="text-foreground-secondary">
+      <div className="page-header">
+        <h1 className="page-title">Rapoarte Financiare</h1>
+        <p className="page-description">
           Generați și vizualizați rapoarte financiare detaliate
         </p>
       </div>
 
       {/* Balance Selector */}
-      <Card className="p-6 mb-6">
-        <div>
-          <Label htmlFor="balance-select-main" className="text-sm font-semibold mb-2 block">
-            Selectați balanța de referință
-          </Label>
-          <Select value={selectedBalanta} onValueChange={setSelectedBalanta}>
-            <SelectTrigger id="balance-select-main" className="w-full md:w-96">
-              <SelectValue placeholder="Alegeți o balanță" />
-            </SelectTrigger>
-            <SelectContent>
-              {mockBalances.map((balance) => (
-                <SelectItem key={balance.id} value={balance.id}>
-                  <div className="flex items-center gap-2">
-                    <FileSpreadsheet className="w-4 h-4 text-primary" />
-                    <span>{balance.fileName}</span>
-                    <span className="text-muted-foreground text-xs">
-                      ({format(balance.referenceDate, 'dd.MM.yyyy')})
-                    </span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <Card className="p-5 mb-5">
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <div className="flex-1">
+            <Label htmlFor="balance-select-main" className="text-sm font-semibold mb-2 block">
+              Selectați balanța de referință
+            </Label>
+            <Select value={selectedBalanta} onValueChange={setSelectedBalanta}>
+              <SelectTrigger id="balance-select-main" className="w-full">
+                <SelectValue placeholder="Alegeți o balanță" />
+              </SelectTrigger>
+              <SelectContent>
+                {mockBalances.map((balance) => (
+                  <SelectItem key={balance.id} value={balance.id}>
+                    <div className="flex items-center gap-2">
+                      <FileSpreadsheet className="w-4 h-4 text-primary" />
+                      <span>{balance.fileName}</span>
+                      <span className="text-muted-foreground text-xs">
+                        ({format(balance.referenceDate, 'dd.MM.yyyy')})
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </Card>
 
       {/* KPIs Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 no-print">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-5 no-print">
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>

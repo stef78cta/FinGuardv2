@@ -924,21 +924,21 @@ const AnalizeComparative = () => {
   const cashFlowData = generateCashFlowData(periods);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container-app">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">
+      <div className="page-header">
+        <h1 className="page-title">
           Analize Comparative
         </h1>
-        <p className="text-muted-foreground">
+        <p className="page-description">
           Compară performanța financiară între diferite perioade
         </p>
       </div>
 
-      {/* Period Selector */}
-      <Card className="mb-6 p-6">
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold text-foreground mb-2">
+      {/* Period Selector - Full width */}
+      <Card className="mb-5 p-5">
+        <div className="mb-3">
+          <h2 className="text-lg font-semibold text-foreground mb-1">
             Selectare Perioade
           </h2>
           <p className="text-sm text-muted-foreground">

@@ -70,8 +70,8 @@ const Dashboard = () => {
         }
       />
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* KPI Cards Grid - Full width with responsive columns */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4 mb-6">
         <KPICard
           label="Venituri Totale"
           value={formatCurrency(328000)}
@@ -103,10 +103,10 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-        {/* Monthly Evolution Chart - Takes 3 columns */}
-        <div className="lg:col-span-3">
+      {/* Main Content Grid - Extended to 5 columns for better width usage */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 mb-6">
+        {/* Monthly Evolution Chart - Takes 4 columns (80% width) */}
+        <div className="lg:col-span-4">
           <ChartCard 
             title="Evoluție Lunară" 
             subtitle="Venituri, cheltuieli și profit din ultimele 6 luni"
@@ -177,9 +177,9 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Top Accounts Table */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3">
+      {/* Top Accounts Table - Extended grid for wider table */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+        <div className="lg:col-span-4">
           <div className="card-app">
         <div className="card-app-header flex items-center justify-between">
           <div>
