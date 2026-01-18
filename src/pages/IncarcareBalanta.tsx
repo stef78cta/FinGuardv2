@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Upload, 
   FileSpreadsheet, 
@@ -10,7 +10,10 @@ import {
   Eye,
   Trash2,
   ChevronDown,
-  FileX
+  FileX,
+  Building2,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
@@ -19,70 +22,76 @@ import { Card } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-
-interface BalantaItem {
-  id: string;
-  fileName: string;
-  referenceDate: Date;
-  uploadDate: Date;
-  accountsCount: number;
-  totalDebit: number;
-  totalCredit: number;
-  status: 'processed' | 'processing' | 'error';
-}
-
-const mockBalante: BalantaItem[] = [
-  {
-    id: '1',
-    fileName: 'balanta_decembrie_2024.xlsx',
-    referenceDate: new Date('2024-12-31'),
-    uploadDate: new Date('2025-01-15T10:30:00'),
-    accountsCount: 156,
-    totalDebit: 2456789.50,
-    totalCredit: 2456789.50,
-    status: 'processed'
-  },
-  {
-    id: '2',
-    fileName: 'balanta_noiembrie_2024.xlsx',
-    referenceDate: new Date('2024-11-30'),
-    uploadDate: new Date('2024-12-10T14:20:00'),
-    accountsCount: 148,
-    totalDebit: 2123456.75,
-    totalCredit: 2123456.75,
-    status: 'processed'
-  },
-  {
-    id: '3',
-    fileName: 'balanta_octombrie_2024.xlsx',
-    referenceDate: new Date('2024-10-31'),
-    uploadDate: new Date('2024-11-08T09:15:00'),
-    accountsCount: 142,
-    totalDebit: 1987654.20,
-    totalCredit: 1987654.20,
-    status: 'processed'
-  }
-];
+import { useAuth } from '@/contexts/AuthContext';
+import { useCompany } from '@/hooks/useCompany';
+import { useTrialBalances, TrialBalanceImport } from '@/hooks/useTrialBalances';
+import { supabase } from '@/integrations/supabase/client';
 
 const IncarcareBalanta = () => {
+  const { user } = useAuth();
+  const { company, loading: companyLoading, createCompany } = useCompany();
+  const { imports, loading: importsLoading, uploadBalance, deleteImport, getAccounts } = useTrialBalances(company?.id || null);
+  
   const [referenceDate, setReferenceDate] = useState<Date>();
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [dateError, setDateError] = useState(false);
-  const [balante, setBalante] = useState<BalantaItem[]>(mockBalante);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedBalantaId, setSelectedBalantaId] = useState<string | null>(null);
+  const [selectedImportId, setSelectedImportId] = useState<string | null>(null);
   const [specsOpen, setSpecsOpen] = useState(false);
+  
+  // Company creation dialog
+  const [showCompanyDialog, setShowCompanyDialog] = useState(false);
+  const [companyName, setCompanyName] = useState('');
+  const [companyCUI, setCompanyCUI] = useState('');
+  const [creatingCompany, setCreatingCompany] = useState(false);
+  
+  // View accounts dialog
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [viewingAccounts, setViewingAccounts] = useState<any[]>([]);
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
+  
+  // Account totals cache
+  const [importTotals, setImportTotals] = useState<Record<string, { totalDebit: number; totalCredit: number; accountsCount: number }>>({});
+
+  // Load account totals for each import
+  useEffect(() => {
+    const loadTotals = async () => {
+      const totals: Record<string, { totalDebit: number; totalCredit: number; accountsCount: number }> = {};
+      
+      for (const imp of imports) {
+        if (imp.status === 'completed') {
+          try {
+            const accounts = await getAccounts(imp.id);
+            const totalDebit = accounts.reduce((sum, acc) => sum + (acc.closing_debit || 0), 0);
+            const totalCredit = accounts.reduce((sum, acc) => sum + (acc.closing_credit || 0), 0);
+            totals[imp.id] = { totalDebit, totalCredit, accountsCount: accounts.length };
+          } catch (err) {
+            console.error('Error loading totals:', err);
+          }
+        }
+      }
+      
+      setImportTotals(totals);
+    };
+    
+    if (imports.length > 0) {
+      loadTotals();
+    }
+  }, [imports, getAccounts]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -137,7 +146,7 @@ const IncarcareBalanta = () => {
     setUploadProgress(0);
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!referenceDate) {
       setDateError(true);
       toast.error('Data de referință este obligatorie');
@@ -149,55 +158,131 @@ const IncarcareBalanta = () => {
       return;
     }
 
+    if (!user) {
+      toast.error('Trebuie să fiți autentificat');
+      return;
+    }
+
+    // Get user's internal ID
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('auth_user_id', user.id)
+      .single();
+
+    if (userError || !userData) {
+      toast.error('Eroare la încărcare. Vă rugăm să încercați din nou.');
+      return;
+    }
+
     setDateError(false);
     setUploadStatus('uploading');
+    setUploadProgress(10);
     
-    // Simulate upload progress
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      setUploadProgress(progress);
+    try {
+      // Calculate period start (first day of month)
+      const periodStart = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
       
-      if (progress >= 100) {
-        clearInterval(interval);
-        setUploadStatus('success');
-        toast.success('Balanța a fost încărcată cu succes!');
-        
-        // Add to list
-        const newBalanta: BalantaItem = {
-          id: Date.now().toString(),
-          fileName: uploadedFile.name,
-          referenceDate: referenceDate,
-          uploadDate: new Date(),
-          accountsCount: Math.floor(Math.random() * 200) + 100,
-          totalDebit: Math.random() * 3000000,
-          totalCredit: Math.random() * 3000000,
-          status: 'processed'
-        };
-        setBalante([newBalanta, ...balante]);
-        
-        // Reset form
-        setTimeout(() => {
-          setUploadedFile(null);
-          setUploadStatus('idle');
-          setUploadProgress(0);
-        }, 1500);
-      }
-    }, 200);
+      setUploadProgress(30);
+      
+      await uploadBalance(uploadedFile, periodStart, referenceDate, userData.id);
+      
+      setUploadProgress(100);
+      setUploadStatus('success');
+      toast.success('Balanța a fost încărcată și procesată cu succes!');
+      
+      // Reset form
+      setTimeout(() => {
+        setUploadedFile(null);
+        setUploadStatus('idle');
+        setUploadProgress(0);
+        setReferenceDate(undefined);
+      }, 1500);
+      
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadStatus('error');
+      toast.error(error instanceof Error ? error.message : 'Eroare la încărcare');
+    }
   };
 
   const handleDelete = (id: string) => {
-    setSelectedBalantaId(id);
+    setSelectedImportId(id);
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (selectedBalantaId) {
-      setBalante(balante.filter(b => b.id !== selectedBalantaId));
-      toast.success('Balanța a fost ștearsă cu succes');
+  const confirmDelete = async () => {
+    if (selectedImportId) {
+      try {
+        await deleteImport(selectedImportId);
+        toast.success('Balanța a fost ștearsă cu succes');
+      } catch (error) {
+        toast.error('Eroare la ștergere');
+      }
     }
     setDeleteDialogOpen(false);
-    setSelectedBalantaId(null);
+    setSelectedImportId(null);
+  };
+
+  const handleViewAccounts = async (importId: string) => {
+    setLoadingAccounts(true);
+    setViewDialogOpen(true);
+    
+    try {
+      const accounts = await getAccounts(importId);
+      setViewingAccounts(accounts);
+    } catch (error) {
+      toast.error('Eroare la încărcarea conturilor');
+    } finally {
+      setLoadingAccounts(false);
+    }
+  };
+
+  const handleDownload = async (imp: TrialBalanceImport) => {
+    if (!imp.source_file_url) {
+      toast.error('Fișierul nu este disponibil');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.storage
+        .from('balante')
+        .download(imp.source_file_url);
+
+      if (error) throw error;
+
+      // Create download link
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = imp.source_file_name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      toast.error('Eroare la descărcare');
+    }
+  };
+
+  const handleCreateCompany = async () => {
+    if (!companyName.trim() || !companyCUI.trim()) {
+      toast.error('Toate câmpurile sunt obligatorii');
+      return;
+    }
+
+    setCreatingCompany(true);
+    try {
+      await createCompany(companyName.trim(), companyCUI.trim());
+      toast.success('Compania a fost creată cu succes!');
+      setShowCompanyDialog(false);
+      setCompanyName('');
+      setCompanyCUI('');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Eroare la crearea companiei');
+    } finally {
+      setCreatingCompany(false);
+    }
   };
 
   const formatCurrency = (value: number) => {
@@ -208,13 +293,104 @@ const IncarcareBalanta = () => {
     }).format(value);
   };
 
+  const getStatusBadge = (status: TrialBalanceImport['status']) => {
+    switch (status) {
+      case 'completed':
+        return <Badge variant="default">Procesat</Badge>;
+      case 'processing':
+        return <Badge variant="secondary">În procesare</Badge>;
+      case 'validated':
+        return <Badge variant="outline">Validat</Badge>;
+      case 'error':
+        return <Badge variant="destructive">Eroare</Badge>;
+      default:
+        return <Badge variant="secondary">Draft</Badge>;
+    }
+  };
+
+  // Loading state
+  if (companyLoading) {
+    return (
+      <div className="container-app flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // No company state
+  if (!company) {
+    return (
+      <div className="container-app">
+        <div className="page-header">
+          <h1 className="page-title">Încărcare Balanță</h1>
+          <p className="page-description">
+            Încărcați și procesați balanțe contabile
+          </p>
+        </div>
+
+        <Card className="p-8 text-center">
+          <Building2 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Nicio companie asociată</h2>
+          <p className="text-muted-foreground mb-6">
+            Pentru a încărca balanțe, trebuie să creați sau să vă asociați unei companii.
+          </p>
+          <Button onClick={() => setShowCompanyDialog(true)}>
+            <Building2 className="w-4 h-4 mr-2" />
+            Creează companie
+          </Button>
+        </Card>
+
+        {/* Create Company Dialog */}
+        <Dialog open={showCompanyDialog} onOpenChange={setShowCompanyDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Creează companie nouă</DialogTitle>
+              <DialogDescription>
+                Introduceți datele companiei pentru a începe să încărcați balanțe.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="company-name">Nume companie *</Label>
+                <Input
+                  id="company-name"
+                  placeholder="SC Exemplu SRL"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="company-cui">CUI *</Label>
+                <Input
+                  id="company-cui"
+                  placeholder="RO12345678"
+                  value={companyCUI}
+                  onChange={(e) => setCompanyCUI(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCompanyDialog(false)}>
+                Anulează
+              </Button>
+              <Button onClick={handleCreateCompany} disabled={creatingCompany}>
+                {creatingCompany && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Creează
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
+
   return (
     <div className="container-app">
       {/* Page Header */}
       <div className="page-header">
         <h1 className="page-title">Încărcare Balanță</h1>
         <p className="page-description">
-          Încărcați și procesați balanțe contabile
+          Încărcați și procesați balanțe contabile pentru {company.name}
         </p>
       </div>
 
@@ -247,7 +423,7 @@ const IncarcareBalanta = () => {
           </div>
         </div>
 
-        {/* Date Picker Section - More compact */}
+        {/* Date Picker Section */}
         <div className="p-5 2xl:p-8 border-b">
           <div className="max-w-xs 2xl:max-w-sm">
             <Label htmlFor="reference-date" className="text-sm font-semibold mb-2 block">
@@ -353,7 +529,7 @@ const IncarcareBalanta = () => {
                   <div className="mb-4">
                     <Progress value={uploadProgress} className="mb-2" />
                     <p className="text-xs text-muted-foreground text-center">
-                      Se încarcă... {uploadProgress}%
+                      Se procesează... {uploadProgress}%
                     </p>
                   </div>
                 )}
@@ -363,7 +539,14 @@ const IncarcareBalanta = () => {
                   className="w-full"
                   disabled={uploadStatus === 'uploading'}
                 >
-                  {uploadStatus === 'uploading' ? 'Se procesează...' : 'Încarcă balanța'}
+                  {uploadStatus === 'uploading' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Se procesează...
+                    </>
+                  ) : (
+                    'Încarcă balanța'
+                  )}
                 </Button>
               </div>
             )}
@@ -374,7 +557,11 @@ const IncarcareBalanta = () => {
         <div className="p-6 2xl:p-8 border-b">
           <h3 className="text-lg 2xl:text-xl font-semibold text-foreground mb-4">Balanțe Încărcate</h3>
           
-          {balante.length === 0 ? (
+          {importsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : imports.length === 0 ? (
             <div className="text-center py-12">
               <FileX className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">Nu există balanțe încărcate</p>
@@ -385,7 +572,7 @@ const IncarcareBalanta = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nume Fișier</TableHead>
-                    <TableHead>Data Referință</TableHead>
+                    <TableHead>Perioadă</TableHead>
                     <TableHead>Data Încărcare</TableHead>
                     <TableHead className="text-right">Nr. Conturi</TableHead>
                     <TableHead className="text-right">Total Debit</TableHead>
@@ -395,81 +582,99 @@ const IncarcareBalanta = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {balante.map((balanta) => (
-                    <TableRow key={balanta.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <FileSpreadsheet className="w-4 h-4 text-primary" />
-                          <span className="font-medium text-sm">{balanta.fileName}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {format(balanta.referenceDate, "dd.MM.yyyy", { locale: ro })}
-                      </TableCell>
-                      <TableCell>
-                        {format(balanta.uploadDate, "dd.MM.yyyy HH:mm", { locale: ro })}
-                      </TableCell>
-                      <TableCell className="text-right">{balanta.accountsCount}</TableCell>
-                      <TableCell className="text-right font-mono text-sm">
-                        {formatCurrency(balanta.totalDebit)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-sm">
-                        {formatCurrency(balanta.totalCredit)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            balanta.status === 'processed' ? 'default' :
-                            balanta.status === 'processing' ? 'secondary' : 'destructive'
-                          }
-                        >
-                          {balanta.status === 'processed' ? 'Procesat' :
-                           balanta.status === 'processing' ? 'În procesare' : 'Eroare'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-end gap-1">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <Download className="w-4 h-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Descarcă</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <Eye className="w-4 h-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Vizualizează</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="h-8 w-8 text-destructive hover:text-destructive"
-                                  onClick={() => handleDelete(balanta.id)}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Șterge</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {imports.map((imp) => {
+                    const totals = importTotals[imp.id];
+                    return (
+                      <TableRow key={imp.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <FileSpreadsheet className="w-4 h-4 text-primary" />
+                            <span className="font-medium text-sm">{imp.source_file_name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(imp.period_end), "MMMM yyyy", { locale: ro })}
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(imp.created_at), "dd.MM.yyyy HH:mm", { locale: ro })}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {totals?.accountsCount || '-'}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm">
+                          {totals ? formatCurrency(totals.totalDebit) : '-'}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm">
+                          {totals ? formatCurrency(totals.totalCredit) : '-'}
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(imp.status)}
+                          {imp.error_message && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <AlertCircle className="w-4 h-4 text-destructive ml-1 inline" />
+                                </TooltipTrigger>
+                                <TooltipContent>{imp.error_message}</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-end gap-1">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8"
+                                    onClick={() => handleDownload(imp)}
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Descarcă</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8"
+                                    onClick={() => handleViewAccounts(imp.id)}
+                                    disabled={imp.status !== 'completed'}
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Vizualizează conturi</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8 text-destructive hover:text-destructive"
+                                    onClick={() => handleDelete(imp.id)}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Șterge</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
@@ -581,6 +786,55 @@ const IncarcareBalanta = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* View Accounts Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Conturi Balanță</DialogTitle>
+            <DialogDescription>
+              Lista completă a conturilor din balanța selectată
+            </DialogDescription>
+          </DialogHeader>
+          
+          {loadingAccounts ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="overflow-auto flex-1">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cont</TableHead>
+                    <TableHead>Denumire</TableHead>
+                    <TableHead className="text-right">SI Debit</TableHead>
+                    <TableHead className="text-right">SI Credit</TableHead>
+                    <TableHead className="text-right">Rulaj D</TableHead>
+                    <TableHead className="text-right">Rulaj C</TableHead>
+                    <TableHead className="text-right">SF Debit</TableHead>
+                    <TableHead className="text-right">SF Credit</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {viewingAccounts.map((account) => (
+                    <TableRow key={account.id}>
+                      <TableCell className="font-mono">{account.account_code}</TableCell>
+                      <TableCell>{account.account_name}</TableCell>
+                      <TableCell className="text-right font-mono">{formatCurrency(account.opening_debit)}</TableCell>
+                      <TableCell className="text-right font-mono">{formatCurrency(account.opening_credit)}</TableCell>
+                      <TableCell className="text-right font-mono">{formatCurrency(account.debit_turnover)}</TableCell>
+                      <TableCell className="text-right font-mono">{formatCurrency(account.credit_turnover)}</TableCell>
+                      <TableCell className="text-right font-mono">{formatCurrency(account.closing_debit)}</TableCell>
+                      <TableCell className="text-right font-mono">{formatCurrency(account.closing_credit)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
