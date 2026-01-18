@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Play, ArrowRight, Shield, Clock } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import dashboardMockup from '../assets/dashboard-mockup.png';
 
 const HeroSection = () => {
@@ -88,10 +89,10 @@ const HeroSection = () => {
             <div className="flex flex-col gap-3 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
               {/* Primary CTA - Dominant */}
               <div className="flex flex-col sm:flex-row gap-3">
-                <button className="btn-hero group inline-flex items-center justify-center">
+                <Link to="/signup" className="btn-hero group inline-flex items-center justify-center">
                   <ArrowRight className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform duration-200" />
                   Analizează gratuit o balanță
-                </button>
+                </Link>
                 
                 {/* Secondary CTA - Clearly different */}
                 <button 

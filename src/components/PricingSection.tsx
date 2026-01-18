@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check, ArrowRight, Phone, Sparkles, Shield, Lock } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const PricingSection = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -25,6 +26,7 @@ const PricingSection = () => {
   const plans = [
     {
       name: 'Starter',
+      planKey: 'starter',
       price: 'Gratuit',
       badge: 'Perfect pentru început',
       badgeColor: 'bg-gray-100 text-gray-700',
@@ -40,6 +42,7 @@ const PricingSection = () => {
     },
     {
       name: 'Professional',
+      planKey: 'professional',
       price: '49€',
       period: '/lună',
       badge: 'Cel mai popular',
@@ -58,6 +61,7 @@ const PricingSection = () => {
     },
     {
       name: 'Enterprise',
+      planKey: 'enterprise',
       price: 'Custom',
       badge: 'Pentru firme de contabilitate',
       badgeColor: 'bg-purple-100 text-purple-700',
@@ -148,14 +152,17 @@ const PricingSection = () => {
                 </ul>
 
                 {/* CTA with differentiated styling */}
-                <button className={`w-full ${plan.ctaStyle} group flex items-center justify-center`}>
+                <Link 
+                  to={`/signup?plan=${plan.planKey}`}
+                  className={`w-full ${plan.ctaStyle} group flex items-center justify-center`}
+                >
                   {plan.name === 'Enterprise' ? (
                     <Phone className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-200" />
                   ) : (
                     <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform duration-200" />
                   )}
                   {plan.cta}
-                </button>
+                </Link>
                 
                 {/* Micro-copy for popular plan */}
                 {plan.popular && (

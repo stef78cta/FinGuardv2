@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Shield, Menu, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -10,6 +13,7 @@ const Navigation = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -20,16 +24,17 @@ const Navigation = () => {
     }
     setIsMobileMenuOpen(false);
   };
+  
   return <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/90 backdrop-blur-lg shadow-soft' : 'bg-transparent'}`}>
       <div className="container-custom">
         <div className="flex items-center justify-between h-18">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
+          <Link to="/" className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
               <Shield className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold text-gray-900">FinGuard</span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
@@ -50,11 +55,14 @@ const Navigation = () => {
             </button>
           </div>
 
-          {/* CTA Button */}
-          <div className="hidden lg:block">
-            <button onClick={() => scrollToSection('hero')} className="btn-secondary">
+          {/* CTA Buttons */}
+          <div className="hidden lg:flex items-center space-x-3">
+            <Link to="/login" className="btn-ghost">
               Autentificare
-            </button>
+            </Link>
+            <Link to="/signup" className="btn-primary">
+              Înregistrare
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -81,10 +89,13 @@ const Navigation = () => {
               <button onClick={() => scrollToSection('faq')} className="block w-full text-left py-3 px-4 text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-lg font-medium transition-all duration-200">
                 Întrebări frecvente
               </button>
-              <div className="pt-4 border-t border-gray-100">
-                <button className="btn-secondary w-full">
+              <div className="pt-4 border-t border-gray-100 space-y-3">
+                <Link to="/login" className="btn-ghost w-full block text-center" onClick={() => setIsMobileMenuOpen(false)}>
                   Autentificare
-                </button>
+                </Link>
+                <Link to="/signup" className="btn-primary w-full block text-center" onClick={() => setIsMobileMenuOpen(false)}>
+                  Înregistrare
+                </Link>
               </div>
             </div>
           </div>}

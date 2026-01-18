@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { ArrowUp, Sparkles, Phone } from 'lucide-react';
+import { ArrowUp, Sparkles, UserPlus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const SmartStickyCTA = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const [ctaType, setCtaType] = useState<'scroll-top' | 'demo' | 'contact'>('demo');
+  const [ctaType, setCtaType] = useState<'scroll-top' | 'demo' | 'signup'>('demo');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,7 +22,7 @@ const SmartStickyCTA = () => {
       } else if (scrollPosition > documentHeight - windowHeight * 1.5) {
         setCtaType('scroll-top');
       } else {
-        setCtaType('contact');
+        setCtaType('signup');
       }
     };
 
@@ -39,11 +41,8 @@ const SmartStickyCTA = () => {
     }
   };
 
-  const scrollToContact = () => {
-    const element = document.getElementById('pricing');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+  const goToSignup = () => {
+    navigate('/signup');
   };
 
   if (!isVisible) return null;
@@ -71,13 +70,13 @@ const SmartStickyCTA = () => {
         </button>
       )}
 
-      {ctaType === 'contact' && (
+      {ctaType === 'signup' && (
         <button
-          onClick={scrollToContact}
+          onClick={goToSignup}
           className="flex items-center space-x-2 px-6 py-3 bg-gradient-primary text-white rounded-full shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
         >
-          <Phone className="w-5 h-5" />
-          <span className="font-medium">Începe acum</span>
+          <UserPlus className="w-5 h-5" />
+          <span className="font-medium">Înregistrare</span>
         </button>
       )}
     </div>
