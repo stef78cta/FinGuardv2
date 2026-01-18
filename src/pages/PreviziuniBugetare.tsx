@@ -169,7 +169,7 @@ const PreviziuniBugetare = () => {
       />
 
       {/* Timeline & Controls - Extended grid for better proportions */}
-      <div className="grid grid-cols-1 lg:grid-cols-6 gap-5 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-6 2xl:grid-cols-7 gap-5 2xl:gap-6 mb-6">
         {/* Timeline - Compact on 1 column */}
         <Card className="p-5 lg:col-span-1">
           <h3 className="app-section-title">Etape Previziune</h3>
@@ -181,8 +181,8 @@ const PreviziuniBugetare = () => {
           </div>
         </Card>
 
-        {/* Scenario Cards - Extended to 5 columns */}
-        <div className="lg:col-span-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Scenario Cards - Extended to 5 columns (lg), 6 columns (2xl) */}
+        <div className="lg:col-span-5 2xl:col-span-6 grid grid-cols-1 md:grid-cols-3 gap-4 2xl:gap-6">
           <ScenarioCard 
             title="Optimist"
             type="optimist"
@@ -225,7 +225,7 @@ const PreviziuniBugetare = () => {
           </Select>
         }
       >
-        <div className="h-[350px]">
+        <div className="h-[350px] 2xl:h-[420px]">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={forecastData}>
               <defs>

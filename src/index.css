@@ -380,9 +380,9 @@
   }
 
   /* App Container - Full width utilization with minimal side padding */
-  .container-app {
-    @apply w-full max-w-[1600px] mx-auto px-4 sm:px-5 lg:px-6 py-5 md:py-6;
-  }
+.container-app {
+  @apply w-full max-w-[1920px] mx-auto px-4 sm:px-5 lg:px-6 2xl:px-8 py-5 md:py-6;
+}
 
   /* App Cards - Standardized */
   .card-app {
