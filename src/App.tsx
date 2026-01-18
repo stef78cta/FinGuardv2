@@ -19,6 +19,7 @@ import IndicatoriCheie from "./pages/IndicatoriCheie";
 import AnalizeComparative from "./pages/AnalizeComparative";
 import AlteAnalize from "./pages/AlteAnalize";
 import PreviziuniBugetare from "./pages/PreviziuniBugetare";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
               <Route path="analize-comparative" element={<AnalizeComparative />} />
               <Route path="alte-analize" element={<AlteAnalize />} />
               <Route path="previziuni-bugetare" element={<PreviziuniBugetare />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

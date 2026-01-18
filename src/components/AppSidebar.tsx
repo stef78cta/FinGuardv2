@@ -23,13 +23,15 @@ import {
   SidebarFooter,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { Badge } from '@/components/ui/badge';
 import { NotificationsPopover } from '@/components/NotificationsPopover';
 import { UserMenuPopover } from '@/components/UserMenuPopover';
 import { cn } from '@/lib/utils';
+import { useBalante } from '@/hooks/useBalante';
 
 const menuItems = [
   { title: 'Dashboard', url: '/app/dashboard', icon: LayoutDashboard },
-  { title: 'Încărcare balanță', url: '/app/incarcare-balanta', icon: Upload },
+  { title: 'Încărcare balanță', url: '/app/incarcare-balanta', icon: Upload, showBadge: true },
   { title: 'Rapoarte financiare', url: '/app/rapoarte-financiare', icon: FileText },
   { title: 'Analize financiare', url: '/app/analize-financiare', icon: TrendingUp },
   { title: 'Indicatori cheie', url: '/app/indicatori-cheie', icon: Target },
@@ -40,18 +42,21 @@ const menuItems = [
 
 export function AppSidebar() {
   const { open } = useSidebar();
+  const { balances } = useBalante();
+  
+  const balanceCount = balances.length;
 
   return (
-    <Sidebar className="border-r border-gray-200 bg-white">
-      <SidebarHeader className="h-14 px-4 flex items-center border-b border-gray-200 bg-gradient-to-r from-white to-indigo-50/30">
+    <Sidebar className="border-r border-border bg-card">
+      <SidebarHeader className="h-14 px-4 flex items-center border-b border-border bg-gradient-to-r from-card to-primary/5">
         <NavLink to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
-            <TrendingUp className="w-5 h-5 text-white" />
+          <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center shadow-md">
+            <TrendingUp className="w-5 h-5 text-primary-foreground" />
           </div>
           {open && (
             <div>
               <h2 className="font-bold text-foreground text-sm tracking-tight">FinGuard</h2>
-              <p className="text-xs text-foreground-secondary">Analiză financiară AI</p>
+              <p className="text-xs text-muted-foreground">Analiză financiară AI</p>
             </div>
           )}
         </NavLink>
@@ -59,7 +64,7 @@ export function AppSidebar() {
 
       <SidebarContent className="py-2">
         <SidebarGroup>
-          <SidebarGroupLabel className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          <SidebarGroupLabel className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Meniu Principal
           </SidebarGroupLabel>
           <SidebarGroupContent className="px-2">
@@ -73,8 +78,8 @@ export function AppSidebar() {
                         cn(
                           'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
                           isActive
-                            ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 font-semibold border-l-4 border-indigo-600 pl-2.5 shadow-sm'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-semibold border-l-4 border-primary pl-2.5 shadow-sm'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                         )
                       }
                     >
@@ -85,7 +90,17 @@ export function AppSidebar() {
                         )} 
                         strokeWidth={2} 
                       />
-                      {open && <span className="text-sm">{item.title}</span>}
+                      {open && (
+                        <span className="text-sm flex-1">{item.title}</span>
+                      )}
+                      {open && item.showBadge && balanceCount > 0 && (
+                        <Badge 
+                          variant="secondary" 
+                          className="ml-auto bg-accent/20 text-accent text-xs px-1.5 py-0"
+                        >
+                          {balanceCount}
+                        </Badge>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -95,19 +110,19 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-gray-200 bg-gradient-to-r from-white to-gray-50/50">
+      <SidebarFooter className="border-t border-border bg-gradient-to-r from-card to-muted/30">
         {/* Upgrade CTA - Only show when sidebar is open */}
         {open && (
           <div className="px-4 py-3">
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 text-white">
+            <div className="bg-gradient-to-r from-primary to-primary/80 rounded-xl p-4 text-primary-foreground">
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-4 h-4" />
                 <span className="text-sm font-semibold">Upgrade la Pro</span>
               </div>
-              <p className="text-xs text-indigo-100 mb-3">
+              <p className="text-xs opacity-90 mb-3">
                 Acces la previziuni AI și analize avansate
               </p>
-              <button className="w-full bg-white text-indigo-600 rounded-lg py-2 text-xs font-semibold hover:bg-indigo-50 transition-colors">
+              <button className="w-full bg-card text-primary rounded-lg py-2 text-xs font-semibold hover:bg-card/90 transition-colors">
                 Află mai multe
               </button>
             </div>
