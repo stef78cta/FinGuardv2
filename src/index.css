@@ -379,9 +379,9 @@
     color: hsl(var(--foreground-secondary));
   }
 
-  /* App Container - Slightly tighter than landing */
+  /* App Container - Full width utilization with minimal side padding */
   .container-app {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8;
+    @apply w-full max-w-[1600px] mx-auto px-4 sm:px-5 lg:px-6 py-5 md:py-6;
   }
 
   /* App Cards - Standardized */

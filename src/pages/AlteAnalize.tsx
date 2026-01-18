@@ -267,12 +267,12 @@ const ChartSection = ({
   }, [chartData, filters]);
 
   return (
-    <div className="p-5">
-      <h2 className="text-xl font-bold text-foreground mb-5 text-center">
+    <div className="p-4">
+      <h2 className="text-lg font-bold text-foreground mb-4 text-center">
         ANALIZA CHELTUIELILOR
       </h2>
       
-      <div className="h-[380px] mb-5">
+      <div className="h-[400px] mb-4">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={filteredData}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -378,8 +378,8 @@ const ChartSection = ({
         </ResponsiveContainer>
       </div>
       
-      <div className="pt-6 border-t border-border">
-        <p className="text-sm font-semibold text-foreground mb-4">
+      <div className="pt-4 border-t border-border">
+        <p className="text-sm font-semibold text-foreground mb-3">
           Filtrare grafic:
         </p>
         <div className="flex flex-wrap gap-4">
@@ -506,20 +506,18 @@ const AlteAnalize = () => {
         </p>
       </div>
 
-      {/* Explanatory Text */}
-      <div className="card-app p-4 mb-6">
+      {/* Explanatory Text - More compact */}
+      <div className="card-app p-4 mb-5">
         <p className="text-sm text-foreground leading-relaxed">
-          Selectați lunile ale căror valori doriți să le vizualizați. Rapoartele redau informații 
-          despre datele realizate în cadrul unei luni. Se pot compara rezultate realizate lunar 
-          între luni din același an sau din ani diferiți. Informațiile sunt prezentate tabelar 
-          sau grafic. Se pot face comparații pentru 2-12 luni.
+          Selectați lunile pentru vizualizare. Se pot compara rezultate realizate lunar 
+          între luni din același an sau din ani diferiți, pentru 2-12 luni.
         </p>
       </div>
 
-      {/* SECTION 1: Graphical Analysis */}
-      <Card className="mb-8">
+      {/* SECTION 1: Graphical Analysis - Full width */}
+      <Card className="mb-5">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <CardHeader className="pb-4">
+          <CardHeader className="pb-3">
             <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 gap-2">
               <TabsTrigger value="pl">Analiza P&L</TabsTrigger>
               <TabsTrigger value="venituri">Analiza Venituri</TabsTrigger>

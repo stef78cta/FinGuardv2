@@ -168,9 +168,9 @@ const PreviziuniBugetare = () => {
         }
       />
 
-      {/* Timeline & Controls */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
-        {/* Timeline */}
+      {/* Timeline & Controls - Extended grid for better proportions */}
+      <div className="grid grid-cols-1 lg:grid-cols-6 gap-5 mb-6">
+        {/* Timeline - Compact on 1 column */}
         <Card className="p-5 lg:col-span-1">
           <h3 className="app-section-title">Etape Previziune</h3>
           <div className="space-y-2">
@@ -181,8 +181,8 @@ const PreviziuniBugetare = () => {
           </div>
         </Card>
 
-        {/* Scenario Cards */}
-        <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Scenario Cards - Extended to 5 columns */}
+        <div className="lg:col-span-5 grid grid-cols-1 md:grid-cols-3 gap-4">
           <ScenarioCard 
             title="Optimist"
             type="optimist"
@@ -291,9 +291,9 @@ const PreviziuniBugetare = () => {
         </div>
       </ChartCard>
 
-      {/* Monthly Breakdown Table */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-4 lg:col-start-2">
+      {/* Monthly Breakdown Table - Full width */}
+      <div className="grid grid-cols-1">
+        <div>
           <div className="card-app">
         <div className="card-app-header">
           <h3 className="font-semibold text-foreground">Detaliere Lunară Previziuni</h3>

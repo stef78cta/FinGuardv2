@@ -56,9 +56,11 @@ const AppLayout = () => {
             </div>
           </header>
 
-          {/* Main Content */}
-          <main className="flex-1 overflow-auto">
-            <Outlet />
+          {/* Main Content - Full width utilization */}
+          <main className="flex-1 overflow-auto w-full">
+            <div className="w-full">
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>

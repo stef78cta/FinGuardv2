@@ -221,12 +221,12 @@ const IncarcareBalanta = () => {
       {/* Main Container */}
       <Card className="overflow-hidden">
         {/* Header Section */}
-        <div className="bg-muted/30 p-6 border-b">
+        <div className="bg-muted/30 p-5 border-b">
           <div className="flex items-start gap-3">
             <FileSpreadsheet className="w-6 h-6 text-primary mt-1" />
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-semibold text-foreground">
+                <h2 className="text-lg font-semibold text-foreground">
                   Încărcare Balanță de Verificare
                 </h2>
                 <TooltipProvider>
@@ -247,9 +247,9 @@ const IncarcareBalanta = () => {
           </div>
         </div>
 
-        {/* Date Picker Section */}
-        <div className="p-6 border-b">
-          <div className="max-w-sm">
+        {/* Date Picker Section - More compact */}
+        <div className="p-5 border-b">
+          <div className="max-w-xs">
             <Label htmlFor="reference-date" className="text-sm font-semibold mb-2 block">
               Data de Referință <span className="text-destructive">*</span>
             </Label>
