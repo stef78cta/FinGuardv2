@@ -71,7 +71,7 @@ const Dashboard = () => {
       />
 
       {/* KPI Cards Grid - Full width with responsive columns */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4 2xl:gap-6 mb-6">
         <KPICard
           label="Venituri Totale"
           value={formatCurrency(328000)}
@@ -104,14 +104,14 @@ const Dashboard = () => {
       </div>
 
       {/* Main Content Grid - Extended to 5 columns for better width usage */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 mb-6">
-        {/* Monthly Evolution Chart - Takes 4 columns (80% width) */}
-        <div className="lg:col-span-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 2xl:grid-cols-6 gap-5 2xl:gap-6 mb-6">
+        {/* Monthly Evolution Chart - Takes 4 columns (80% width on lg, 83% on 2xl) */}
+        <div className="lg:col-span-4 2xl:col-span-5">
           <ChartCard 
             title="Evoluție Lunară" 
             subtitle="Venituri, cheltuieli și profit din ultimele 6 luni"
           >
-            <div className="h-[300px]">
+            <div className="h-[300px] 2xl:h-[380px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={monthlyEvolutionData}>
                   <defs>
@@ -178,8 +178,8 @@ const Dashboard = () => {
       </div>
 
       {/* Top Accounts Table - Extended grid for wider table */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-        <div className="lg:col-span-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 2xl:grid-cols-6 gap-5 2xl:gap-6">
+        <div className="lg:col-span-4 2xl:col-span-5">
           <div className="card-app">
         <div className="card-app-header flex items-center justify-between">
           <div>

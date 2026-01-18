@@ -248,8 +248,8 @@ const IncarcareBalanta = () => {
         </div>
 
         {/* Date Picker Section - More compact */}
-        <div className="p-5 border-b">
-          <div className="max-w-xs">
+        <div className="p-5 2xl:p-8 border-b">
+          <div className="max-w-xs 2xl:max-w-sm">
             <Label htmlFor="reference-date" className="text-sm font-semibold mb-2 block">
               Data de Referință <span className="text-destructive">*</span>
             </Label>
@@ -371,8 +371,8 @@ const IncarcareBalanta = () => {
         </div>
 
         {/* Lista Balanțe Încărcate */}
-        <div className="p-6 border-b">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Balanțe Încărcate</h3>
+        <div className="p-6 2xl:p-8 border-b">
+          <h3 className="text-lg 2xl:text-xl font-semibold text-foreground mb-4">Balanțe Încărcate</h3>
           
           {balante.length === 0 ? (
             <div className="text-center py-12">

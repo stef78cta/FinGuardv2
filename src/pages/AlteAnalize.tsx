@@ -267,12 +267,12 @@ const ChartSection = ({
   }, [chartData, filters]);
 
   return (
-    <div className="p-4">
-      <h2 className="text-lg font-bold text-foreground mb-4 text-center">
+    <div className="p-4 2xl:p-6">
+      <h2 className="text-lg 2xl:text-xl font-bold text-foreground mb-4 text-center">
         ANALIZA CHELTUIELILOR
       </h2>
       
-      <div className="h-[400px] mb-4">
+      <div className="h-[400px] 2xl:h-[480px] mb-4">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={filteredData}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -379,10 +379,10 @@ const ChartSection = ({
       </div>
       
       <div className="pt-4 border-t border-border">
-        <p className="text-sm font-semibold text-foreground mb-3">
+        <p className="text-sm 2xl:text-base font-semibold text-foreground mb-3">
           Filtrare grafic:
         </p>
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap 2xl:flex-nowrap gap-4 2xl:gap-6">
           {(Object.entries(chartConfig) as Array<[keyof ChartFilters, typeof chartConfig[keyof typeof chartConfig]]>).map(([key, config]) => (
             <FilterCheckbox
               key={key}

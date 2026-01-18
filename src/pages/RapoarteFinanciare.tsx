@@ -556,8 +556,8 @@ const RapoarteFinanciare = () => {
       </div>
 
       {/* Balance Selector */}
-      <Card className="p-5 mb-5">
-        <div className="flex flex-col md:flex-row md:items-center gap-4">
+      <Card className="p-5 2xl:p-8 mb-5">
+        <div className="flex flex-col md:flex-row md:items-center gap-4 2xl:gap-6">
           <div className="flex-1">
             <Label htmlFor="balance-select-main" className="text-sm font-semibold mb-2 block">
               Selectați balanța de referință
@@ -585,8 +585,8 @@ const RapoarteFinanciare = () => {
       </Card>
 
       {/* KPIs Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-5 no-print">
-        <Card className="p-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 2xl:grid-cols-3 gap-4 2xl:gap-6 mb-5 no-print">
+        <Card className="p-4 2xl:p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground mb-1">Profit Net</p>
@@ -598,7 +598,7 @@ const RapoarteFinanciare = () => {
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 2xl:p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground mb-1">Total Active</p>
@@ -610,7 +610,7 @@ const RapoarteFinanciare = () => {
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 2xl:p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground mb-1">Cash Flow</p>
@@ -627,8 +627,8 @@ const RapoarteFinanciare = () => {
       <Card className="overflow-hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Tabs List */}
-          <div className="border-b bg-surface p-2">
-            <TabsList className="grid w-full grid-cols-3 gap-2 bg-transparent p-0">
+          <div className="border-b bg-surface p-2 2xl:p-3">
+            <TabsList className="grid w-full grid-cols-3 gap-2 2xl:gap-3 bg-transparent p-0">
               <TabsTrigger
                 value="bilant"
                 className="data-[state=active]:bg-primary-indigo data-[state=active]:text-white border-2 border-border data-[state=active]:border-primary-indigo rounded-lg px-6 py-3 transition-all"

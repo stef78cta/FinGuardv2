@@ -936,17 +936,17 @@ const AnalizeComparative = () => {
       </div>
 
       {/* Period Selector - Full width */}
-      <Card className="mb-5 p-5">
-        <div className="mb-3">
-          <h2 className="text-lg font-semibold text-foreground mb-1">
+      <Card className="mb-5 p-5 2xl:p-8">
+        <div className="mb-3 2xl:mb-4">
+          <h2 className="text-lg 2xl:text-xl font-semibold text-foreground mb-1">
             Selectare Perioade
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm 2xl:text-base text-muted-foreground">
             Alege până la 3 perioade pentru comparație
           </p>
         </div>
 
-        <div className="flex flex-col md:flex-row flex-wrap items-start md:items-end gap-4">
+        <div className="flex flex-col md:flex-row 2xl:flex-nowrap flex-wrap items-start md:items-end gap-4 2xl:gap-6">
           {periods.map((period, idx) => (
             <div key={idx} className="flex-1 min-w-[250px]">
               <Label className="text-sm font-medium mb-2 block">
@@ -1044,15 +1044,15 @@ const AnalizeComparative = () => {
 
         {/* TAB 1: Indicatori */}
         <TabsContent value="indicatori">
-          <Card className="p-6">
-            <div className="space-y-6">
+          <Card className="p-6 2xl:p-8">
+            <div className="space-y-6 2xl:space-y-8">
               <div className="flex items-center justify-between border-b border-indigo-500 pb-4">
-                <h2 className="text-2xl font-bold text-foreground">Indicatori Cheie de Performanță</h2>
+                <h2 className="text-2xl 2xl:text-3xl font-bold text-foreground">Indicatori Cheie de Performanță</h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-4 2xl:gap-6">
                 {kpiData.map(kpi => (
-                  <Card key={kpi.label} className="p-4 border-gray-200">
+                  <Card key={kpi.label} className="p-4 2xl:p-5 border-gray-200">
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <h3 className="font-semibold text-foreground">{kpi.label}</h3>
@@ -1092,8 +1092,8 @@ const AnalizeComparative = () => {
                 ))}
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
-                <Card className="p-6 h-64 flex items-center justify-center bg-gradient-to-br from-indigo-50 to-white">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 2xl:gap-6 mt-6">
+                <Card className="p-6 2xl:p-8 h-64 2xl:h-80 flex items-center justify-center bg-gradient-to-br from-indigo-50 to-white">
                   <div className="text-center">
                     <BarChartIcon className="w-12 h-12 text-indigo-300 mx-auto mb-3" />
                     <p className="text-sm text-muted-foreground">

@@ -105,7 +105,7 @@ const AnalizeFinanciare = () => {
             title="Evoluția Veniturilor pe Categorii"
             subtitle="Ultimele 6 luni - defalcare pe surse de venit"
           >
-            <div className="h-[350px]">
+            <div className="h-[350px] 2xl:h-[420px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={revenueData}>
                   <defs>
@@ -137,9 +137,9 @@ const AnalizeFinanciare = () => {
 
         {/* Structura Cheltuielilor - Extended for better proportions */}
         <TabsContent value="cheltuieli" className="space-y-5">
-          <div className="grid grid-cols-1 lg:grid-cols-7 gap-5">
-            <ChartCard title="Distribuția Cheltuielilor" subtitle="Ponderea fiecărei categorii" className="lg:col-span-4">
-              <div className="h-[300px]">
+          <div className="grid grid-cols-1 lg:grid-cols-7 2xl:grid-cols-9 gap-5 2xl:gap-6">
+            <ChartCard title="Distribuția Cheltuielilor" subtitle="Ponderea fiecărei categorii" className="lg:col-span-4 2xl:col-span-6">
+              <div className="h-[300px] 2xl:h-[380px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartsPieChart>
                     <Pie
@@ -162,7 +162,7 @@ const AnalizeFinanciare = () => {
               </div>
             </ChartCard>
 
-            <div className="card-app lg:col-span-3">
+            <div className="card-app lg:col-span-3 2xl:col-span-3">
               <div className="card-app-header">
                 <h3 className="font-semibold text-foreground">Detalii Cheltuieli</h3>
               </div>
@@ -205,7 +205,7 @@ const AnalizeFinanciare = () => {
             title="Evoluția Marjelor de Profit"
             subtitle="Marja brută, operațională și netă pe ultimele 6 luni"
           >
-            <div className="h-[350px]">
+            <div className="h-[350px] 2xl:h-[420px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={profitMargins}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
