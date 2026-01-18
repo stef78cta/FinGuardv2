@@ -1,4 +1,6 @@
 import { ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
 const FinalCTASection = () => {
   return <section className="section-padding-reduced bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 relative overflow-hidden">
       {/* Background Pattern */}
@@ -18,10 +20,13 @@ const FinalCTASection = () => {
           </p>
 
           <div className="mb-6">
-            <button className="bg-white text-indigo-600 px-10 py-4 rounded-xl font-bold text-lg shadow-xl hover:shadow-white/25 hover:scale-[1.02] transition-all duration-300 group">
+            <Link 
+              to="/signup"
+              className="bg-white text-indigo-600 px-10 py-4 rounded-xl font-bold text-lg shadow-xl hover:shadow-white/25 hover:scale-[1.02] transition-all duration-300 group inline-flex items-center"
+            >
               Începe gratuit acum
-              <ArrowRight className="w-5 h-5 ml-2 inline group-hover:translate-x-1 transition-transform duration-200" />
-            </button>
+              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+            </Link>
           </div>
 
           
