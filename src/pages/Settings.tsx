@@ -172,20 +172,20 @@ const Settings = () => {
       />
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
-          <TabsTrigger value="profile" className="gap-2">
+        <TabsList className="w-full flex-wrap md:flex-nowrap md:w-auto">
+          <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="w-4 h-4" />
             <span className="hidden sm:inline">Profil</span>
           </TabsTrigger>
-          <TabsTrigger value="company" className="gap-2">
+          <TabsTrigger value="company" className="flex items-center gap-2">
             <Building2 className="w-4 h-4" />
             <span className="hidden sm:inline">Companie</span>
           </TabsTrigger>
-          <TabsTrigger value="security" className="gap-2">
+          <TabsTrigger value="security" className="flex items-center gap-2">
             <Lock className="w-4 h-4" />
             <span className="hidden sm:inline">Securitate</span>
           </TabsTrigger>
-          <TabsTrigger value="subscription" className="gap-2">
+          <TabsTrigger value="subscription" className="flex items-center gap-2">
             <CreditCard className="w-4 h-4" />
             <span className="hidden sm:inline">Abonament</span>
           </TabsTrigger>

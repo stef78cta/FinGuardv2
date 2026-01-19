@@ -393,10 +393,16 @@ const RapoarteFinanciare = () => {
       ) : (
         <div id="report-content">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-6">
-              <TabsTrigger value="bilant">Bilanț</TabsTrigger>
-              <TabsTrigger value="pl">Profit & Pierdere</TabsTrigger>
-              <TabsTrigger value="cashflow">Cash Flow</TabsTrigger>
+            <TabsList className="mb-6 w-full md:w-auto">
+              <TabsTrigger value="bilant" className="flex items-center gap-2">
+                Bilanț
+              </TabsTrigger>
+              <TabsTrigger value="pl" className="flex items-center gap-2">
+                Profit & Pierdere
+              </TabsTrigger>
+              <TabsTrigger value="cashflow" className="flex items-center gap-2">
+                Cash Flow
+              </TabsTrigger>
             </TabsList>
 
             {/* Bilant Tab */}

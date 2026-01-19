@@ -241,22 +241,26 @@ const AnalizeFinanciare = () => {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 gap-2">
+        <TabsList className="w-full flex-wrap md:flex-nowrap md:w-auto">
           <TabsTrigger value="venituri" className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4" />
-            Structura Veniturilor
+            <span className="hidden sm:inline">Structura Veniturilor</span>
+            <span className="sm:hidden">Venituri</span>
           </TabsTrigger>
           <TabsTrigger value="cheltuieli" className="flex items-center gap-2">
             <PieChart className="w-4 h-4" />
-            Structura Cheltuielilor
+            <span className="hidden sm:inline">Structura Cheltuielilor</span>
+            <span className="sm:hidden">Cheltuieli</span>
           </TabsTrigger>
           <TabsTrigger value="marje" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
-            Marje de Profit
+            <span className="hidden sm:inline">Marje de Profit</span>
+            <span className="sm:hidden">Marje</span>
           </TabsTrigger>
           <TabsTrigger value="comparatie" className="flex items-center gap-2">
             <ArrowUpRight className="w-4 h-4" />
-            Comparație Perioade
+            <span className="hidden sm:inline">Comparație Perioade</span>
+            <span className="sm:hidden">Comparație</span>
           </TabsTrigger>
         </TabsList>
 

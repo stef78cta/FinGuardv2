@@ -317,12 +317,12 @@ const Admin = () => {
 
       {/* Tabs for Users and Companies */}
       <Tabs defaultValue="users" className="w-full">
-        <TabsList>
-          <TabsTrigger value="users" className="gap-2">
+        <TabsList className="w-full md:w-auto">
+          <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Utilizatori
           </TabsTrigger>
-          <TabsTrigger value="companies" className="gap-2">
+          <TabsTrigger value="companies" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
             Companii
           </TabsTrigger>
