@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Shield, Menu, X, LayoutDashboard, LogOut } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Popover,
@@ -10,6 +10,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 const Navigation = () => {
+  const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -38,6 +39,9 @@ const Navigation = () => {
     setIsLoggingOut(true);
     try {
       await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Sign out error:', error);
     } finally {
       setIsLoggingOut(false);
     }
