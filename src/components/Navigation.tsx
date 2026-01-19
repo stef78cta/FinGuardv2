@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Shield, Menu, X, LayoutDashboard } from 'lucide-react';
+import { Shield, Menu, X, LayoutDashboard, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Navigation = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   useEffect(() => {
     const handleScroll = () => {
@@ -25,6 +26,21 @@ const Navigation = () => {
       });
     }
     setIsMobileMenuOpen(false);
+  };
+
+  const handleSignOut = async () => {
+    setIsLoggingOut(true);
+    try {
+      await signOut();
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
+  // Get user display name
+  const getUserDisplayName = () => {
+    if (!user) return '';
+    return user.user_metadata?.full_name || user.email?.split('@')[0] || 'Utilizator';
   };
   
   return <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/90 backdrop-blur-lg shadow-soft' : 'bg-transparent'}`}>
@@ -62,10 +78,23 @@ const Navigation = () => {
             {authLoading ? (
               <div className="w-24 h-10 bg-gray-200 animate-pulse rounded-lg" />
             ) : user ? (
-              <Link to="/app/dashboard" className="btn-primary flex items-center gap-2">
-                <LayoutDashboard className="w-4 h-4" />
-                Dashboard
-              </Link>
+              <>
+                <span className="text-gray-700 font-medium">
+                  Bună, {getUserDisplayName()}
+                </span>
+                <Link to="/app/dashboard" className="btn-primary flex items-center gap-2">
+                  <LayoutDashboard className="w-4 h-4" />
+                  Dashboard
+                </Link>
+                <button 
+                  onClick={handleSignOut}
+                  disabled={isLoggingOut}
+                  className="btn-ghost flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4" />
+                  {isLoggingOut ? 'Se deconectează...' : 'Sign out'}
+                </button>
+              </>
             ) : (
               <>
                 <Link to="/login" className="btn-ghost">
@@ -104,14 +133,30 @@ const Navigation = () => {
               </button>
               <div className="pt-4 border-t border-gray-100 space-y-3">
                 {user ? (
-                  <Link 
-                    to="/app/dashboard" 
-                    className="btn-primary w-full flex items-center justify-center gap-2" 
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <LayoutDashboard className="w-4 h-4" />
-                    Dashboard
-                  </Link>
+                  <>
+                    <p className="text-center text-gray-700 font-medium py-2">
+                      Bună, {getUserDisplayName()}
+                    </p>
+                    <Link 
+                      to="/app/dashboard" 
+                      className="btn-primary w-full flex items-center justify-center gap-2" 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <LayoutDashboard className="w-4 h-4" />
+                      Dashboard
+                    </Link>
+                    <button 
+                      onClick={() => {
+                        handleSignOut();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      disabled={isLoggingOut}
+                      className="btn-ghost w-full flex items-center justify-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      {isLoggingOut ? 'Se deconectează...' : 'Sign out'}
+                    </button>
+                  </>
                 ) : (
                   <>
                     <Link to="/login" className="btn-ghost w-full block text-center" onClick={() => setIsMobileMenuOpen(false)}>
