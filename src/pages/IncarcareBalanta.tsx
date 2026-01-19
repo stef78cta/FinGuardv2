@@ -36,14 +36,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCompany } from '@/hooks/useCompany';
+import { useCompanyContext } from '@/contexts/CompanyContext';
 import { useTrialBalances, TrialBalanceImport } from '@/hooks/useTrialBalances';
 import { supabase } from '@/integrations/supabase/client';
 
 const IncarcareBalanta = () => {
   const { user } = useAuth();
-  const { company, loading: companyLoading, createCompany } = useCompany();
-  const { imports, loading: importsLoading, uploadBalance, deleteImport, getAccounts } = useTrialBalances(company?.id || null);
+  const { activeCompany } = useCompanyContext();
+  const { imports, loading: importsLoading, uploadBalance, deleteImport, getAccounts } = useTrialBalances(activeCompany?.id || null);
   
   const [referenceDate, setReferenceDate] = useState<Date>();
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -56,11 +56,6 @@ const IncarcareBalanta = () => {
   const [selectedImportId, setSelectedImportId] = useState<string | null>(null);
   const [detailedSpecsOpen, setDetailedSpecsOpen] = useState(false);
   
-  // Company creation dialog
-  const [showCompanyDialog, setShowCompanyDialog] = useState(false);
-  const [companyName, setCompanyName] = useState('');
-  const [companyCUI, setCompanyCUI] = useState('');
-  const [creatingCompany, setCreatingCompany] = useState(false);
   
   // View accounts dialog
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -268,26 +263,6 @@ const IncarcareBalanta = () => {
     }
   };
 
-  const handleCreateCompany = async () => {
-    if (!companyName.trim() || !companyCUI.trim()) {
-      toast.error('Toate câmpurile sunt obligatorii');
-      return;
-    }
-
-    setCreatingCompany(true);
-    try {
-      await createCompany(companyName.trim(), companyCUI.trim());
-      toast.success('Compania a fost creată cu succes!');
-      setShowCompanyDialog(false);
-      setCompanyName('');
-      setCompanyCUI('');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Eroare la crearea companiei');
-    } finally {
-      setCreatingCompany(false);
-    }
-  };
-
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('ro-RO', {
       style: 'currency',
@@ -311,90 +286,25 @@ const IncarcareBalanta = () => {
     }
   };
 
-  // Loading state
-  if (companyLoading) {
-    return (
-      <div className="container-app flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // No company state
-  if (!company) {
-    return (
-      <div className="container-app">
-        <div className="page-header">
-          <h1 className="page-title">Încărcare Balanță</h1>
-          <p className="page-description">
-            Încărcați și procesați balanțe contabile
-          </p>
-        </div>
-
-        <Card className="p-8 text-center">
-          <Building2 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Nicio companie asociată</h2>
-          <p className="text-muted-foreground mb-6">
-            Pentru a încărca balanțe, trebuie să creați sau să vă asociați unei companii.
-          </p>
-          <Button onClick={() => setShowCompanyDialog(true)}>
-            <Building2 className="w-4 h-4 mr-2" />
-            Creează companie
-          </Button>
-        </Card>
-
-        {/* Create Company Dialog */}
-        <Dialog open={showCompanyDialog} onOpenChange={setShowCompanyDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Creează companie nouă</DialogTitle>
-              <DialogDescription>
-                Introduceți datele companiei pentru a începe să încărcați balanțe.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="company-name">Nume companie *</Label>
-                <Input
-                  id="company-name"
-                  placeholder="SC Exemplu SRL"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="company-cui">CUI *</Label>
-                <Input
-                  id="company-cui"
-                  placeholder="RO12345678"
-                  value={companyCUI}
-                  onChange={(e) => setCompanyCUI(e.target.value)}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowCompanyDialog(false)}>
-                Anulează
-              </Button>
-              <Button onClick={handleCreateCompany} disabled={creatingCompany}>
-                {creatingCompany && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Creează
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-    );
-  }
-
   return (
     <div className="container-app">
-      {/* Page Header */}
+      {/* Page Header with Active Company */}
       <div className="page-header">
         <h1 className="page-title">Încărcare Balanță</h1>
         <p className="page-description">
-          Încărcați și procesați balanțe contabile pentru {company.name}
+          Încărcați și procesați balanțe contabile pentru <span className="font-semibold text-primary">{activeCompany?.name}</span>
         </p>
+      </div>
+
+      {/* Active Company Banner */}
+      <div className="mb-6 p-4 bg-primary/5 border border-primary/20 rounded-lg flex items-center gap-3">
+        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary font-semibold">
+          {activeCompany?.name.substring(0, 2).toUpperCase()}
+        </div>
+        <div>
+          <p className="text-sm text-muted-foreground">Încărci balanță pentru:</p>
+          <p className="font-semibold text-foreground">{activeCompany?.name}</p>
+        </div>
       </div>
 
       {/* Main Container */}
