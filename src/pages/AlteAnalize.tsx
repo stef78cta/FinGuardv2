@@ -453,8 +453,12 @@ const AlteAnalize = () => {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="w-full md:w-auto">
-          <TabsTrigger value="cheltuieli">Analiza Cheltuielilor</TabsTrigger>
-          <TabsTrigger value="comparativ">Tabel Comparativ</TabsTrigger>
+          <TabsTrigger value="cheltuieli" className="flex items-center gap-2">
+            Analiza Cheltuielilor
+          </TabsTrigger>
+          <TabsTrigger value="comparativ" className="flex items-center gap-2">
+            Tabel Comparativ
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="cheltuieli">

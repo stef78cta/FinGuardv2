@@ -274,7 +274,7 @@ const AnalizeComparative = () => {
       {/* Comparison Results */}
       {hasSelectedBoth && !dataLoading ? (
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
+          <TabsList className="mb-6 w-full md:w-auto">
             <TabsTrigger value="bilant">Bilanț Comparativ</TabsTrigger>
             <TabsTrigger value="pl">Profit & Pierdere</TabsTrigger>
           </TabsList>
