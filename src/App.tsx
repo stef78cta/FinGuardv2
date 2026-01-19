@@ -5,12 +5,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import AuthGuard from "@/components/auth/AuthGuard";
+import AdminGuard from "@/components/auth/AdminGuard";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import AppLayout from "./layouts/AppLayout";
+import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/Dashboard";
 import IncarcareBalanta from "./pages/IncarcareBalanta";
 import RapoarteFinanciare from "./pages/RapoarteFinanciare";
@@ -20,6 +22,7 @@ import AnalizeComparative from "./pages/AnalizeComparative";
 import AlteAnalize from "./pages/AlteAnalize";
 import PreviziuniBugetare from "./pages/PreviziuniBugetare";
 import Settings from "./pages/Settings";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +55,17 @@ const App = () => (
               <Route path="alte-analize" element={<AlteAnalize />} />
               <Route path="previziuni-bugetare" element={<PreviziuniBugetare />} />
               <Route path="settings" element={<Settings />} />
+            </Route>
+
+            {/* Admin Routes - Requires Admin Role */}
+            <Route path="/admin" element={
+              <AuthGuard>
+                <AdminGuard>
+                  <AdminLayout />
+                </AdminGuard>
+              </AuthGuard>
+            }>
+              <Route index element={<Admin />} />
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

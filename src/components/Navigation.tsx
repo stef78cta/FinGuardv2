@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Shield, Menu, X } from 'lucide-react';
+import { Shield, Menu, X, LayoutDashboard } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navigation = () => {
+  const { user, loading: authLoading } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
@@ -57,12 +59,23 @@ const Navigation = () => {
 
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center space-x-3">
-            <Link to="/login" className="btn-ghost">
-              Autentificare
-            </Link>
-            <Link to="/signup" className="btn-primary">
-              Înregistrare
-            </Link>
+            {authLoading ? (
+              <div className="w-24 h-10 bg-gray-200 animate-pulse rounded-lg" />
+            ) : user ? (
+              <Link to="/app/dashboard" className="btn-primary flex items-center gap-2">
+                <LayoutDashboard className="w-4 h-4" />
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className="btn-ghost">
+                  Autentificare
+                </Link>
+                <Link to="/signup" className="btn-primary">
+                  Înregistrare
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -90,12 +103,25 @@ const Navigation = () => {
                 Întrebări frecvente
               </button>
               <div className="pt-4 border-t border-gray-100 space-y-3">
-                <Link to="/login" className="btn-ghost w-full block text-center" onClick={() => setIsMobileMenuOpen(false)}>
-                  Autentificare
-                </Link>
-                <Link to="/signup" className="btn-primary w-full block text-center" onClick={() => setIsMobileMenuOpen(false)}>
-                  Înregistrare
-                </Link>
+                {user ? (
+                  <Link 
+                    to="/app/dashboard" 
+                    className="btn-primary w-full flex items-center justify-center gap-2" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link to="/login" className="btn-ghost w-full block text-center" onClick={() => setIsMobileMenuOpen(false)}>
+                      Autentificare
+                    </Link>
+                    <Link to="/signup" className="btn-primary w-full block text-center" onClick={() => setIsMobileMenuOpen(false)}>
+                      Înregistrare
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>}
