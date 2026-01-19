@@ -242,7 +242,7 @@ const ComparativeTable = ({ data }: { data: TableRow[] }) => {
 };
 
 const AlteAnalize = () => {
-  const { balances, loading, hasData, getAllBalancesWithAccounts } = useBalante();
+  const { balances, loading, hasData, getAllBalancesWithAccounts, companyId } = useBalante();
   const [allBalances, setAllBalances] = useState<BalanceWithAccounts[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>('cheltuieli');
@@ -255,23 +255,30 @@ const AlteAnalize = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      if (!loading && hasData) {
-        try {
-          setDataLoading(true);
-          const all = await getAllBalancesWithAccounts();
-          setAllBalances(all);
-        } catch (error) {
-          console.error('Error loading data:', error);
-        } finally {
-          setDataLoading(false);
-        }
-      } else if (!loading) {
+      if (loading) {
+        return;
+      }
+      
+      if (!hasData || !companyId) {
+        setDataLoading(false);
+        setAllBalances([]);
+        return;
+      }
+      
+      try {
+        setDataLoading(true);
+        console.log('[AlteAnalize] Loading data for company:', companyId);
+        const all = await getAllBalancesWithAccounts();
+        setAllBalances(all);
+      } catch (error) {
+        console.error('[AlteAnalize] Error loading data:', error);
+      } finally {
         setDataLoading(false);
       }
     };
 
     loadData();
-  }, [loading, hasData, getAllBalancesWithAccounts]);
+  }, [loading, hasData, companyId, getAllBalancesWithAccounts]);
 
   // Generate chart data from balances
   const chartData = useMemo((): ChartDataPoint[] => {

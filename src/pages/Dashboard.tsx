@@ -36,7 +36,7 @@ const formatCurrency = (value: number): string => {
 };
 
 const Dashboard = () => {
-  const { balances, loading, hasData, getLatestBalance, getAllBalancesWithAccounts } = useBalante();
+  const { balances, loading, hasData, getLatestBalance, getAllBalancesWithAccounts, companyId } = useBalante();
   const [latestBalance, setLatestBalance] = useState<BalanceWithAccounts | null>(null);
   const [allBalancesWithAccounts, setAllBalancesWithAccounts] = useState<BalanceWithAccounts[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
@@ -45,27 +45,41 @@ const Dashboard = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      if (!loading && hasData) {
-        try {
-          setDataLoading(true);
-          const [latest, allWithAccounts] = await Promise.all([
-            getLatestBalance(),
-            getAllBalancesWithAccounts(),
-          ]);
-          setLatestBalance(latest);
-          setAllBalancesWithAccounts(allWithAccounts);
-        } catch (error) {
-          console.error('Error loading dashboard data:', error);
-        } finally {
-          setDataLoading(false);
-        }
-      } else if (!loading) {
+      // Wait until balances are loaded and we have data
+      if (loading) {
+        return;
+      }
+      
+      if (!hasData || !companyId) {
+        setDataLoading(false);
+        setLatestBalance(null);
+        setAllBalancesWithAccounts([]);
+        return;
+      }
+      
+      try {
+        setDataLoading(true);
+        console.log('[Dashboard] Loading data for company:', companyId);
+        
+        const [latest, allWithAccounts] = await Promise.all([
+          getLatestBalance(),
+          getAllBalancesWithAccounts(),
+        ]);
+        
+        console.log('[Dashboard] Loaded latest balance:', latest?.id, 'accounts:', latest?.accounts?.length);
+        console.log('[Dashboard] Loaded all balances:', allWithAccounts.length);
+        
+        setLatestBalance(latest);
+        setAllBalancesWithAccounts(allWithAccounts);
+      } catch (error) {
+        console.error('[Dashboard] Error loading dashboard data:', error);
+      } finally {
         setDataLoading(false);
       }
     };
 
     loadData();
-  }, [loading, hasData, getLatestBalance, getAllBalancesWithAccounts]);
+  }, [loading, hasData, companyId, getLatestBalance, getAllBalancesWithAccounts]);
 
   const today = new Date();
   const formattedDate = today.toLocaleDateString('ro-RO', { 

@@ -45,6 +45,8 @@ export const useBalante = () => {
 
     try {
       setLoading(true);
+      setError(null);
+      
       const { data, error: fetchError } = await supabase
         .from('trial_balance_imports')
         .select('*')
@@ -54,9 +56,10 @@ export const useBalante = () => {
 
       if (fetchError) throw fetchError;
 
+      console.log('[useBalante] Fetched balances:', data?.length || 0, 'for company:', currentCompany.id);
       setBalances(data as BalanceImport[]);
     } catch (err) {
-      console.error('Error fetching balances:', err);
+      console.error('[useBalante] Error fetching balances:', err);
       setError(err instanceof Error ? err.message : 'Eroare la încărcarea balanțelor');
     } finally {
       setLoading(false);
@@ -69,47 +72,90 @@ export const useBalante = () => {
     }
   }, [fetchBalances, companyLoading]);
 
-  const getLatestBalance = useCallback(async (): Promise<BalanceWithAccounts | null> => {
-    if (balances.length === 0) return null;
-
-    const latestBalance = balances[0];
-    
-    const { data: accounts, error } = await supabase
-      .from('trial_balance_accounts')
-      .select('*')
-      .eq('import_id', latestBalance.id)
-      .order('account_code');
-
-    if (error) throw error;
-
-    return {
-      ...latestBalance,
-      accounts: accounts as BalanceAccount[],
-    };
-  }, [balances]);
-
-  const getBalanceAccounts = async (importId: string): Promise<BalanceAccount[]> => {
+  const getBalanceAccounts = useCallback(async (importId: string): Promise<BalanceAccount[]> => {
     const { data, error } = await supabase
       .from('trial_balance_accounts')
       .select('*')
       .eq('import_id', importId)
       .order('account_code');
 
-    if (error) throw error;
-
-    return data as BalanceAccount[];
-  };
-
-  const getAllBalancesWithAccounts = async (): Promise<BalanceWithAccounts[]> => {
-    const results: BalanceWithAccounts[] = [];
-    
-    for (const balance of balances) {
-      const accounts = await getBalanceAccounts(balance.id);
-      results.push({ ...balance, accounts });
+    if (error) {
+      console.error('[useBalante] Error fetching accounts for import:', importId, error);
+      throw error;
     }
 
+    console.log('[useBalante] Fetched accounts:', data?.length || 0, 'for import:', importId);
+    return data as BalanceAccount[];
+  }, []);
+
+  const getLatestBalance = useCallback(async (): Promise<BalanceWithAccounts | null> => {
+    // Fetch directly from DB to avoid stale closure issues
+    if (!currentCompany?.id) {
+      console.log('[useBalante] getLatestBalance: No company');
+      return null;
+    }
+
+    const { data: latestBalances, error: fetchError } = await supabase
+      .from('trial_balance_imports')
+      .select('*')
+      .eq('company_id', currentCompany.id)
+      .eq('status', 'completed')
+      .order('period_end', { ascending: false })
+      .limit(1);
+
+    if (fetchError) {
+      console.error('[useBalante] Error fetching latest balance:', fetchError);
+      throw fetchError;
+    }
+
+    if (!latestBalances || latestBalances.length === 0) {
+      console.log('[useBalante] getLatestBalance: No completed balances found');
+      return null;
+    }
+
+    const latestBalance = latestBalances[0] as BalanceImport;
+    const accounts = await getBalanceAccounts(latestBalance.id);
+
+    console.log('[useBalante] getLatestBalance: Found balance with', accounts.length, 'accounts');
+    return {
+      ...latestBalance,
+      accounts,
+    };
+  }, [currentCompany?.id, getBalanceAccounts]);
+
+  const getAllBalancesWithAccounts = useCallback(async (): Promise<BalanceWithAccounts[]> => {
+    // Fetch directly from DB to avoid stale closure issues
+    if (!currentCompany?.id) {
+      console.log('[useBalante] getAllBalancesWithAccounts: No company');
+      return [];
+    }
+
+    const { data: allBalances, error: fetchError } = await supabase
+      .from('trial_balance_imports')
+      .select('*')
+      .eq('company_id', currentCompany.id)
+      .eq('status', 'completed')
+      .order('period_end', { ascending: false });
+
+    if (fetchError) {
+      console.error('[useBalante] Error fetching all balances:', fetchError);
+      throw fetchError;
+    }
+
+    if (!allBalances || allBalances.length === 0) {
+      console.log('[useBalante] getAllBalancesWithAccounts: No balances found');
+      return [];
+    }
+
+    const results: BalanceWithAccounts[] = [];
+    for (const balance of allBalances) {
+      const accounts = await getBalanceAccounts(balance.id);
+      results.push({ ...(balance as BalanceImport), accounts });
+    }
+
+    console.log('[useBalante] getAllBalancesWithAccounts: Loaded', results.length, 'balances');
     return results;
-  };
+  }, [currentCompany?.id, getBalanceAccounts]);
 
   return {
     balances,
@@ -120,5 +166,6 @@ export const useBalante = () => {
     getAllBalancesWithAccounts,
     refetch: fetchBalances,
     hasData: balances.length > 0,
+    companyId: currentCompany?.id || null,
   };
 };
