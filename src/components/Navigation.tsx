@@ -98,7 +98,7 @@ const Navigation = () => {
                 </Link>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="w-10 h-10 rounded-full bg-primary text-primary-foreground font-semibold flex items-center justify-center hover:bg-primary/90 transition-colors">
+                    <button type="button" className="w-10 h-10 rounded-full bg-primary text-primary-foreground font-semibold flex items-center justify-center hover:bg-primary/90 transition-colors">
                       {getUserInitials()}
                     </button>
                   </PopoverTrigger>
@@ -109,6 +109,7 @@ const Navigation = () => {
                       </p>
                       <Separator />
                       <button 
+                        type="button"
                         onClick={handleSignOut}
                         disabled={isLoggingOut}
                         className="w-full flex items-center gap-2 text-destructive hover:text-destructive/90 text-sm font-medium py-2 px-2 rounded hover:bg-destructive/10 transition-colors"

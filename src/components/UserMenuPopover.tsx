@@ -165,6 +165,7 @@ export function UserMenuPopover() {
 
           {/* Logout */}
           <button
+            type="button"
             onClick={handleLogout}
             disabled={loggingOut}
             className="flex items-center gap-3 w-full p-2 rounded-md hover:bg-destructive/10 transition-colors text-left text-destructive disabled:opacity-50"
