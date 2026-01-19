@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,6 +44,7 @@ const Signup = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   
   const { signUp, signInWithProvider } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   const validatePassword = (password: string): string | null => {
@@ -99,6 +101,10 @@ const Signup = () => {
           setError(error.message);
         }
       } else {
+        toast({
+          title: 'Cont creat cu succes!',
+          description: 'Verifică emailul pentru a-ți activa contul.',
+        });
         setSuccess(true);
       }
     } catch (err) {

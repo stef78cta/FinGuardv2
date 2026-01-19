@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -38,6 +39,7 @@ const Login = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   
   const { signIn, signInWithProvider } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -60,6 +62,10 @@ const Login = () => {
           setError(error.message);
         }
       } else {
+        toast({
+          title: 'Bine ai venit!',
+          description: 'Te-ai autentificat cu succes.',
+        });
         navigate(from, { replace: true });
       }
     } catch (err) {

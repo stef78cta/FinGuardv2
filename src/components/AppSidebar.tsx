@@ -8,7 +8,8 @@ import {
   GitCompare, 
   BarChart3, 
   Calendar,
-  Sparkles
+  Sparkles,
+  Shield
 } from 'lucide-react';
 import {
   Sidebar,
@@ -28,6 +29,7 @@ import { NotificationsPopover } from '@/components/NotificationsPopover';
 import { UserMenuPopover } from '@/components/UserMenuPopover';
 import { cn } from '@/lib/utils';
 import { useBalante } from '@/hooks/useBalante';
+import { useUserRole } from '@/hooks/useUserRole';
 
 const menuItems = [
   { title: 'Dashboard', url: '/app/dashboard', icon: LayoutDashboard },
@@ -43,6 +45,7 @@ const menuItems = [
 export function AppSidebar() {
   const { open } = useSidebar();
   const { balances } = useBalante();
+  const { isAdmin, loading: roleLoading } = useUserRole();
   
   const balanceCount = balances.length;
 
@@ -108,6 +111,45 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Admin Section - Only visible to admins */}
+        {isAdmin && !roleLoading && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Administrare
+            </SidebarGroupLabel>
+            <SidebarGroupContent className="px-2">
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/admin"
+                      className={({ isActive }) =>
+                        cn(
+                          'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
+                          isActive
+                            ? 'bg-gradient-to-r from-destructive/10 to-destructive/5 text-destructive font-semibold border-l-4 border-destructive pl-2.5 shadow-sm'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                        )
+                      }
+                    >
+                      <Shield 
+                        className={cn(
+                          "w-5 h-5 shrink-0 transition-transform duration-200",
+                          "group-hover:scale-110"
+                        )} 
+                        strokeWidth={2} 
+                      />
+                      {open && (
+                        <span className="text-sm flex-1">Panou Admin</span>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-border bg-gradient-to-r from-card to-muted/30">
