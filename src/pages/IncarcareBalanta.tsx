@@ -493,35 +493,35 @@ const IncarcareBalanta = () => {
                     <h4 className="font-semibold text-foreground mb-3">Structura Excel obligatorie:</h4>
                     <ul className="space-y-1.5 text-sm text-foreground">
                       <li className="flex items-center gap-2">
-                        <code className="font-mono bg-primary/10 text-primary px-2 py-0.5 rounded text-xs border border-primary/20">Coloană A</code>
+                        <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-xs border border-border">Coloană A</code>
                         <span>: Cont (text) - ex: 1012, 4111</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <code className="font-mono bg-primary/10 text-primary px-2 py-0.5 rounded text-xs border border-primary/20">Coloană B</code>
+                        <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-xs border border-border">Coloană B</code>
                         <span>: Denumire (text) - ex: "Conturi curente la bănci"</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <code className="font-mono bg-primary/10 text-primary px-2 py-0.5 rounded text-xs border border-primary/20">Coloană C</code>
+                        <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-xs border border-border">Coloană C</code>
                         <span>: Sold Inițial Debit (număr)</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <code className="font-mono bg-primary/10 text-primary px-2 py-0.5 rounded text-xs border border-primary/20">Coloană D</code>
+                        <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-xs border border-border">Coloană D</code>
                         <span>: Sold Inițial Credit (număr)</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <code className="font-mono bg-primary/10 text-primary px-2 py-0.5 rounded text-xs border border-primary/20">Coloană E</code>
+                        <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-xs border border-border">Coloană E</code>
                         <span>: Rulaj Debit (număr)</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <code className="font-mono bg-primary/10 text-primary px-2 py-0.5 rounded text-xs border border-primary/20">Coloană F</code>
+                        <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-xs border border-border">Coloană F</code>
                         <span>: Rulaj Credit (număr)</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <code className="font-mono bg-primary/10 text-primary px-2 py-0.5 rounded text-xs border border-primary/20">Coloană G</code>
+                        <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-xs border border-border">Coloană G</code>
                         <span>: Sold Final Debit (număr)</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <code className="font-mono bg-primary/10 text-primary px-2 py-0.5 rounded text-xs border border-primary/20">Coloană H</code>
+                        <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-xs border border-border">Coloană H</code>
                         <span>: Sold Final Credit (număr)</span>
                       </li>
                     </ul>
