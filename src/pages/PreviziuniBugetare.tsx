@@ -30,7 +30,7 @@ import {
   ComposedChart
 } from 'recharts';
 import { useBalante, BalanceWithAccounts } from '@/hooks/useBalante';
-import { useFinancialCalculations } from '@/hooks/useFinancialCalculations';
+
 import { format, addMonths } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -132,14 +132,25 @@ const PreviziuniBugetare = () => {
       return { forecastData: [], scenarioValues: null, monthlyBreakdown: [] };
     }
 
-    // Get historical revenue data
+    // Get historical revenue data - calculate inline instead of using hook
     const historicalData = allBalances.map(balance => {
-      const { profitPierdereData } = useFinancialCalculations(balance.accounts);
+      const accounts = balance.accounts;
+      
+      // Revenue (class 7)
+      const venituri = accounts
+        .filter(a => a.account_code.startsWith('7'))
+        .reduce((sum, a) => sum + (a.credit_turnover || 0), 0);
+      
+      // Expenses (class 6)
+      const cheltuieli = accounts
+        .filter(a => a.account_code.startsWith('6'))
+        .reduce((sum, a) => sum + (a.debit_turnover || 0), 0);
+      
       return {
         date: new Date(balance.period_end),
-        venituri: profitPierdereData.venituri.total,
-        cheltuieli: profitPierdereData.cheltuieli.total,
-        profit: profitPierdereData.rezultatNet,
+        venituri,
+        cheltuieli,
+        profit: venituri - cheltuieli,
       };
     }).sort((a, b) => a.date.getTime() - b.date.getTime());
 

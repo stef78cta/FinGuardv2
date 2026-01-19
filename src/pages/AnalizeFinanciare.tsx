@@ -30,7 +30,7 @@ import {
   Legend
 } from 'recharts';
 import { useBalante, BalanceWithAccounts } from '@/hooks/useBalante';
-import { useFinancialCalculations } from '@/hooks/useFinancialCalculations';
+
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -84,17 +84,40 @@ const AnalizeFinanciare = () => {
     loadData();
   }, [loading, hasData, companyId, getAllBalancesWithAccounts]);
 
-  // Calculate financial data for each balance
+  // Calculate financial data for each balance - import the calculation function directly
   const financialDataByPeriod = useMemo(() => {
     return allBalances.map(balance => {
-      const { profitPierdereData, bilantData } = useFinancialCalculations(balance.accounts);
+      // Calculate directly instead of using hook inside map
+      const accounts = balance.accounts;
+      
+      // Revenue calculation (class 7)
+      const vanzari = accounts
+        .filter(a => a.account_code.startsWith('70') || a.account_code.startsWith('71'))
+        .reduce((sum, a) => sum + (a.credit_turnover || 0), 0);
+      const alteVenituri = accounts
+        .filter(a => a.account_code.startsWith('7') && !a.account_code.startsWith('70') && !a.account_code.startsWith('71'))
+        .reduce((sum, a) => sum + (a.credit_turnover || 0), 0);
+      
+      // Expense calculation (class 6)
+      const materiale = accounts
+        .filter(a => a.account_code.startsWith('60'))
+        .reduce((sum, a) => sum + (a.debit_turnover || 0), 0);
+      const personal = accounts
+        .filter(a => a.account_code.startsWith('64'))
+        .reduce((sum, a) => sum + (a.debit_turnover || 0), 0);
+      const alteCheltuieli = accounts
+        .filter(a => a.account_code.startsWith('6') && !a.account_code.startsWith('60') && !a.account_code.startsWith('64'))
+        .reduce((sum, a) => sum + (a.debit_turnover || 0), 0);
+      
+      const totalVenituri = vanzari + alteVenituri;
+      const totalCheltuieli = materiale + personal + alteCheltuieli;
+      
       return {
         period: balance.period_end,
         periodLabel: format(new Date(balance.period_end), 'MMM yyyy', { locale: ro }),
-        venituri: profitPierdereData.venituri,
-        cheltuieli: profitPierdereData.cheltuieli,
-        rezultatNet: profitPierdereData.rezultatNet,
-        bilant: bilantData,
+        venituri: { vanzari, altele: alteVenituri, total: totalVenituri },
+        cheltuieli: { materiale, personal, altele: alteCheltuieli, total: totalCheltuieli },
+        rezultatNet: totalVenituri - totalCheltuieli,
       };
     }).reverse(); // Oldest first
   }, [allBalances]);
