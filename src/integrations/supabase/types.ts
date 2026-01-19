@@ -285,6 +285,10 @@ export type Database = {
         Args: { _import_id: string; _user_id: string }
         Returns: boolean
       }
+      create_company_with_member: {
+        Args: { p_cui: string; p_name: string; p_user_id: string }
+        Returns: string
+      }
       get_user_id_from_auth: { Args: never; Returns: string }
       has_role: {
         Args: {
