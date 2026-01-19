@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import { Shield, Menu, X, LayoutDashboard, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 
 const Navigation = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -42,6 +48,13 @@ const Navigation = () => {
     if (!user) return '';
     return user.user_metadata?.full_name || user.email?.split('@')[0] || 'Utilizator';
   };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user) return '?';
+    const name = user.user_metadata?.full_name || user.email || '';
+    return name.charAt(0).toUpperCase();
+  };
   
   return <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/90 backdrop-blur-lg shadow-soft' : 'bg-transparent'}`}>
       <div className="container-custom">
@@ -79,21 +92,33 @@ const Navigation = () => {
               <div className="w-24 h-10 bg-gray-200 animate-pulse rounded-lg" />
             ) : user ? (
               <>
-                <span className="text-gray-700 font-medium">
-                  Bună, {getUserDisplayName()}
-                </span>
                 <Link to="/app/dashboard" className="btn-primary flex items-center gap-2">
                   <LayoutDashboard className="w-4 h-4" />
                   Dashboard
                 </Link>
-                <button 
-                  onClick={handleSignOut}
-                  disabled={isLoggingOut}
-                  className="btn-ghost flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <LogOut className="w-4 h-4" />
-                  {isLoggingOut ? 'Se deconectează...' : 'Sign out'}
-                </button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="w-10 h-10 rounded-full bg-primary text-primary-foreground font-semibold flex items-center justify-center hover:bg-primary/90 transition-colors">
+                      {getUserInitials()}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-3" align="end">
+                    <div className="space-y-3">
+                      <p className="text-sm text-foreground font-medium">
+                        Bună, {getUserDisplayName()}
+                      </p>
+                      <Separator />
+                      <button 
+                        onClick={handleSignOut}
+                        disabled={isLoggingOut}
+                        className="w-full flex items-center gap-2 text-destructive hover:text-destructive/90 text-sm font-medium py-2 px-2 rounded hover:bg-destructive/10 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        {isLoggingOut ? 'Se deconectează...' : 'Sign out'}
+                      </button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </>
             ) : (
               <>
