@@ -473,17 +473,17 @@ const IncarcareBalanta = () => {
 
         {/* Specificații Tehnice - Vizibile Permanent */}
         <div className="p-5 border-b">
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4">
-            {/* Header cu iconiță de atenție */}
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-4">
+            {/* Header cu iconiță de informație */}
             <div className="flex items-start gap-3 mb-4">
-              <div className="p-2 bg-amber-100 rounded-lg shrink-0">
-                <AlertTriangle className="w-5 h-5 text-amber-600" />
+              <div className="p-2 bg-indigo-100 rounded-lg shrink-0">
+                <Info className="w-5 h-5 text-indigo-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-amber-900">
+                <h3 className="font-semibold text-indigo-900">
                   Format Acceptat pentru Balanță
                 </h3>
-                <p className="text-sm text-amber-700 mt-0.5">
+                <p className="text-sm text-indigo-700 mt-0.5">
                   Fișierul Excel trebuie să respecte structura de mai jos pentru procesare corectă
                 </p>
               </div>
@@ -494,25 +494,25 @@ const IncarcareBalanta = () => {
               {/* Coloana 1: Tipuri fișier și dimensiune */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
-                  <FileSpreadsheet className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span className="font-medium text-amber-900">Format:</span>
-                  <code className="bg-white/80 px-2 py-0.5 rounded text-xs font-mono border border-amber-200">.xlsx</code>
-                  <code className="bg-white/80 px-2 py-0.5 rounded text-xs font-mono border border-amber-200">.xls</code>
+                  <FileSpreadsheet className="w-4 h-4 text-indigo-600 shrink-0" />
+                  <span className="font-medium text-indigo-900">Format:</span>
+                  <code className="bg-white/80 px-2 py-0.5 rounded text-xs font-mono border border-indigo-200">.xlsx</code>
+                  <code className="bg-white/80 px-2 py-0.5 rounded text-xs font-mono border border-indigo-200">.xls</code>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span className="font-medium text-amber-900">Dimensiune max:</span>
-                  <span className="text-amber-700">10 MB</span>
+                  <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" />
+                  <span className="font-medium text-indigo-900">Dimensiune max:</span>
+                  <span className="text-indigo-700">10 MB</span>
                 </div>
               </div>
 
               {/* Coloana 2: Structură obligatorie */}
               <div className="text-sm">
                 <div className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-medium text-amber-900">Coloane obligatorii:</span>
-                    <p className="text-amber-700 mt-0.5">
+                    <span className="font-medium text-indigo-900">Coloane obligatorii:</span>
+                    <p className="text-indigo-700 mt-0.5">
                       Cont, Denumire, SI Debit/Credit, Rulaj Debit/Credit, SF Debit/Credit
                     </p>
                   </div>
@@ -522,7 +522,7 @@ const IncarcareBalanta = () => {
 
             {/* Expandable pentru detalii complete (opțional) */}
             <Collapsible open={detailedSpecsOpen} onOpenChange={setDetailedSpecsOpen}>
-              <CollapsibleTrigger className="text-sm text-amber-700 hover:text-amber-900 flex items-center gap-1 font-medium transition-colors">
+              <CollapsibleTrigger className="text-sm text-indigo-700 hover:text-indigo-900 flex items-center gap-1 font-medium transition-colors">
                 <ChevronDown className={cn(
                   "w-4 h-4 transition-transform",
                   detailedSpecsOpen && "rotate-180"
@@ -530,50 +530,50 @@ const IncarcareBalanta = () => {
                 {detailedSpecsOpen ? "Ascunde detalii" : "Vezi structura detaliată și exemplu"}
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-4 space-y-4">
-                <div className="bg-white/60 rounded-lg p-3 border border-amber-100">
-                  <h4 className="font-semibold text-amber-900 mb-2 text-sm">Structura Excel obligatorie:</h4>
-                  <ul className="space-y-1 text-amber-800 text-sm">
+                <div className="bg-white/60 rounded-lg p-3 border border-indigo-100">
+                  <h4 className="font-semibold text-indigo-900 mb-2 text-sm">Structura Excel obligatorie:</h4>
+                  <ul className="space-y-1 text-indigo-800 text-sm">
                     <li className="flex items-center gap-2">
-                      <code className="font-mono bg-white px-1.5 py-0.5 rounded text-xs border border-amber-200">A</code>
+                      <code className="font-mono bg-white px-1.5 py-0.5 rounded text-xs border border-indigo-200">A</code>
                       <span>Cont (ex: 1012, 4111)</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <code className="font-mono bg-white px-1.5 py-0.5 rounded text-xs border border-amber-200">B</code>
+                      <code className="font-mono bg-white px-1.5 py-0.5 rounded text-xs border border-indigo-200">B</code>
                       <span>Denumire cont</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <code className="font-mono bg-white px-1.5 py-0.5 rounded text-xs border border-amber-200">C-D</code>
+                      <code className="font-mono bg-white px-1.5 py-0.5 rounded text-xs border border-indigo-200">C-D</code>
                       <span>Sold Inițial Debit / Credit</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <code className="font-mono bg-white px-1.5 py-0.5 rounded text-xs border border-amber-200">E-F</code>
+                      <code className="font-mono bg-white px-1.5 py-0.5 rounded text-xs border border-indigo-200">E-F</code>
                       <span>Rulaj Debit / Credit</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <code className="font-mono bg-white px-1.5 py-0.5 rounded text-xs border border-amber-200">G-H</code>
+                      <code className="font-mono bg-white px-1.5 py-0.5 rounded text-xs border border-indigo-200">G-H</code>
                       <span>Sold Final Debit / Credit</span>
                     </li>
                   </ul>
                 </div>
 
-                <div className="bg-white/60 rounded-lg p-3 border border-amber-100">
-                  <h4 className="font-semibold text-amber-900 mb-2 text-sm">Exemplu structură:</h4>
+                <div className="bg-white/60 rounded-lg p-3 border border-indigo-100">
+                  <h4 className="font-semibold text-indigo-900 mb-2 text-sm">Exemplu structură:</h4>
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs border-collapse">
                       <thead>
-                        <tr className="border-b border-amber-200">
-                          <th className="text-left p-1.5 font-mono text-amber-900">Cont</th>
-                          <th className="text-left p-1.5 font-mono text-amber-900">Denumire</th>
-                          <th className="text-right p-1.5 font-mono text-amber-900">SI D</th>
-                          <th className="text-right p-1.5 font-mono text-amber-900">SI C</th>
-                          <th className="text-right p-1.5 font-mono text-amber-900">Rul D</th>
-                          <th className="text-right p-1.5 font-mono text-amber-900">Rul C</th>
-                          <th className="text-right p-1.5 font-mono text-amber-900">SF D</th>
-                          <th className="text-right p-1.5 font-mono text-amber-900">SF C</th>
+                        <tr className="border-b border-indigo-200">
+                          <th className="text-left p-1.5 font-mono text-indigo-900">Cont</th>
+                          <th className="text-left p-1.5 font-mono text-indigo-900">Denumire</th>
+                          <th className="text-right p-1.5 font-mono text-indigo-900">SI D</th>
+                          <th className="text-right p-1.5 font-mono text-indigo-900">SI C</th>
+                          <th className="text-right p-1.5 font-mono text-indigo-900">Rul D</th>
+                          <th className="text-right p-1.5 font-mono text-indigo-900">Rul C</th>
+                          <th className="text-right p-1.5 font-mono text-indigo-900">SF D</th>
+                          <th className="text-right p-1.5 font-mono text-indigo-900">SF C</th>
                         </tr>
                       </thead>
-                      <tbody className="text-amber-700">
-                        <tr className="border-b border-amber-100">
+                      <tbody className="text-indigo-700">
+                        <tr className="border-b border-indigo-100">
                           <td className="p-1.5 font-mono">1012</td>
                           <td className="p-1.5">Conturi la bănci</td>
                           <td className="text-right p-1.5 font-mono">50000</td>
@@ -598,7 +598,7 @@ const IncarcareBalanta = () => {
                   </div>
                 </div>
 
-                <p className="text-xs text-amber-600">
+                <p className="text-xs text-indigo-600">
                   Numere: Format românesc (virgulă) sau internațional (punct). Prima linie (header) este ignorată.
                 </p>
               </CollapsibleContent>
