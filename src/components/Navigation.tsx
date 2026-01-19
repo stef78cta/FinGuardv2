@@ -122,10 +122,10 @@ const Navigation = () => {
               </>
             ) : (
               <>
-                <Link to="/login" className="btn-ghost">
+                <Link to="/login" className="btn-ghost min-w-[120px] text-center">
                   Autentificare
                 </Link>
-                <Link to="/signup" className="btn-primary">
+                <Link to="/signup" className="btn-primary min-w-[120px] text-center">
                   Înregistrare
                 </Link>
               </>
