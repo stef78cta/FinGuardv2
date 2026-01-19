@@ -92,7 +92,7 @@ const Navigation = () => {
               <div className="w-24 h-10 bg-gray-200 animate-pulse rounded-lg" />
             ) : user ? (
               <>
-                <Link to="/app/dashboard" className="btn-primary flex items-center gap-2">
+                <Link to="/app/dashboard" className="btn-primary h-10 py-2 leading-tight flex items-center gap-2">
                   <LayoutDashboard className="w-4 h-4" />
                   Dashboard
                 </Link>
@@ -122,10 +122,10 @@ const Navigation = () => {
               </>
             ) : (
               <>
-                <Link to="/login" className="btn-ghost min-w-[120px] text-center">
+                <Link to="/login" className="btn-ghost h-10 py-2 leading-tight min-w-[120px] text-center flex items-center justify-center">
                   Autentificare
                 </Link>
-                <Link to="/signup" className="btn-primary min-w-[120px] text-center">
+                <Link to="/signup" className="btn-primary h-10 py-2 leading-tight min-w-[120px] text-center flex items-center justify-center">
                   Înregistrare
                 </Link>
               </>
