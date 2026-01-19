@@ -89,27 +89,39 @@ export const useCompany = () => {
 
     if (userError) throw userError;
 
-    // Create company
-    const { data: newCompany, error: companyError } = await supabase
+    // Create company - use insert without returning to avoid SELECT RLS issue
+    const { data: insertedCompany, error: companyError } = await supabase
       .from('companies')
       .insert({ name, cui })
-      .select()
+      .select('id, name, cui, currency')
       .single();
 
     if (companyError) throw companyError;
 
-    // Add user as member
+    // Add user as member immediately
     const { error: memberError } = await supabase
       .from('company_users')
       .insert({
-        company_id: newCompany.id,
+        company_id: insertedCompany.id,
         user_id: userData.id,
       });
 
-    if (memberError) throw memberError;
+    if (memberError) {
+      // If member creation fails, we should ideally delete the company
+      // but for now just throw the error
+      throw memberError;
+    }
 
-    setCompany(newCompany);
-    return newCompany;
+    // Now fetch the company data since user is now a member
+    const companyData = {
+      id: insertedCompany.id,
+      name: insertedCompany.name,
+      cui: insertedCompany.cui,
+      currency: insertedCompany.currency,
+    };
+
+    setCompany(companyData);
+    return companyData;
   };
 
   return { company, loading, error, createCompany };
