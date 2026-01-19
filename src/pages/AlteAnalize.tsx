@@ -10,7 +10,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Lege
 import { cn } from '@/lib/utils';
 import { Upload, Loader2 } from 'lucide-react';
 import { useBalante, BalanceWithAccounts } from '@/hooks/useBalante';
-import { useFinancialCalculations } from '@/hooks/useFinancialCalculations';
+
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -284,13 +284,23 @@ const AlteAnalize = () => {
   const chartData = useMemo((): ChartDataPoint[] => {
     return allBalances
       .map(balance => {
-        const { profitPierdereData } = useFinancialCalculations(balance.accounts);
+        const accounts = balance.accounts;
+        const materiale = accounts
+          .filter(a => a.account_code.startsWith('60'))
+          .reduce((sum, a) => sum + (a.debit_turnover || 0), 0);
+        const personal = accounts
+          .filter(a => a.account_code.startsWith('64'))
+          .reduce((sum, a) => sum + (a.debit_turnover || 0), 0);
+        const altele = accounts
+          .filter(a => a.account_code.startsWith('6') && !a.account_code.startsWith('60') && !a.account_code.startsWith('64'))
+          .reduce((sum, a) => sum + (a.debit_turnover || 0), 0);
+        
         return {
           month: format(new Date(balance.period_end), 'MMM yyyy', { locale: ro }),
-          materiale: profitPierdereData.cheltuieli.materiale,
-          personal: profitPierdereData.cheltuieli.personal,
-          altele: profitPierdereData.cheltuieli.altele,
-          totale: profitPierdereData.cheltuieli.total,
+          materiale,
+          personal,
+          altele,
+          totale: materiale + personal + altele,
         };
       })
       .reverse(); // Oldest first
@@ -309,8 +319,35 @@ const AlteAnalize = () => {
       .slice()
       .reverse()
       .map(balance => {
-        const { profitPierdereData, bilantData } = useFinancialCalculations(balance.accounts);
-        return { profitPierdereData, bilantData };
+        const accounts = balance.accounts;
+        
+        // Revenue (class 7)
+        const vanzari = accounts
+          .filter(a => a.account_code.startsWith('70') || a.account_code.startsWith('71'))
+          .reduce((sum, a) => sum + (a.credit_turnover || 0), 0);
+        const alteVenituri = accounts
+          .filter(a => a.account_code.startsWith('7') && !a.account_code.startsWith('70') && !a.account_code.startsWith('71'))
+          .reduce((sum, a) => sum + (a.credit_turnover || 0), 0);
+        
+        // Expenses (class 6)
+        const materiale = accounts
+          .filter(a => a.account_code.startsWith('60'))
+          .reduce((sum, a) => sum + (a.debit_turnover || 0), 0);
+        const personal = accounts
+          .filter(a => a.account_code.startsWith('64'))
+          .reduce((sum, a) => sum + (a.debit_turnover || 0), 0);
+        const alteCheltuieli = accounts
+          .filter(a => a.account_code.startsWith('6') && !a.account_code.startsWith('60') && !a.account_code.startsWith('64'))
+          .reduce((sum, a) => sum + (a.debit_turnover || 0), 0);
+        
+        const totalVenituri = vanzari + alteVenituri;
+        const totalCheltuieli = materiale + personal + alteCheltuieli;
+        
+        return {
+          venituri: { vanzari, altele: alteVenituri, total: totalVenituri },
+          cheltuieli: { materiale, personal, altele: alteCheltuieli, total: totalCheltuieli },
+          rezultatNet: totalVenituri - totalCheltuieli,
+        };
       });
 
     const createRow = (category: string, getter: (idx: number) => { value: number; total: number }, indent = 0, isSubtotal = false, isTotal = false): TableRow => ({
@@ -330,36 +367,36 @@ const AlteAnalize = () => {
 
     return [
       createRow('VENITURI TOTALE', (i) => ({ 
-        value: financialData[i].profitPierdereData.venituri.total, 
-        total: financialData[i].profitPierdereData.venituri.total 
+        value: financialData[i].venituri.total, 
+        total: financialData[i].venituri.total 
       }), 0, false, true),
       createRow('Venituri din vânzări', (i) => ({ 
-        value: financialData[i].profitPierdereData.venituri.vanzari, 
-        total: financialData[i].profitPierdereData.venituri.total 
+        value: financialData[i].venituri.vanzari, 
+        total: financialData[i].venituri.total 
       }), 1),
       createRow('Alte venituri', (i) => ({ 
-        value: financialData[i].profitPierdereData.venituri.altele, 
-        total: financialData[i].profitPierdereData.venituri.total 
+        value: financialData[i].venituri.altele, 
+        total: financialData[i].venituri.total 
       }), 1),
       createRow('CHELTUIELI TOTALE', (i) => ({ 
-        value: financialData[i].profitPierdereData.cheltuieli.total, 
-        total: financialData[i].profitPierdereData.venituri.total 
+        value: financialData[i].cheltuieli.total, 
+        total: financialData[i].venituri.total 
       }), 0, false, true),
       createRow('Cheltuieli materiale', (i) => ({ 
-        value: financialData[i].profitPierdereData.cheltuieli.materiale, 
-        total: financialData[i].profitPierdereData.venituri.total 
+        value: financialData[i].cheltuieli.materiale, 
+        total: financialData[i].venituri.total 
       }), 1),
       createRow('Cheltuieli personal', (i) => ({ 
-        value: financialData[i].profitPierdereData.cheltuieli.personal, 
-        total: financialData[i].profitPierdereData.venituri.total 
+        value: financialData[i].cheltuieli.personal, 
+        total: financialData[i].venituri.total 
       }), 1),
       createRow('Alte cheltuieli', (i) => ({ 
-        value: financialData[i].profitPierdereData.cheltuieli.altele, 
-        total: financialData[i].profitPierdereData.venituri.total 
+        value: financialData[i].cheltuieli.altele, 
+        total: financialData[i].venituri.total 
       }), 1),
       createRow('PROFIT NET', (i) => ({ 
-        value: financialData[i].profitPierdereData.rezultatNet, 
-        total: financialData[i].profitPierdereData.venituri.total 
+        value: financialData[i].rezultatNet, 
+        total: financialData[i].venituri.total 
       }), 0, true, true),
     ];
   }, [allBalances]);
