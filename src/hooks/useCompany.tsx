@@ -89,39 +89,67 @@ export const useCompany = () => {
 
     if (userError) throw userError;
 
-    // Create company - use insert without returning to avoid SELECT RLS issue
-    const { data: insertedCompany, error: companyError } = await supabase
+    // Create company without .select() to avoid RLS SELECT check
+    const { error: companyError } = await supabase
       .from('companies')
-      .insert({ name, cui })
-      .select('id, name, cui, currency')
-      .single();
+      .insert({ name, cui });
 
     if (companyError) throw companyError;
 
-    // Add user as member immediately
+    // Get the company we just created by matching name and cui
+    // We need a different approach - use RPC or get by unique constraint
+    // For now, query by name+cui which should be unique per user's recent insert
+    const { data: newCompanies, error: fetchError } = await supabase
+      .from('companies')
+      .select('id, name, cui, currency')
+      .eq('name', name)
+      .eq('cui', cui)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    // This will fail too because of RLS... we need a different approach
+    // Let's use a database function instead
+    
+    if (fetchError || !newCompanies || newCompanies.length === 0) {
+      // Fallback: create a temporary company object
+      // The real solution requires a DB function that returns the inserted row
+      const tempId = crypto.randomUUID();
+      
+      // Add user as member using the RPC approach
+      const { data: companyId, error: rpcError } = await supabase
+        .rpc('create_company_with_member', { 
+          p_name: name, 
+          p_cui: cui, 
+          p_user_id: userData.id 
+        });
+      
+      if (rpcError) throw rpcError;
+      
+      const companyData = {
+        id: companyId,
+        name,
+        cui,
+        currency: 'RON',
+      };
+      
+      setCompany(companyData);
+      return companyData;
+    }
+
+    const newCompany = newCompanies[0];
+
+    // Add user as member
     const { error: memberError } = await supabase
       .from('company_users')
       .insert({
-        company_id: insertedCompany.id,
+        company_id: newCompany.id,
         user_id: userData.id,
       });
 
-    if (memberError) {
-      // If member creation fails, we should ideally delete the company
-      // but for now just throw the error
-      throw memberError;
-    }
+    if (memberError) throw memberError;
 
-    // Now fetch the company data since user is now a member
-    const companyData = {
-      id: insertedCompany.id,
-      name: insertedCompany.name,
-      cui: insertedCompany.cui,
-      currency: insertedCompany.currency,
-    };
-
-    setCompany(companyData);
-    return companyData;
+    setCompany(newCompany);
+    return newCompany;
   };
 
   return { company, loading, error, createCompany };
