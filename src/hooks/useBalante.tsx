@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useCompany } from './useCompany';
+import { useCompanyContext } from '@/contexts/CompanyContext';
 
 export interface BalanceImport {
   id: string;
@@ -31,13 +31,13 @@ export interface BalanceWithAccounts extends BalanceImport {
 }
 
 export const useBalante = () => {
-  const { company: currentCompany, loading: companyLoading } = useCompany();
+  const { activeCompany, loading: companyLoading } = useCompanyContext();
   const [balances, setBalances] = useState<BalanceImport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchBalances = useCallback(async () => {
-    if (!currentCompany?.id) {
+    if (!activeCompany?.id) {
       setBalances([]);
       setLoading(false);
       return;
@@ -50,13 +50,13 @@ export const useBalante = () => {
       const { data, error: fetchError } = await supabase
         .from('trial_balance_imports')
         .select('*')
-        .eq('company_id', currentCompany.id)
+        .eq('company_id', activeCompany.id)
         .eq('status', 'completed')
         .order('period_end', { ascending: false });
 
       if (fetchError) throw fetchError;
 
-      console.log('[useBalante] Fetched balances:', data?.length || 0, 'for company:', currentCompany.id);
+      console.log('[useBalante] Fetched balances:', data?.length || 0, 'for company:', activeCompany.id);
       setBalances(data as BalanceImport[]);
     } catch (err) {
       console.error('[useBalante] Error fetching balances:', err);
@@ -64,7 +64,7 @@ export const useBalante = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentCompany?.id]);
+  }, [activeCompany?.id]);
 
   useEffect(() => {
     if (!companyLoading) {
@@ -90,7 +90,7 @@ export const useBalante = () => {
 
   const getLatestBalance = useCallback(async (): Promise<BalanceWithAccounts | null> => {
     // Fetch directly from DB to avoid stale closure issues
-    if (!currentCompany?.id) {
+    if (!activeCompany?.id) {
       console.log('[useBalante] getLatestBalance: No company');
       return null;
     }
@@ -98,7 +98,7 @@ export const useBalante = () => {
     const { data: latestBalances, error: fetchError } = await supabase
       .from('trial_balance_imports')
       .select('*')
-      .eq('company_id', currentCompany.id)
+      .eq('company_id', activeCompany.id)
       .eq('status', 'completed')
       .order('period_end', { ascending: false })
       .limit(1);
@@ -121,11 +121,11 @@ export const useBalante = () => {
       ...latestBalance,
       accounts,
     };
-  }, [currentCompany?.id, getBalanceAccounts]);
+  }, [activeCompany?.id, getBalanceAccounts]);
 
   const getAllBalancesWithAccounts = useCallback(async (): Promise<BalanceWithAccounts[]> => {
     // Fetch directly from DB to avoid stale closure issues
-    if (!currentCompany?.id) {
+    if (!activeCompany?.id) {
       console.log('[useBalante] getAllBalancesWithAccounts: No company');
       return [];
     }
@@ -133,7 +133,7 @@ export const useBalante = () => {
     const { data: allBalances, error: fetchError } = await supabase
       .from('trial_balance_imports')
       .select('*')
-      .eq('company_id', currentCompany.id)
+      .eq('company_id', activeCompany.id)
       .eq('status', 'completed')
       .order('period_end', { ascending: false });
 
@@ -155,7 +155,7 @@ export const useBalante = () => {
 
     console.log('[useBalante] getAllBalancesWithAccounts: Loaded', results.length, 'balances');
     return results;
-  }, [currentCompany?.id, getBalanceAccounts]);
+  }, [activeCompany?.id, getBalanceAccounts]);
 
   return {
     balances,
@@ -166,6 +166,6 @@ export const useBalante = () => {
     getAllBalancesWithAccounts,
     refetch: fetchBalances,
     hasData: balances.length > 0,
-    companyId: currentCompany?.id || null,
+    companyId: activeCompany?.id || null,
   };
 };
