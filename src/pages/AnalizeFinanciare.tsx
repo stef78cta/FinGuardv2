@@ -52,30 +52,37 @@ const COLORS = [
 ];
 
 const AnalizeFinanciare = () => {
-  const { balances, loading, hasData, getAllBalancesWithAccounts } = useBalante();
+  const { balances, loading, hasData, getAllBalancesWithAccounts, companyId } = useBalante();
   const [allBalances, setAllBalances] = useState<BalanceWithAccounts[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('venituri');
 
   useEffect(() => {
     const loadData = async () => {
-      if (!loading && hasData) {
-        try {
-          setDataLoading(true);
-          const all = await getAllBalancesWithAccounts();
-          setAllBalances(all);
-        } catch (error) {
-          console.error('Error loading data:', error);
-        } finally {
-          setDataLoading(false);
-        }
-      } else if (!loading) {
+      if (loading) {
+        return;
+      }
+      
+      if (!hasData || !companyId) {
+        setDataLoading(false);
+        setAllBalances([]);
+        return;
+      }
+      
+      try {
+        setDataLoading(true);
+        console.log('[AnalizeFinanciare] Loading data for company:', companyId);
+        const all = await getAllBalancesWithAccounts();
+        setAllBalances(all);
+      } catch (error) {
+        console.error('[AnalizeFinanciare] Error loading data:', error);
+      } finally {
         setDataLoading(false);
       }
     };
 
     loadData();
-  }, [loading, hasData, getAllBalancesWithAccounts]);
+  }, [loading, hasData, companyId, getAllBalancesWithAccounts]);
 
   // Calculate financial data for each balance
   const financialDataByPeriod = useMemo(() => {

@@ -163,7 +163,7 @@ const KPIIndicatorCard = ({ indicator }: { indicator: KPIIndicator }) => {
 };
 
 const IndicatoriCheie = () => {
-  const { balances, loading, hasData, getLatestBalance, getAllBalancesWithAccounts } = useBalante();
+  const { balances, loading, hasData, getLatestBalance, getAllBalancesWithAccounts, companyId } = useBalante();
   const [latestBalance, setLatestBalance] = useState<BalanceWithAccounts | null>(null);
   const [allBalances, setAllBalances] = useState<BalanceWithAccounts[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
@@ -172,27 +172,35 @@ const IndicatoriCheie = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      if (!loading && hasData) {
-        try {
-          setDataLoading(true);
-          const [latest, all] = await Promise.all([
-            getLatestBalance(),
-            getAllBalancesWithAccounts()
-          ]);
-          setLatestBalance(latest);
-          setAllBalances(all);
-        } catch (error) {
-          console.error('Error loading data:', error);
-        } finally {
-          setDataLoading(false);
-        }
-      } else if (!loading) {
+      if (loading) {
+        return;
+      }
+      
+      if (!hasData || !companyId) {
+        setDataLoading(false);
+        setLatestBalance(null);
+        setAllBalances([]);
+        return;
+      }
+      
+      try {
+        setDataLoading(true);
+        console.log('[IndicatoriCheie] Loading data for company:', companyId);
+        const [latest, all] = await Promise.all([
+          getLatestBalance(),
+          getAllBalancesWithAccounts()
+        ]);
+        setLatestBalance(latest);
+        setAllBalances(all);
+      } catch (error) {
+        console.error('[IndicatoriCheie] Error loading data:', error);
+      } finally {
         setDataLoading(false);
       }
     };
 
     loadData();
-  }, [loading, hasData, getLatestBalance, getAllBalancesWithAccounts]);
+  }, [loading, hasData, companyId, getLatestBalance, getAllBalancesWithAccounts]);
 
   // Calculate previous period KPIs for trend
   const previousKPIs = useMemo(() => {
