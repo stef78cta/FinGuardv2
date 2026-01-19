@@ -471,139 +471,119 @@ const IncarcareBalanta = () => {
           </div>
         </div>
 
-        {/* Specificații Tehnice - Vizibile Permanent */}
+        {/* Specificații Tehnice - Design original din imagine */}
         <div className="p-5 border-b">
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-4">
-            {/* Header cu iconiță de informație */}
-            <div className="flex items-start gap-3 mb-4">
-              <div className="p-2 bg-indigo-100 rounded-lg shrink-0">
-                <Info className="w-5 h-5 text-indigo-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-indigo-900">
-                  Format Acceptat pentru Balanță
+          <Collapsible open={detailedSpecsOpen} onOpenChange={setDetailedSpecsOpen}>
+            <div className="bg-white border border-border rounded-lg">
+              {/* Header Collapsible */}
+              <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+                <h3 className="font-semibold text-foreground">
+                  Specificații Tehnice și Format Acceptat
                 </h3>
-                <p className="text-sm text-indigo-700 mt-0.5">
-                  Fișierul Excel trebuie să respecte structura de mai jos pentru procesare corectă
-                </p>
-              </div>
-            </div>
-
-            {/* Grid cu cerințe principale - vizibil mereu */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              {/* Coloana 1: Tipuri fișier și dimensiune */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <FileSpreadsheet className="w-4 h-4 text-indigo-600 shrink-0" />
-                  <span className="font-medium text-indigo-900">Format:</span>
-                  <code className="bg-white/80 px-2 py-0.5 rounded text-xs font-mono border border-indigo-200">.xlsx</code>
-                  <code className="bg-white/80 px-2 py-0.5 rounded text-xs font-mono border border-indigo-200">.xls</code>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" />
-                  <span className="font-medium text-indigo-900">Dimensiune max:</span>
-                  <span className="text-indigo-700">10 MB</span>
-                </div>
-              </div>
-
-              {/* Coloana 2: Structură obligatorie */}
-              <div className="text-sm">
-                <div className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-medium text-indigo-900">Coloane obligatorii:</span>
-                    <p className="text-indigo-700 mt-0.5">
-                      Cont, Denumire, SI Debit/Credit, Rulaj Debit/Credit, SF Debit/Credit
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Expandable pentru detalii complete (opțional) */}
-            <Collapsible open={detailedSpecsOpen} onOpenChange={setDetailedSpecsOpen}>
-              <CollapsibleTrigger className="text-sm text-indigo-700 hover:text-indigo-900 flex items-center gap-1 font-medium transition-colors">
                 <ChevronDown className={cn(
-                  "w-4 h-4 transition-transform",
+                  "w-5 h-5 text-muted-foreground transition-transform",
                   detailedSpecsOpen && "rotate-180"
                 )} />
-                {detailedSpecsOpen ? "Ascunde detalii" : "Vezi structura detaliată și exemplu"}
               </CollapsibleTrigger>
-              <CollapsibleContent className="mt-4 space-y-4">
-                <div className="bg-white/60 rounded-lg p-3 border border-indigo-100">
-                  <h4 className="font-semibold text-indigo-900 mb-2 text-sm">Structura Excel obligatorie:</h4>
-                  <ul className="space-y-1 text-indigo-800 text-sm">
-                    <li className="flex items-center gap-2">
-                      <code className="font-mono bg-white px-1.5 py-0.5 rounded text-xs border border-indigo-200">A</code>
-                      <span>Cont (ex: 1012, 4111)</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <code className="font-mono bg-white px-1.5 py-0.5 rounded text-xs border border-indigo-200">B</code>
-                      <span>Denumire cont</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <code className="font-mono bg-white px-1.5 py-0.5 rounded text-xs border border-indigo-200">C-D</code>
-                      <span>Sold Inițial Debit / Credit</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <code className="font-mono bg-white px-1.5 py-0.5 rounded text-xs border border-indigo-200">E-F</code>
-                      <span>Rulaj Debit / Credit</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <code className="font-mono bg-white px-1.5 py-0.5 rounded text-xs border border-indigo-200">G-H</code>
-                      <span>Sold Final Debit / Credit</span>
-                    </li>
-                  </ul>
-                </div>
+              
+              <CollapsibleContent>
+                <div className="px-4 pb-4 space-y-6">
+                  {/* Structura Excel obligatorie */}
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">Structura Excel obligatorie:</h4>
+                    <ul className="space-y-1.5 text-sm text-foreground">
+                      <li className="flex items-center gap-2">
+                        <code className="font-mono bg-primary/10 text-primary px-2 py-0.5 rounded text-xs border border-primary/20">Coloană A</code>
+                        <span>: Cont (text) - ex: 1012, 4111</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <code className="font-mono bg-primary/10 text-primary px-2 py-0.5 rounded text-xs border border-primary/20">Coloană B</code>
+                        <span>: Denumire (text) - ex: "Conturi curente la bănci"</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <code className="font-mono bg-primary/10 text-primary px-2 py-0.5 rounded text-xs border border-primary/20">Coloană C</code>
+                        <span>: Sold Inițial Debit (număr)</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <code className="font-mono bg-primary/10 text-primary px-2 py-0.5 rounded text-xs border border-primary/20">Coloană D</code>
+                        <span>: Sold Inițial Credit (număr)</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <code className="font-mono bg-primary/10 text-primary px-2 py-0.5 rounded text-xs border border-primary/20">Coloană E</code>
+                        <span>: Rulaj Debit (număr)</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <code className="font-mono bg-primary/10 text-primary px-2 py-0.5 rounded text-xs border border-primary/20">Coloană F</code>
+                        <span>: Rulaj Credit (număr)</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <code className="font-mono bg-primary/10 text-primary px-2 py-0.5 rounded text-xs border border-primary/20">Coloană G</code>
+                        <span>: Sold Final Debit (număr)</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <code className="font-mono bg-primary/10 text-primary px-2 py-0.5 rounded text-xs border border-primary/20">Coloană H</code>
+                        <span>: Sold Final Credit (număr)</span>
+                      </li>
+                    </ul>
+                  </div>
 
-                <div className="bg-white/60 rounded-lg p-3 border border-indigo-100">
-                  <h4 className="font-semibold text-indigo-900 mb-2 text-sm">Exemplu structură:</h4>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs border-collapse">
-                      <thead>
-                        <tr className="border-b border-indigo-200">
-                          <th className="text-left p-1.5 font-mono text-indigo-900">Cont</th>
-                          <th className="text-left p-1.5 font-mono text-indigo-900">Denumire</th>
-                          <th className="text-right p-1.5 font-mono text-indigo-900">SI D</th>
-                          <th className="text-right p-1.5 font-mono text-indigo-900">SI C</th>
-                          <th className="text-right p-1.5 font-mono text-indigo-900">Rul D</th>
-                          <th className="text-right p-1.5 font-mono text-indigo-900">Rul C</th>
-                          <th className="text-right p-1.5 font-mono text-indigo-900">SF D</th>
-                          <th className="text-right p-1.5 font-mono text-indigo-900">SF C</th>
-                        </tr>
-                      </thead>
-                      <tbody className="text-indigo-700">
-                        <tr className="border-b border-indigo-100">
-                          <td className="p-1.5 font-mono">1012</td>
-                          <td className="p-1.5">Conturi la bănci</td>
-                          <td className="text-right p-1.5 font-mono">50000</td>
-                          <td className="text-right p-1.5 font-mono">0</td>
-                          <td className="text-right p-1.5 font-mono">25000</td>
-                          <td className="text-right p-1.5 font-mono">15000</td>
-                          <td className="text-right p-1.5 font-mono">60000</td>
-                          <td className="text-right p-1.5 font-mono">0</td>
-                        </tr>
-                        <tr>
-                          <td className="p-1.5 font-mono">4111</td>
-                          <td className="p-1.5">Clienți</td>
-                          <td className="text-right p-1.5 font-mono">0</td>
-                          <td className="text-right p-1.5 font-mono">100000</td>
-                          <td className="text-right p-1.5 font-mono">0</td>
-                          <td className="text-right p-1.5 font-mono">50000</td>
-                          <td className="text-right p-1.5 font-mono">0</td>
-                          <td className="text-right p-1.5 font-mono">150000</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                  {/* Cerințe format */}
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">Cerințe format:</h4>
+                    <ul className="space-y-1 text-sm text-foreground list-disc list-inside">
+                      <li>Prima linie: Header (ignorat la procesare)</li>
+                      <li>Linii goale: Ignorate automat</li>
+                      <li>Numere: Format românesc (virgulă) SAU internațional (punct)</li>
+                      <li>Conturi: Minim 3 cifre, maxim 6 cifre</li>
+                    </ul>
+                  </div>
+
+                  {/* Exemplu structură - tabel */}
+                  <div className="bg-muted/30 rounded-lg p-4 border border-border">
+                    <h4 className="font-semibold text-foreground mb-3 text-sm">Exemplu structură:</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm border-collapse">
+                        <thead>
+                          <tr className="border-b border-border">
+                            <th className="text-left p-2 font-mono font-semibold text-foreground">Cont</th>
+                            <th className="text-left p-2 font-mono font-semibold text-foreground">Denumire</th>
+                            <th className="text-right p-2 font-mono font-semibold text-foreground">SI Debit</th>
+                            <th className="text-right p-2 font-mono font-semibold text-foreground">SI Credit</th>
+                            <th className="text-right p-2 font-mono font-semibold text-foreground">Rulaj D</th>
+                            <th className="text-right p-2 font-mono font-semibold text-foreground">Rulaj C</th>
+                            <th className="text-right p-2 font-mono font-semibold text-foreground">SF Debit</th>
+                            <th className="text-right p-2 font-mono font-semibold text-foreground">SF Credit</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-muted-foreground">
+                          <tr className="border-b border-border/50">
+                            <td className="p-2 font-mono">1012</td>
+                            <td className="p-2">Conturi la bănci</td>
+                            <td className="text-right p-2 font-mono">50000.00</td>
+                            <td className="text-right p-2 font-mono">0.00</td>
+                            <td className="text-right p-2 font-mono">25000.00</td>
+                            <td className="text-right p-2 font-mono">15000</td>
+                            <td className="text-right p-2 font-mono">60000.00</td>
+                            <td className="text-right p-2 font-mono">0.00</td>
+                          </tr>
+                          <tr>
+                            <td className="p-2 font-mono">4111</td>
+                            <td className="p-2">Venituri din vânzări</td>
+                            <td className="text-right p-2 font-mono">0.00</td>
+                            <td className="text-right p-2 font-mono">100000.00</td>
+                            <td className="text-right p-2 font-mono">0.00</td>
+                            <td className="text-right p-2 font-mono">50000.00</td>
+                            <td className="text-right p-2 font-mono">0.00</td>
+                            <td className="text-right p-2 font-mono">150000.00</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
-
-                <p className="text-xs text-indigo-600">
-                  Numere: Format românesc (virgulă) sau internațional (punct). Prima linie (header) este ignorată.
-                </p>
               </CollapsibleContent>
-            </Collapsible>
-          </div>
+            </div>
+          </Collapsible>
         </div>
 
         {/* Upload Zone */}
