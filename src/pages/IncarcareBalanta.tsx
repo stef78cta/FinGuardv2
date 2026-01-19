@@ -608,17 +608,19 @@ const IncarcareBalanta = () => {
                           {totals ? formatCurrency(totals.totalCredit) : '-'}
                         </TableCell>
                         <TableCell>
-                          {getStatusBadge(imp.status)}
-                          {imp.error_message && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <AlertCircle className="w-4 h-4 text-destructive ml-1 inline" />
-                                </TooltipTrigger>
-                                <TooltipContent>{imp.error_message}</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1">
+                              {getStatusBadge(imp.status)}
+                              {imp.error_message && (
+                                <AlertCircle className="w-4 h-4 text-destructive" />
+                              )}
+                            </div>
+                            {imp.error_message && (
+                              <p className="text-xs text-destructive max-w-[200px] break-words">
+                                {imp.error_message}
+                              </p>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center justify-end gap-1">
