@@ -44,6 +44,7 @@ const IncarcareBalanta = () => {
   const { imports, loading: importsLoading, uploadBalance, deleteImport, getAccounts } = useTrialBalances(company?.id || null);
   
   const [referenceDate, setReferenceDate] = useState<Date>();
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -429,7 +430,7 @@ const IncarcareBalanta = () => {
             <Label htmlFor="reference-date" className="text-sm font-semibold mb-2 block">
               Data de Referință <span className="text-destructive">*</span>
             </Label>
-            <Popover>
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
                   id="reference-date"
@@ -451,9 +452,11 @@ const IncarcareBalanta = () => {
                   onSelect={(date) => {
                     setReferenceDate(date);
                     setDateError(false);
+                    setCalendarOpen(false);
                   }}
                   initialFocus
                   locale={ro}
+                  className="pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
