@@ -1,25 +1,15 @@
 /**
  * Supabase client configuration.
- * Credentials are loaded from environment variables for security.
- * 
- * @see https://vitejs.dev/guide/env-and-mode.html
+ * Uses hardcoded values as per Lovable guidelines.
  */
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-/** Supabase project URL from environment variables */
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+/** Supabase project URL */
+const SUPABASE_URL = "https://gqxopxbzslwrjgukqbha.supabase.co";
 
-/** Supabase anonymous/publishable key from environment variables */
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// Validate environment variables at runtime
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error(
-    'Missing Supabase environment variables. ' +
-    'Please ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in your .env file.'
-  );
-}
+/** Supabase anonymous/publishable key */
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxeG9weGJ6c2x3cmpndWtxYmhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTczOTUsImV4cCI6MjA4NDMzMzM5NX0.WBnygrdIbFpz7wi68TKrWjc7ELC8rTfR0iXYTWtRO1Q";
 
 /**
  * Supabase client instance for interacting with the database.

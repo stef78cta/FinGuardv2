@@ -143,6 +143,13 @@ export type Database = {
             foreignKeyName: "trial_balance_accounts_import_id_fkey"
             columns: ["import_id"]
             isOneToOne: false
+            referencedRelation: "active_trial_balance_imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trial_balance_accounts_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
             referencedRelation: "trial_balance_imports"
             referencedColumns: ["id"]
           },
@@ -152,6 +159,7 @@ export type Database = {
         Row: {
           company_id: string
           created_at: string | null
+          deleted_at: string | null
           error_message: string | null
           file_size_bytes: number | null
           id: string
@@ -168,6 +176,7 @@ export type Database = {
         Insert: {
           company_id: string
           created_at?: string | null
+          deleted_at?: string | null
           error_message?: string | null
           file_size_bytes?: number | null
           id?: string
@@ -184,6 +193,7 @@ export type Database = {
         Update: {
           company_id?: string
           created_at?: string | null
+          deleted_at?: string | null
           error_message?: string | null
           file_size_bytes?: number | null
           id?: string
@@ -278,7 +288,78 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      active_trial_balance_imports: {
+        Row: {
+          accounts_count: number | null
+          company_id: string | null
+          created_at: string | null
+          deleted_at: string | null
+          error_message: string | null
+          file_size_bytes: number | null
+          id: string | null
+          period_end: string | null
+          period_start: string | null
+          processed_at: string | null
+          source_file_name: string | null
+          source_file_url: string | null
+          status: Database["public"]["Enums"]["import_status"] | null
+          updated_at: string | null
+          uploaded_by: string | null
+          validation_errors: Json | null
+        }
+        Insert: {
+          accounts_count?: never
+          company_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          error_message?: string | null
+          file_size_bytes?: number | null
+          id?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          processed_at?: string | null
+          source_file_name?: string | null
+          source_file_url?: string | null
+          status?: Database["public"]["Enums"]["import_status"] | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+          validation_errors?: Json | null
+        }
+        Update: {
+          accounts_count?: never
+          company_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          error_message?: string | null
+          file_size_bytes?: number | null
+          id?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          processed_at?: string | null
+          source_file_name?: string | null
+          source_file_url?: string | null
+          status?: Database["public"]["Enums"]["import_status"] | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+          validation_errors?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trial_balance_imports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trial_balance_imports_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       can_access_import: {
@@ -288,6 +369,55 @@ export type Database = {
       create_company_with_member: {
         Args: { p_cui: string; p_name: string; p_user_id: string }
         Returns: string
+      }
+      get_accounts_paginated: {
+        Args: { _import_id: string; _limit?: number; _offset?: number }
+        Returns: {
+          account_code: string
+          account_name: string
+          closing_credit: number
+          closing_debit: number
+          credit_turnover: number
+          debit_turnover: number
+          id: string
+          import_id: string
+          opening_credit: number
+          opening_debit: number
+          total_count: number
+        }[]
+      }
+      get_balances_with_accounts: {
+        Args: { _company_id: string; _limit?: number; _offset?: number }
+        Returns: Json
+      }
+      get_company_imports_with_totals: {
+        Args: { _company_id: string }
+        Returns: {
+          accounts_count: number
+          created_at: string
+          error_message: string
+          import_id: string
+          period_end: string
+          period_start: string
+          processed_at: string
+          source_file_name: string
+          source_file_url: string
+          status: Database["public"]["Enums"]["import_status"]
+          total_closing_credit: number
+          total_closing_debit: number
+        }[]
+      }
+      get_import_totals: {
+        Args: { _import_id: string }
+        Returns: {
+          accounts_count: number
+          total_closing_credit: number
+          total_closing_debit: number
+          total_credit_turnover: number
+          total_debit_turnover: number
+          total_opening_credit: number
+          total_opening_debit: number
+        }[]
       }
       get_user_id_from_auth: { Args: never; Returns: string }
       has_role: {
@@ -301,6 +431,7 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      soft_delete_import: { Args: { _import_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "user" | "admin" | "super_admin"
