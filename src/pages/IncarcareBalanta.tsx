@@ -813,7 +813,7 @@ const IncarcareBalanta = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* View Accounts Dialog cu Paginare */}
+      {/* View Accounts Dialog cu Paginare - Optimizat pentru vizibilitate completă coloane */}
       <Dialog open={viewDialogOpen} onOpenChange={(open) => {
         setViewDialogOpen(open);
         if (!open) {
@@ -822,8 +822,8 @@ const IncarcareBalanta = () => {
           setTotalAccountsCount(0);
         }
       }}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-[95vw] lg:max-w-6xl xl:max-w-7xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Conturi Balanță</DialogTitle>
             <DialogDescription>
               {totalAccountsCount > 0 ? (
@@ -842,35 +842,52 @@ const IncarcareBalanta = () => {
             </div>
           ) : (
             <>
-              <div className="overflow-auto flex-1">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Cont</TableHead>
-                      <TableHead>Denumire</TableHead>
-                      <TableHead className="text-right">SI Debit</TableHead>
-                      <TableHead className="text-right">SI Credit</TableHead>
-                      <TableHead className="text-right">Rulaj D</TableHead>
-                      <TableHead className="text-right">Rulaj C</TableHead>
-                      <TableHead className="text-right">SF Debit</TableHead>
-                      <TableHead className="text-right">SF Credit</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {viewingAccounts.map((account) => (
-                      <TableRow key={account.id}>
-                        <TableCell className="font-mono">{account.account_code}</TableCell>
-                        <TableCell>{account.account_name}</TableCell>
-                        <TableCell className="text-right font-mono">{formatCurrency(account.opening_debit)}</TableCell>
-                        <TableCell className="text-right font-mono">{formatCurrency(account.opening_credit)}</TableCell>
-                        <TableCell className="text-right font-mono">{formatCurrency(account.debit_turnover)}</TableCell>
-                        <TableCell className="text-right font-mono">{formatCurrency(account.credit_turnover)}</TableCell>
-                        <TableCell className="text-right font-mono">{formatCurrency(account.closing_debit)}</TableCell>
-                        <TableCell className="text-right font-mono">{formatCurrency(account.closing_credit)}</TableCell>
+              {/* Container cu scroll orizontal explicit pentru tabel */}
+              <div className="flex-1 overflow-hidden border rounded-md">
+                <div className="overflow-x-auto overflow-y-auto max-h-[calc(85vh-180px)]">
+                  <Table className="min-w-[900px]">
+                    <TableHeader className="sticky top-0 bg-background z-10">
+                      <TableRow>
+                        <TableHead className="w-[80px] min-w-[80px]">Cont</TableHead>
+                        <TableHead className="min-w-[180px]">Denumire</TableHead>
+                        <TableHead className="text-right w-[120px] min-w-[120px] whitespace-nowrap">SI Debit</TableHead>
+                        <TableHead className="text-right w-[120px] min-w-[120px] whitespace-nowrap">SI Credit</TableHead>
+                        <TableHead className="text-right w-[130px] min-w-[130px] whitespace-nowrap">Rulaj D</TableHead>
+                        <TableHead className="text-right w-[130px] min-w-[130px] whitespace-nowrap">Rulaj C</TableHead>
+                        <TableHead className="text-right w-[120px] min-w-[120px] whitespace-nowrap">SF Debit</TableHead>
+                        <TableHead className="text-right w-[120px] min-w-[120px] whitespace-nowrap">SF Credit</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {viewingAccounts.map((account) => (
+                        <TableRow key={account.id}>
+                          <TableCell className="font-mono text-sm">{account.account_code}</TableCell>
+                          <TableCell className="max-w-[250px] truncate" title={account.account_name}>
+                            {account.account_name}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-sm whitespace-nowrap">
+                            {formatCurrency(account.opening_debit)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-sm whitespace-nowrap">
+                            {formatCurrency(account.opening_credit)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-sm whitespace-nowrap">
+                            {formatCurrency(account.debit_turnover)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-sm whitespace-nowrap">
+                            {formatCurrency(account.credit_turnover)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-sm whitespace-nowrap">
+                            {formatCurrency(account.closing_debit)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-sm whitespace-nowrap">
+                            {formatCurrency(account.closing_credit)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
               
               {/* Controale paginare */}
