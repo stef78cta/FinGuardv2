@@ -6,6 +6,63 @@
 
 ---
 
+## FinGuard – Analiza Afacerii Tale
+
+### Despre FinGuard
+
+**FinGuard** este o aplicație care oferă o soluție completă pentru analiza financiară, cu indicatori cheie, validări automate și o interfață profesională adaptată pentru utilizatorii din domeniul contabil.
+
+Este o aplicație web inovatoare care oferă servicii de analiză financiară automată pentru companiile românești. Platforma se poziționează ca un **consultant financiar digital**, oferind evaluări rapide și precise ale situației economice a firmelor.
+
+### Propunerea de Valoare
+
+FinGuard reprezintă o soluție mai avansată și comprehensivă pentru analiza financiară, orientată către **managerii care necesită instrumente sofisticate** de control și evaluare a performanței companiei.
+
+- **Pentru antreprenori**: Ideal pentru cei care doresc evaluări rapide și punctuale ale situației financiare, oferind un raport cost-beneficiu excelent pentru analize ocazionale. **Simplitatea și viteza** sunt punctele sale forte.
+
+- **Pentru manageri și profesioniști financiari**: Se adresează profesioniștilor care necesită instrumente complexe de monitorizare continuă, cu funcționalități avansate de planificare și control. Oferă o **abordare holistică** asupra managementului financiar.
+
+### Funcționalități Principale
+
+- **Analiză financiară automată**: Aplicația procesează balanțele lunare încărcate de utilizatori și generează rapoarte de analiză financiară comprehensive în doar câteva secunde
+- **Ușurință în utilizare**: Nu necesită identificarea firmei prin nume sau cod fiscal, asigurând confidențialitate totală
+- **Accesibilitate multiplă**: Poate fi accesat de pe orice dispozitiv - telefon, tabletă, laptop sau desktop
+- **Securitate garantată**: Datele sunt stocate în cloud pe Amazon, cu acces securizat prin email și parolă personalizată
+
+### Caracteristici Cheie
+
+- ✅ Procesare rapidă a datelor financiare
+- ✅ Prețuri competitive comparativ cu consultanța tradițională
+- ✅ Bibliotecă personală cu istoricul rapoartelor generate
+- ✅ Prezentarea trendurilor și a evoluției comparative
+- ✅ Analize comparative pentru perioade anterioare
+- ✅ Compararea evoluției lunare și anuale
+- ✅ Identificarea rapidă a tendințelor de evoluție
+
+### Analize Detaliate
+
+- **Analiza veniturilor**: Monitorizarea detaliată a cifrei de afaceri, altor venituri din exploatare, venituri financiare și extraordinare
+- **Analiza cheltuielilor**: Evaluarea costurilor pe categorii (cheltuieli pentru realizarea cifrei de afaceri, cheltuieli fixe, cheltuieli financiare)
+- **Analiza patrimonială**: Evaluarea activului (mijloace fixe, stocuri, creanțe, disponibilități) și pasivului (capitaluri proprii, datorii diverse)
+- **Indicatori Economico-Financiari (KPI)**: Calculul automat al indicatorilor cheie de performanță
+- **Previziuni bugetare**: Proiecții și planificare financiară
+
+### Grup Țintă
+
+- **Afaceri mici și mijlocii** care necesită control financiar riguros
+- **Firme și cabinete de contabilitate** care oferă servicii către clienți
+- **Instituții financiare nebancare (IFN)**, companii de leasing și analiști financiari
+- **Analiști financiari** - instrumente profesionale avansate
+
+### Accesibilitate și Compatibilitate
+
+- **Multi-device**: Accesibil de pe telefon, tabletă, laptop, desktop
+- **Format Excel suportat**: Pentru încărcarea balanțelor
+- **Aplicație web**: Nu necesită instalare software
+- **Disponibilitate 24/7**: Acces oricând la aplicație
+
+---
+
 ## Cuprins
 
 1. [Interfață cu Utilizatorul (UI)](#1-interfață-cu-utilizatorul-ui)
