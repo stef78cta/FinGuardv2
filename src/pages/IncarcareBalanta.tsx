@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Upload, 
   FileSpreadsheet, 
@@ -15,7 +15,9 @@ import {
   Loader2,
   AlertCircle,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
@@ -37,13 +39,31 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCompanyContext } from '@/contexts/CompanyContext';
-import { useTrialBalances, TrialBalanceImport } from '@/hooks/useTrialBalances';
+import { useTrialBalances, TrialBalanceImport, TrialBalanceImportWithTotals } from '@/hooks/useTrialBalances';
 import { supabase } from '@/integrations/supabase/client';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
+/** Numărul de conturi afișate per pagină în dialog-ul de vizualizare */
+const ACCOUNTS_PER_PAGE = 50;
+
+/**
+ * Pagina pentru încărcarea și gestionarea balanțelor contabile.
+ * Optimizată pentru performanță cu:
+ * - Totaluri calculate server-side (evită N+1 queries)
+ * - Paginare pentru lista de conturi
+ * - Error Boundary pentru gestionarea erorilor
+ */
 const IncarcareBalanta = () => {
   const { user } = useAuth();
   const { activeCompany } = useCompanyContext();
-  const { imports, loading: importsLoading, uploadBalance, deleteImport, getAccounts } = useTrialBalances(activeCompany?.id || null);
+  const { 
+    imports, 
+    importsWithTotals,
+    loading: importsLoading, 
+    uploadBalance, 
+    deleteImport, 
+    getAccounts 
+  } = useTrialBalances(activeCompany?.id || null);
   
   const [referenceDate, setReferenceDate] = useState<Date>();
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -56,40 +76,34 @@ const IncarcareBalanta = () => {
   const [selectedImportId, setSelectedImportId] = useState<string | null>(null);
   const [detailedSpecsOpen, setDetailedSpecsOpen] = useState(false);
   
-  
-  // View accounts dialog
+  // View accounts dialog cu paginare
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingAccounts, setViewingAccounts] = useState<any[]>([]);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
-  
-  // Account totals cache
-  const [importTotals, setImportTotals] = useState<Record<string, { totalDebit: number; totalCredit: number; accountsCount: number }>>({});
+  const [accountsPage, setAccountsPage] = useState(0);
+  const [totalAccountsCount, setTotalAccountsCount] = useState(0);
 
-  // Load account totals for each import
-  useEffect(() => {
-    const loadTotals = async () => {
-      const totals: Record<string, { totalDebit: number; totalCredit: number; accountsCount: number }> = {};
-      
-      for (const imp of imports) {
-        if (imp.status === 'completed') {
-          try {
-            const accounts = await getAccounts(imp.id);
-            const totalDebit = accounts.reduce((sum, acc) => sum + (acc.closing_debit || 0), 0);
-            const totalCredit = accounts.reduce((sum, acc) => sum + (acc.closing_credit || 0), 0);
-            totals[imp.id] = { totalDebit, totalCredit, accountsCount: accounts.length };
-          } catch (err) {
-            console.error('Error loading totals:', err);
-          }
-        }
-      }
-      
-      setImportTotals(totals);
-    };
+  /**
+   * Calculează totalurile din importsWithTotals (optimizat server-side).
+   * Dacă importsWithTotals nu este disponibil, returnează un map gol.
+   * Evită N+1 queries prin folosirea datelor pre-calculate.
+   */
+  const importTotals = useMemo(() => {
+    const totals: Record<string, { totalDebit: number; totalCredit: number; accountsCount: number }> = {};
     
-    if (imports.length > 0) {
-      loadTotals();
+    // Folosim datele optimizate din RPC dacă sunt disponibile
+    if (importsWithTotals && importsWithTotals.length > 0) {
+      importsWithTotals.forEach((imp) => {
+        totals[imp.id] = {
+          totalDebit: imp.total_closing_debit || 0,
+          totalCredit: imp.total_closing_credit || 0,
+          accountsCount: imp.accounts_count || 0,
+        };
+      });
     }
-  }, [imports, getAccounts]);
+    
+    return totals;
+  }, [importsWithTotals]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -222,13 +236,79 @@ const IncarcareBalanta = () => {
     setSelectedImportId(null);
   };
 
+  /**
+   * Deschide dialog-ul pentru vizualizarea conturilor unui import.
+   * Folosește paginare pentru performanță optimă cu liste mari.
+   * 
+   * @param importId - ID-ul importului pentru care se afișează conturile
+   */
   const handleViewAccounts = async (importId: string) => {
     setLoadingAccounts(true);
     setViewDialogOpen(true);
+    setAccountsPage(0);
+    setSelectedImportId(importId);
     
     try {
-      const accounts = await getAccounts(importId);
+      const accounts = await getAccounts(importId, { 
+        limit: ACCOUNTS_PER_PAGE, 
+        offset: 0 
+      });
       setViewingAccounts(accounts);
+      
+      // Obținem numărul total de conturi din totals (dacă există)
+      const totals = importTotals[importId];
+      setTotalAccountsCount(totals?.accountsCount || accounts.length);
+    } catch (error) {
+      toast.error('Eroare la încărcarea conturilor');
+      console.error('[IncarcareBalanta] Error loading accounts:', error);
+    } finally {
+      setLoadingAccounts(false);
+    }
+  };
+
+  /**
+   * Încarcă pagina următoare de conturi.
+   */
+  const handleNextAccountsPage = async () => {
+    if (!selectedImportId) return;
+    
+    const nextPage = accountsPage + 1;
+    const offset = nextPage * ACCOUNTS_PER_PAGE;
+    
+    if (offset >= totalAccountsCount) return;
+    
+    setLoadingAccounts(true);
+    try {
+      const accounts = await getAccounts(selectedImportId, {
+        limit: ACCOUNTS_PER_PAGE,
+        offset
+      });
+      setViewingAccounts(accounts);
+      setAccountsPage(nextPage);
+    } catch (error) {
+      toast.error('Eroare la încărcarea conturilor');
+    } finally {
+      setLoadingAccounts(false);
+    }
+  };
+
+  /**
+   * Încarcă pagina anterioară de conturi.
+   */
+  const handlePrevAccountsPage = async () => {
+    if (!selectedImportId || accountsPage === 0) return;
+    
+    const prevPage = accountsPage - 1;
+    const offset = prevPage * ACCOUNTS_PER_PAGE;
+    
+    setLoadingAccounts(true);
+    try {
+      const accounts = await getAccounts(selectedImportId, {
+        limit: ACCOUNTS_PER_PAGE,
+        offset
+      });
+      setViewingAccounts(accounts);
+      setAccountsPage(prevPage);
     } catch (error) {
       toast.error('Eroare la încărcarea conturilor');
     } finally {
@@ -733,13 +813,26 @@ const IncarcareBalanta = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* View Accounts Dialog */}
-      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+      {/* View Accounts Dialog cu Paginare */}
+      <Dialog open={viewDialogOpen} onOpenChange={(open) => {
+        setViewDialogOpen(open);
+        if (!open) {
+          setAccountsPage(0);
+          setViewingAccounts([]);
+          setTotalAccountsCount(0);
+        }
+      }}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Conturi Balanță</DialogTitle>
             <DialogDescription>
-              Lista completă a conturilor din balanța selectată
+              {totalAccountsCount > 0 ? (
+                <>
+                  Afișez {accountsPage * ACCOUNTS_PER_PAGE + 1} - {Math.min((accountsPage + 1) * ACCOUNTS_PER_PAGE, totalAccountsCount)} din {totalAccountsCount} conturi
+                </>
+              ) : (
+                'Lista conturilor din balanța selectată'
+              )}
             </DialogDescription>
           </DialogHeader>
           
@@ -748,36 +841,67 @@ const IncarcareBalanta = () => {
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : (
-            <div className="overflow-auto flex-1">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Cont</TableHead>
-                    <TableHead>Denumire</TableHead>
-                    <TableHead className="text-right">SI Debit</TableHead>
-                    <TableHead className="text-right">SI Credit</TableHead>
-                    <TableHead className="text-right">Rulaj D</TableHead>
-                    <TableHead className="text-right">Rulaj C</TableHead>
-                    <TableHead className="text-right">SF Debit</TableHead>
-                    <TableHead className="text-right">SF Credit</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {viewingAccounts.map((account) => (
-                    <TableRow key={account.id}>
-                      <TableCell className="font-mono">{account.account_code}</TableCell>
-                      <TableCell>{account.account_name}</TableCell>
-                      <TableCell className="text-right font-mono">{formatCurrency(account.opening_debit)}</TableCell>
-                      <TableCell className="text-right font-mono">{formatCurrency(account.opening_credit)}</TableCell>
-                      <TableCell className="text-right font-mono">{formatCurrency(account.debit_turnover)}</TableCell>
-                      <TableCell className="text-right font-mono">{formatCurrency(account.credit_turnover)}</TableCell>
-                      <TableCell className="text-right font-mono">{formatCurrency(account.closing_debit)}</TableCell>
-                      <TableCell className="text-right font-mono">{formatCurrency(account.closing_credit)}</TableCell>
+            <>
+              <div className="overflow-auto flex-1">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Cont</TableHead>
+                      <TableHead>Denumire</TableHead>
+                      <TableHead className="text-right">SI Debit</TableHead>
+                      <TableHead className="text-right">SI Credit</TableHead>
+                      <TableHead className="text-right">Rulaj D</TableHead>
+                      <TableHead className="text-right">Rulaj C</TableHead>
+                      <TableHead className="text-right">SF Debit</TableHead>
+                      <TableHead className="text-right">SF Credit</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {viewingAccounts.map((account) => (
+                      <TableRow key={account.id}>
+                        <TableCell className="font-mono">{account.account_code}</TableCell>
+                        <TableCell>{account.account_name}</TableCell>
+                        <TableCell className="text-right font-mono">{formatCurrency(account.opening_debit)}</TableCell>
+                        <TableCell className="text-right font-mono">{formatCurrency(account.opening_credit)}</TableCell>
+                        <TableCell className="text-right font-mono">{formatCurrency(account.debit_turnover)}</TableCell>
+                        <TableCell className="text-right font-mono">{formatCurrency(account.credit_turnover)}</TableCell>
+                        <TableCell className="text-right font-mono">{formatCurrency(account.closing_debit)}</TableCell>
+                        <TableCell className="text-right font-mono">{formatCurrency(account.closing_credit)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              
+              {/* Controale paginare */}
+              {totalAccountsCount > ACCOUNTS_PER_PAGE && (
+                <div className="flex items-center justify-between pt-4 border-t">
+                  <p className="text-sm text-muted-foreground">
+                    Pagina {accountsPage + 1} din {Math.ceil(totalAccountsCount / ACCOUNTS_PER_PAGE)}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePrevAccountsPage}
+                      disabled={accountsPage === 0 || loadingAccounts}
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      Anterior
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNextAccountsPage}
+                      disabled={(accountsPage + 1) * ACCOUNTS_PER_PAGE >= totalAccountsCount || loadingAccounts}
+                    >
+                      Următor
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </DialogContent>
       </Dialog>
@@ -785,4 +909,19 @@ const IncarcareBalanta = () => {
   );
 };
 
-export default IncarcareBalanta;
+/**
+ * Componentă exportată cu Error Boundary pentru gestionarea erorilor.
+ */
+const IncarcareBalantaWithErrorBoundary = () => (
+  <ErrorBoundary 
+    errorTitle="Eroare la încărcarea paginii"
+    retryButtonText="Reîncearcă"
+    onError={(error) => {
+      console.error('[IncarcareBalanta] Caught error:', error);
+    }}
+  >
+    <IncarcareBalanta />
+  </ErrorBoundary>
+);
+
+export default IncarcareBalantaWithErrorBoundary;

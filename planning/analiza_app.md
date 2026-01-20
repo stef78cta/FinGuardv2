@@ -1,6 +1,7 @@
 # Analiză Completă - FinGuard v2
 
-**Data analizei:** Ianuarie 2026  
+**Data analizei inițiale:** Ianuarie 2026  
+**Ultima actualizare:** Ianuarie 2026  
 **Versiune aplicație:** FinGuard v2 (React + Vite + Supabase)
 
 ---
@@ -190,39 +191,141 @@ Toate tabelele au politici RLS active cu funcții helper `SECURITY DEFINER`:
 - Bucket `balante` privat (non-public)
 - Politici RLS pentru storage bazate pe `company_id`
 
-### Vulnerabilități Potențiale
+### Vulnerabilități Identificate și Status Rezolvare
 
-#### 1. Chei Hardcodate (CRITIC)
+#### 1. ~~Chei Hardcodate~~ ✅ REZOLVAT
+
+**Problema originală:**
 ```typescript
-// src/integrations/supabase/client.ts
+// src/integrations/supabase/client.ts - VECHI
 const SUPABASE_URL = "https://gqxopxbzslwrjgukqbha.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOi...";
 ```
 
-**Risc**: Cheile sunt în cod în loc de variabile de mediu.  
-**Soluție**: Mută în `.env` și folosește `import.meta.env.VITE_SUPABASE_URL`.
-
-#### 2. CORS Permisiv
+**Soluție implementată:**
 ```typescript
-// supabase/functions/parse-balanta/index.ts
+// src/integrations/supabase/client.ts - NOU
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Validare la runtime
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error('Missing Supabase environment variables...');
+}
+```
+
+**Modificări adiționale:**
+- `.env` adăugat în `.gitignore` cu comentariu clar
+- Documentație JSDoc adăugată pentru configurare
+
+---
+
+#### 2. ~~CORS Permisiv~~ ✅ REZOLVAT
+
+**Problema originală:**
+```typescript
+// supabase/functions/parse-balanta/index.ts - VECHI
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  // ...
 };
 ```
 
-**Risc**: Permite request-uri de la orice origin.  
-**Soluție**: Restricționează la domeniul aplicației.
+**Soluție implementată:**
+```typescript
+// supabase/functions/parse-balanta/index.ts - NOU
+const ALLOWED_ORIGINS = [
+  "http://localhost:8080",
+  "http://localhost:3000",
+  "https://finguard.ro",
+  "https://www.finguard.ro",
+];
 
-#### 3. Lipsă Rate Limiting
-Nu există protecție împotriva abuse-ului API.
+function getCorsHeaders(requestOrigin: string | null): Record<string, string> {
+  const origin = requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin) 
+    ? requestOrigin 
+    : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Max-Age": "86400",
+  };
+}
+```
 
-**Soluție**: Implementează rate limiting la nivel de edge function sau folosește Supabase Rate Limiting.
+---
 
-#### 4. Input Validation Excel
-Excel parsing acceptă orice format de numere - ar putea fi vulnerabil la injection via cell values malițioase.
+#### 3. ~~Lipsă Rate Limiting~~ ✅ REZOLVAT
 
-**Soluție**: Sanitizare strictă și validare a valorilor.
+**Problema originală:** Nu exista protecție împotriva abuse-ului API.
+
+**Soluție implementată:**
+```typescript
+// supabase/functions/parse-balanta/index.ts - NOU
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_MAX_REQUESTS = 10; // Max requests per window
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute window
+
+function checkRateLimit(identifier: string): { allowed: boolean; remaining: number; resetIn: number } {
+  // Implementare sliding window cu cleanup automat
+  // Return HTTP 429 cu Retry-After header când limita e depășită
+}
+```
+
+**Caracteristici:**
+- 10 requests per minut per utilizator
+- Headers X-RateLimit-Remaining și Retry-After
+- Cleanup automat al store-ului când depășește 1000 entries
+
+---
+
+#### 4. ~~Input Validation Excel~~ ✅ REZOLVAT
+
+**Problema originală:** Excel parsing accepta orice format de numere - vulnerabil la injection.
+
+**Soluție implementată:**
+
+```typescript
+// supabase/functions/parse-balanta/index.ts - NOU
+
+// Constante de securitate
+const MAX_CELL_LENGTH = 500;
+const MAX_NUMERIC_VALUE = 999_999_999_999.99;
+const MIN_NUMERIC_VALUE = -999_999_999_999.99;
+const MAX_ACCOUNTS = 10_000;
+
+// Sanitizare stringuri - prevenire formula injection
+function sanitizeString(value: unknown): string {
+  // Limitare lungime
+  // Eliminare caractere periculoase (=, +, -, @, \t, \r)
+  // Eliminare control characters
+  return strValue.trim();
+}
+
+// Validare numere strictă
+function parseNumber(value: unknown): number {
+  // Verificare lungime pentru prevenire ReDoS
+  // Whitelist caractere permise: /^-?[\d\s.,]+$/
+  // Validare range
+  // Rotunjire la 2 zecimale
+}
+
+// Parse Excel cu opțiuni de securitate
+const workbook = XLSX.read(arrayBuffer, { 
+  type: "array",
+  cellDates: false,
+  cellNF: false,
+  cellFormula: false, // SECURITY: Disable formula parsing
+});
+```
+
+**Protecții implementate:**
+- Formula injection prevention (elimină `=`, `+`, `-`, `@` de la început)
+- Control character removal
+- Length limits pentru prevenire memory attacks
+- ReDoS prevention prin verificare lungime înainte de regex
+- Limite pe număr conturi (MAX_ACCOUNTS = 10,000)
+- Validare strictă cod cont (doar 3-6 cifre)
 
 ---
 
@@ -254,15 +357,15 @@ Excel parsing acceptă orice format de numere - ar putea fi vulnerabil la inject
 3. **Edge Functions**: Distribuite global automat de Supabase
 4. **CDN Ready**: Frontend static poate fi servit de orice CDN
 
-### Limitări de Scalabilitate
+### Limitări de Scalabilitate - Status Actualizat
 
-| Limitare | Impact | Soluție |
-|----------|--------|---------|
-| Queries secvențiale în `getAllBalancesWithAccounts` | Latență crescută cu multe balanțe | Batch query sau agregare server-side |
-| Lipsa paginării | Probleme de memorie cu liste mari | Implementare pagination/infinite scroll |
-| Edge Functions timeout | Fișiere mari pot eșua | Procesare asincronă cu queue |
-| UNIQUE constraint rigid | Probleme la re-upload | Soft delete sau versionare |
-| Lipsa caching server-side | Load pe database | Adăugare Redis pentru cache |
+| Limitare | Impact | Soluție | Status |
+|----------|--------|---------|--------|
+| ~~Queries secvențiale în `getAllBalancesWithAccounts`~~ | ~~Latență crescută cu multe balanțe~~ | Batch query SQL `get_balances_with_accounts` | ✅ **REZOLVAT** |
+| ~~Lipsa paginării~~ | ~~Probleme de memorie cu liste mari~~ | Funcții SQL cu paginare + UI paginat | ✅ **REZOLVAT** |
+| Edge Functions timeout | Fișiere mari pot eșua | Procesare asincronă cu queue | ⏳ În așteptare |
+| ~~UNIQUE constraint rigid~~ | ~~Probleme la re-upload~~ | Soft delete cu `deleted_at` | ✅ **REZOLVAT** |
+| Lipsa caching server-side | Load pe database | React Query + opțional Redis | ⏳ Parțial (React Query activ) |
 
 ---
 
@@ -278,38 +381,63 @@ Excel parsing acceptă orice format de numere - ar putea fi vulnerabil la inject
 ✅ Responsive design  
 ✅ Feedback vizual consistent (loading, toasts)  
 
-### Recomandări Prioritare
+### Recomandări Prioritare - Status Actualizat
 
-| Prioritate | Recomandare | Categorie | Efort |
-|------------|-------------|-----------|-------|
-| 🔴 **CRITIC** | Mutare chei Supabase în variabile de mediu | Securitate | Mic |
-| 🔴 **CRITIC** | Adăugare rate limiting pe edge functions | Securitate | Mediu |
-| 🟠 **ÎNALTĂ** | Optimizare queries N+1 în `useBalante` | Performanță | Mediu |
-| 🟠 **ÎNALTĂ** | Restricționare CORS la domeniu specific | Securitate | Mic |
-| 🟡 **MEDIE** | Implementare paginare pentru liste | Scalabilitate | Mediu |
-| 🟡 **MEDIE** | Error boundaries și error handling consistent | UX | Mediu |
-| 🟡 **MEDIE** | Completare funcționalitate export PDF/Excel | Funcționalitate | Mare |
-| 🟡 **MEDIE** | Adăugare input validation mai strict la Excel parse | Securitate | Mediu |
-| 🟢 **SCĂZUTĂ** | Onboarding tutorial pentru utilizatori noi | UX | Mare |
-| 🟢 **SCĂZUTĂ** | Implementare search funcțional | UX | Mediu |
-| 🟢 **SCĂZUTĂ** | Îmbunătățire contrast dark mode | UI | Mic |
+| Prioritate | Recomandare | Categorie | Efort | Status |
+|------------|-------------|-----------|-------|--------|
+| ~~🔴 **CRITIC**~~ | ~~Mutare chei Supabase în variabile de mediu~~ | Securitate | Mic | ✅ **REZOLVAT** |
+| ~~🔴 **CRITIC**~~ | ~~Adăugare rate limiting pe edge functions~~ | Securitate | Mediu | ✅ **REZOLVAT** |
+| ~~🟠 **ÎNALTĂ**~~ | ~~Optimizare queries N+1 în `useBalante`~~ | Performanță | Mediu | ✅ **REZOLVAT** |
+| ~~🟠 **ÎNALTĂ**~~ | ~~Restricționare CORS la domeniu specific~~ | Securitate | Mic | ✅ **REZOLVAT** |
+| ~~🟡 **MEDIE**~~ | ~~Implementare paginare pentru liste~~ | Scalabilitate | Mediu | ✅ **REZOLVAT** |
+| ~~🟡 **MEDIE**~~ | ~~Error boundaries și error handling consistent~~ | UX | Mediu | ✅ **REZOLVAT** |
+| 🟡 **MEDIE** | Completare funcționalitate export PDF/Excel | Funcționalitate | Mare | ⏳ În așteptare |
+| ~~🟡 **MEDIE**~~ | ~~Adăugare input validation mai strict la Excel parse~~ | Securitate | Mediu | ✅ **REZOLVAT** |
+| 🟢 **SCĂZUTĂ** | Onboarding tutorial pentru utilizatori noi | UX | Mare | ⏳ În așteptare |
+| 🟢 **SCĂZUTĂ** | Implementare search funcțional | UX | Mediu | ⏳ În așteptare |
+| 🟢 **SCĂZUTĂ** | Îmbunătățire contrast dark mode | UI | Mic | ⏳ În așteptare |
+
+### Progres Rezolvare
+
+```
+Probleme Critice:    2/2 rezolvate (100%) ████████████ 
+Probleme Înalte:     2/2 rezolvate (100%) ████████████
+Probleme Medii:      3/4 rezolvate (75%)  █████████░░░
+Probleme Scăzute:    0/3 rezolvate (0%)   ░░░░░░░░░░░░
+─────────────────────────────────────────────────────
+TOTAL:               7/11 rezolvate (64%)
+```
 
 ### Concluzie Finală
 
 **FinGuard v2** este o aplicație SaaS bine structurată pentru analiză financiară, cu o bază solidă de cod și arhitectură modernă. 
 
+**Actualizare Ianuarie 2026:**
+- Toate problemele critice de securitate au fost rezolvate
+- Aplicația este acum pregătită pentru producție din punct de vedere al securității
+
 **Puncte cheie:**
 - Designul este modern și profesional
 - Funcționalitățile core (upload balanțe, calculul KPI-urilor, multi-company) sunt implementate corect
 - Securitatea prin RLS este un punct forte major
-- Aplicația este pregătită pentru utilizare în producție pentru un număr moderat de utilizatori
+- **NOU:** Variabile de mediu pentru credențiale ✅
+- **NOU:** CORS restrictiv cu whitelist domenii ✅
+- **NOU:** Rate limiting implementat (10 req/min) ✅
+- **NOU:** Input validation comprehensive pentru Excel ✅
 
-**Zone prioritare de îmbunătățire:**
-1. **Securitate**: Variabile de mediu pentru chei, rate limiting, CORS restrictiv
-2. **Performanță**: Optimizare queries pentru scale mai mare
-3. **Funcționalitate**: Finalizarea funcționalităților anunțate (rapoarte, export)
+**Zone prioritare de îmbunătățire (rămase):**
+1. **Funcționalitate**: Finalizarea funcționalităților anunțate (rapoarte PDF, export Excel)
+2. **UX**: Search funcțional, onboarding tutorial
+3. **Scalabilitate**: Procesare asincronă cu queue pentru fișiere mari
 
-**Verdict**: Aplicația poate fi lansată în producție după rezolvarea problemelor critice de securitate. Pentru scale enterprise, ar necesita optimizări suplimentare de performanță și scalabilitate.
+**Optimizări implementate (Ianuarie 2026):**
+- ✅ Batch queries pentru rezolvarea N+1 (funcții SQL: `get_balances_with_accounts`, `get_company_imports_with_totals`)
+- ✅ Paginare server-side pentru liste mari (`get_accounts_paginated`)
+- ✅ Soft delete pentru UNIQUE constraint flexibil
+- ✅ Error Boundary pentru gestionarea erorilor UX
+- ✅ Totaluri calculate server-side (evită încărcarea tuturor conturilor în client)
+
+**Verdict actualizat**: ✅ Aplicația este pregătită pentru producție și scale mediu-mare. Toate problemele critice de securitate și performanță au fost rezolvate. Pentru scale enterprise cu fișiere foarte mari (>50MB), se recomandă implementarea procesării asincrone.
 
 ---
 
@@ -372,6 +500,21 @@ Storage Buckets:
 /admin                      → Panou Admin (Admin Guard)
 ```
 
+### D. Changelog Securitate și Performanță
+
+| Data | Modificare | Fișiere afectate |
+|------|------------|------------------|
+| Ian 2026 | Mutare credențiale în variabile de mediu | `src/integrations/supabase/client.ts`, `.env`, `.gitignore` |
+| Ian 2026 | Implementare CORS restrictiv | `supabase/functions/parse-balanta/index.ts` |
+| Ian 2026 | Implementare rate limiting | `supabase/functions/parse-balanta/index.ts` |
+| Ian 2026 | Input validation & sanitization Excel | `supabase/functions/parse-balanta/index.ts` |
+| Ian 2026 | Batch queries pentru N+1 fix | `supabase/migrations/20260120100000_performance_optimizations.sql` |
+| Ian 2026 | Paginare server-side | `src/hooks/useBalante.tsx`, `src/hooks/useTrialBalances.tsx` |
+| Ian 2026 | Soft delete pentru imports | `supabase/migrations/20260120100000_performance_optimizations.sql` |
+| Ian 2026 | Error Boundary component | `src/components/ErrorBoundary.tsx`, `src/pages/IncarcareBalanta.tsx` |
+| Ian 2026 | Totals server-side (avoid N+1) | `src/hooks/useTrialBalances.tsx`, funcție SQL `get_import_totals` |
+
 ---
 
-*Document generat automat în urma analizei codului sursă.*
+*Document generat automat în urma analizei codului sursă.*  
+*Ultima actualizare: Ianuarie 2026*
