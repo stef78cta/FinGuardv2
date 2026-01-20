@@ -1,0 +1,1203 @@
+/**
+ * ╔═══════════════════════════════════════════════════════════════════════════╗
+ * ║                    FINGUARD DESIGN SYSTEM v1.0                           ║
+ * ║                  Comprehensive Design Guidelines                          ║
+ * ╚═══════════════════════════════════════════════════════════════════════════╝
+ * 
+ * PURPOSE: Single source of truth for all visual and interaction design
+ * AUDIENCE: Developers, Designers, AI Assistants, Product Managers
+ * USAGE: Reference when implementing UI components or making design decisions
+ * MAINTENANCE: Keep in sync with tailwind.config.ts and index.css
+ * 
+ * Last Updated: 2026-01-20
+ */
+
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BRAND IDENTITY
+  // Establishes trust and professionalism essential for financial software
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  "brandIdentity": {
+    "philosophy": {
+      // Core values driving all design decisions
+      "mission": "Transform complex financial data into actionable insights with clarity and confidence",
+      "personality": ["Professional", "Trustworthy", "Modern", "Efficient", "Intelligent"],
+      "tone": "Confident yet approachable, data-driven but human-centered",
+      "visualDirection": "Premium SaaS aesthetic with clean lines, subtle gradients, and purposeful whitespace"
+      // WHY: Financial professionals need tools that look as reliable as they are
+    },
+    
+    "logo": {
+      "primary": {
+        "icon": "TrendingUp or Shield icon",
+        "containerSize": "32-40px",
+        "containerStyle": "Rounded corners (xl), gradient background from primary to primary/70",
+        "iconColor": "primary-foreground (white)"
+        // WHY: Gradient adds depth; icon communicates growth/protection
+      },
+      "wordmark": {
+        "font": "Sans-serif (Lato)",
+        "weight": 700,
+        "color": "foreground (gray-900)"
+      },
+      "tagline": "Analiză financiară AI"
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COLOR SYSTEM
+  // Built on HSL for flexibility in generating tints, shades, and transparent variants
+  // WHY HSL: Allows programmatic manipulation and better color relationships
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  "colorSystem": {
+    "foundation": {
+      "note": "All colors defined in HSL format for flexibility",
+      "cssVariablePattern": "hsl(var(--color-name))"
+      // IMPORTANT: Always use CSS variables, never hardcode values
+    },
+    
+    "brand": {
+      // WHY INDIGO: Conveys trust, stability, professionalism for financial software
+      "primary": {
+        "navy": { 
+          "hsl": "222 47% 11%", 
+          "usage": "Deep backgrounds, footer",
+          "_when": "Use for high-contrast areas needing gravitas"
+        },
+        "indigo": { 
+          "hsl": "244 58% 64%", 
+          "usage": "Primary brand color, CTAs",
+          "_when": "Default choice for primary actions and brand elements"
+        },
+        "indigoDark": { 
+          "hsl": "243 75% 59%", 
+          "usage": "Hover states, gradients",
+          "_when": "Interactive states, gradient endpoints for depth"
+        }
+      },
+      
+      // WHY EMERALD: Strong contrast + communicates growth/success perfect for financial gains
+      "accent": {
+        "emerald": { 
+          "hsl": "158 64% 52%", 
+          "usage": "Success states, positive trends",
+          "_when": "Profit indicators, successful operations, positive KPIs"
+        },
+        "emeraldDark": { 
+          "hsl": "160 84% 39%", 
+          "usage": "Success hover states"
+        }
+      },
+      
+      // WHY AMBER: Universally recognized caution indicator without red's severity
+      "warning": {
+        "amber": { 
+          "hsl": "38 92% 50%", 
+          "usage": "Warnings, caution indicators",
+          "_when": "Approaching limits, items needing attention, non-critical alerts"
+        }
+      }
+    },
+    
+    "semantic": {
+      // Semantic naming abstracts from specific colors → easier theming & dark mode
+      "background": { 
+        "light": "0 0% 96%", 
+        "dark": "0 0% 9%"
+        // Slightly off-white reduces eye strain
+      },
+      "surface": { 
+        "light": "210 40% 98%", 
+        "dark": "0 0% 14%"
+        // Secondary backgrounds, subtle differentiation
+      },
+      "surfaceElevated": { 
+        "light": "0 0% 100%", 
+        "dark": "0 0% 25%"
+        // Cards, modals - elements that appear 'above' surface
+      },
+      "foreground": {
+        "primary": { "light": "0 0% 9%", "dark": "0 0% 98%" }, // Headlines, important text
+        "secondary": { "light": "215 20% 40%", "dark": "0 0% 70%" }, // Body text
+        "muted": { "light": "215 16% 50%", "dark": "0 0% 45%" } // Helper text, metadata
+      },
+      "border": { 
+        "light": "0 0% 83%", 
+        "dark": "0 0% 32%" 
+      },
+      "destructive": { 
+        "light": "0 72% 50%", 
+        "dark": "0 84% 60%"
+        // CAUTION: Use sparingly - red triggers strong emotional response
+      }
+    },
+    
+    "gradients": {
+      // WHY 135deg: Creates diagonal flow that draws the eye
+      // RULE: Use sparingly to maintain impact
+      "primary": "linear-gradient(135deg, hsl(var(--primary-indigo)), hsl(var(--primary-indigo-dark)))",
+      "success": "linear-gradient(135deg, hsl(var(--accent-emerald)), hsl(var(--accent-emerald-dark)))",
+      "hero": "linear-gradient(135deg, hsl(244 58% 64%) 0%, hsl(243 83% 70%) 100%)",
+      "subtle": "linear-gradient(to right, from-indigo-50 to-purple-50)",
+      
+      "_usageGuidelines": {
+        "hero": "Hero CTA buttons only - most visually prominent",
+        "primary": "Primary buttons, active sidebar states",
+        "success": "Success indicators, positive trend backgrounds",
+        "subtle": "Active tab backgrounds, highlighted cards - low visual weight"
+      }
+    },
+    
+    "charts": {
+      // Purple/indigo family maintains brand consistency with enough variation
+      "palette": [
+        { "name": "chart-1", "hsl": "234 89% 73%", "usage": "Primary data series" },
+        { "name": "chart-2", "hsl": "255 91% 76%", "usage": "Secondary data series" },
+        { "name": "chart-3", "hsl": "270 95% 75%", "usage": "Tertiary data series" },
+        { "name": "chart-4", "hsl": "238 83% 66%", "usage": "Fourth data series" },
+        { "name": "chart-5", "hsl": "0 0% 45%", "usage": "Neutral/baseline" }
+      ]
+      // ACCESSIBILITY: Always pair with patterns/labels for colorblind users
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // TYPOGRAPHY
+  // System designed for data-heavy interfaces requiring clear hierarchy
+  // WHY 3 FONTS: Sans for UI, Serif for authority moments, Mono for financial precision
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  "typography": {
+    "fontFamilies": {
+      "sans": {
+        "primary": "Lato",
+        "fallback": ["ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+        "usage": "Body text, UI elements, general content"
+        // WHY LATO: Clean, professional, excellent readability at small sizes
+      },
+      "serif": {
+        "primary": "EB Garamond",
+        "fallback": ["ui-serif", "Georgia", "Cambria", "Times New Roman", "serif"],
+        "usage": "Editorial content, quotes, special headings (sparingly)"
+        // WHY: Classic, trustworthy feel for moments requiring gravitas
+      },
+      "mono": {
+        "primary": "Fira Code",
+        "fallback": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
+        "usage": "Financial figures, code, account numbers"
+        // WHY: Numbers align vertically making financial data scannable
+      }
+    },
+    
+    "scale": {
+      // Large headlines for landing, conservative sizes for app (data density)
+      "headline": {
+        "mobile": "2.25rem (36px)",
+        "tablet": "3rem (48px)",
+        "desktop": "3.75rem (60px)",
+        "fontWeight": 900,
+        "lineHeight": 1.0,
+        "letterSpacing": "-0.02em",
+        "usage": "Hero sections, main page titles"
+        // WHY HEAVY WEIGHT: Creates strong visual anchor
+      },
+      "sectionTitle": {
+        "mobile": "1.5rem (24px)",
+        "tablet": "1.875rem (30px)",
+        "desktop": "2.25rem (36px)",
+        "fontWeight": 700,
+        "lineHeight": 1.15,
+        "letterSpacing": "-0.01em",
+        "usage": "Section headers, card titles"
+      },
+      "subheadline": {
+        "size": "1.5rem (24px)",
+        "fontWeight": 600,
+        "lineHeight": 1.4,
+        "usage": "Section subtitles, feature headers"
+      },
+      "pageTitle": {
+        "mobile": "1.5rem (24px)",
+        "desktop": "1.875rem (30px)",
+        "fontWeight": 700,
+        "letterSpacing": "-0.01em",
+        "usage": "Application page titles"
+        // Smaller than marketing to leave room for data
+      },
+      "bodyLarge": {
+        "size": "1.125rem (18px)",
+        "fontWeight": 400,
+        "lineHeight": 1.65,
+        "usage": "Lead paragraphs, descriptions"
+        // WHY LONGER LINE-HEIGHT: Improves multi-line readability
+      },
+      "body": {
+        "size": "1rem (16px)",
+        "fontWeight": 400,
+        "lineHeight": 1.6,
+        "usage": "General body text"
+      },
+      "bodySmall": {
+        "size": "0.875rem (14px)",
+        "fontWeight": 400,
+        "lineHeight": 1.5,
+        "usage": "Secondary text, captions"
+      },
+      "label": {
+        "size": "0.875rem (14px)",
+        "fontWeight": 500,
+        "lineHeight": 1.5,
+        "usage": "Form labels, KPI labels"
+        // Medium weight distinguishes from adjacent body text
+      },
+      "micro": {
+        "size": "0.75rem (12px)",
+        "fontWeight": 500,
+        "lineHeight": 1.5,
+        "usage": "Badges, helper text, timestamps"
+        // ACCESSIBILITY: 12px is minimum readable size. Don't go smaller!
+      }
+    },
+    
+    "fontSettings": {
+      "featureSettings": "'cv02', 'cv03', 'cv04', 'cv11'",
+      "smoothing": {
+        "webkit": "antialiased",
+        "moz": "grayscale"
+      }
+      // Antialiasing creates crisper text on modern displays
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SPACING
+  // Consistent 4px-based system for visual rhythm and alignment
+  // WHY 4px: Fine control + 8px multiples align with icons and touch targets
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  "spacing": {
+    "baseUnit": "0.25rem (4px)",
+    
+    "scale": {
+      // RULE: Use scale values, not arbitrary numbers. Consistency = harmony
+      "0": "0px",
+      "1": "0.25rem (4px)",
+      "2": "0.5rem (8px)",
+      "3": "0.75rem (12px)",
+      "4": "1rem (16px)",
+      "5": "1.25rem (20px)",
+      "6": "1.5rem (24px)",
+      "8": "2rem (32px)",
+      "10": "2.5rem (40px)",
+      "12": "3rem (48px)",
+      "16": "4rem (64px)",
+      "20": "5rem (80px)",
+      "24": "6rem (96px)"
+    },
+    
+    "customAdditions": {
+      // Extended scale for larger section spacing
+      "18": "4.5rem (72px)",
+      "22": "5.5rem (88px)",
+      "26": "6.5rem (104px)",
+      "30": "7.5rem (120px)"
+    },
+    
+    "sectionSpacing": {
+      "standard": { "py": "4rem/5rem (py-16 md:py-20)" },
+      "reduced": { "py": "3rem/4rem (py-12 md:py-16)" }
+      // Use reduced when sections are closely related
+    },
+    
+    "containerPadding": {
+      "mobile": "1rem (px-4)",
+      "tablet": "1.5rem (px-6)",
+      "desktop": "2rem (px-8)"
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LAYOUT
+  // Container system, grid structure, and responsive breakpoints
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  "layout": {
+    "containers": {
+      // Different max-widths optimize readability for different content
+      "default": {
+        "maxWidth": "1400px",
+        "padding": "2rem",
+        "centered": true,
+        "_usage": "Marketing pages, general content"
+      },
+      "narrow": {
+        "maxWidth": "896px (max-w-4xl)",
+        "usage": "Text-heavy content, forms"
+        // Optimal line length: 65-75 characters
+      },
+      "wide": {
+        "maxWidth": "1920px",
+        "padding": { "mobile": "1rem", "tablet": "1.25rem", "desktop": "1.5rem", "2xl": "2rem" },
+        "usage": "Application dashboard layouts"
+        // Maximizes screen real estate for data-heavy interfaces
+      }
+    },
+    
+    "grid": {
+      "columns": 12,
+      "gap": {
+        "default": "1.5rem (gap-6)",
+        "tight": "1rem (gap-4)",
+        "loose": "2rem (gap-8)"
+      }
+      // 12 columns divide evenly by 2, 3, 4, and 6
+    },
+    
+    "breakpoints": {
+      // Mobile-first: default styles are mobile, apply from breakpoint up
+      "sm": "640px",
+      "md": "768px",
+      "lg": "1024px",
+      "xl": "1280px",
+      "2xl": "1536px"
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BORDER RADIUS
+  // Consistent corner rounding creates cohesive visual language
+  // WHY 1.25rem: Creates friendly, modern feel while maintaining professionalism
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  "borderRadius": {
+    "none": "0px",
+    "sm": "calc(var(--radius) - 4px) ~ 0.5rem (8px)",  // Inputs, small buttons
+    "md": "calc(var(--radius) - 2px) ~ 0.75rem (12px)", // Cards, medium elements
+    "lg": "var(--radius) ~ 1.25rem (20px)",              // Feature cards, dialogs
+    "xl": "1.5rem (24px)",                               // Hero elements, prominent cards
+    "full": "9999px",                                    // Badges, avatars, pills ONLY
+    "baseVariable": "--radius: 1.25rem"
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SHADOWS
+  // Depth hierarchy: more shadow = more elevation = more importance
+  // WHY SOFT: Natural feel vs hard edges. Layered shadows = realistic depth
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  "shadows": {
+    "semantic": {
+      // Standard scale from subtle to dramatic
+      "2xs": "0 1px 3px 0px hsl(0 0% 0% / 0.05)",
+      "xs": "0 1px 3px 0px hsl(0 0% 0% / 0.05)",
+      "sm": "0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1)",
+      "md": "0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1)",
+      "lg": "0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1)",
+      "xl": "0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1)",
+      "2xl": "0 1px 3px 0px hsl(0 0% 0% / 0.25)"
+    },
+    
+    "named": {
+      "soft": "For cards at rest",
+      "medium": "For elevated cards",
+      "large": "For modals and dropdowns"
+    },
+    
+    "special": {
+      // Brand-colored shadows for emphasis and delight
+      "hero": "0 20px 40px -15px hsl(243 75% 58% / 0.35)",
+      "glow": "0 0 40px hsl(var(--primary-indigo) / 0.3)",
+      "glowEmerald": "0 0 40px hsl(var(--accent-emerald) / 0.3)"
+      // RULE: Use very sparingly for maximum impact
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COMPONENTS
+  // Visual and interactive specifications for reusable UI elements
+  // IMPORTANT: These should align with actual component implementations
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  "components": {
+    
+    // ───────────────────────────────────────────────────────────────────────
+    // BUTTONS: Visual hierarchy establishes action importance
+    // ───────────────────────────────────────────────────────────────────────
+    "buttons": {
+      "variants": {
+        "hero": {
+          // RULE: One per page maximum!
+          "_when": "Hero sections only",
+          "background": "gradient from-indigo-500 via-purple-500 to-indigo-600",
+          "textColor": "white",
+          "padding": "px-10 py-4",
+          "borderRadius": "xl (1rem)",
+          "fontWeight": 700,
+          "fontSize": "lg (1.125rem)",
+          "shadow": "var(--shadow-hero)",
+          "hoverTransform": "scale(1.03)",
+          "hoverShadow": "0 25px 50px -15px hsl(243 75% 58% / 0.45)"
+        },
+        "primary": {
+          "_when": "Submit buttons, main section CTAs. One per section/form",
+          "background": "gradient from-indigo-500 to-indigo-600",
+          "textColor": "white",
+          "padding": "px-7 py-3.5",
+          "borderRadius": "lg",
+          "fontWeight": 600,
+          "fontSize": "base",
+          "shadow": "lg",
+          "hoverShadow": "xl",
+          "hoverTransform": "scale(1.02)"
+        },
+        "secondary": {
+          "_when": "Cancel, Back, alternative actions alongside primary",
+          "background": "white",
+          "textColor": "gray-700",
+          "border": "1px solid gray-300",
+          "padding": "px-5 py-2.5",
+          "borderRadius": "lg",
+          "fontWeight": 500,
+          "fontSize": "sm",
+          "hoverBorder": "gray-400",
+          "hoverBackground": "gray-50"
+        },
+        "ghost": {
+          "_when": "Optional actions, navigation, less important choices",
+          "background": "transparent",
+          "textColor": "gray-600",
+          "border": "1px solid gray-200",
+          "padding": "px-5 py-2.5",
+          "borderRadius": "lg",
+          "fontWeight": 500,
+          "fontSize": "sm",
+          "hoverBackground": "gray-50",
+          "hoverBorder": "gray-300"
+        },
+        "destructive": {
+          "_when": "Delete, remove, irreversible actions",
+          "background": "destructive",
+          "textColor": "destructive-foreground",
+          "hoverOpacity": 0.9
+          // CAUTION: Always require confirmation!
+        },
+        "link": {
+          "_when": "Inline actions, 'Learn more', 'View details'",
+          "textColor": "primary",
+          "textDecoration": "underline on hover",
+          "underlineOffset": "4px"
+        }
+      },
+      
+      "sizes": {
+        "sm": { "height": "36px", "padding": "px-3", "fontSize": "sm" },
+        "default": { "height": "40px", "padding": "px-4 py-2", "fontSize": "sm" },
+        "lg": { "height": "44px", "padding": "px-8", "fontSize": "base" },
+        "icon": { "size": "40px", "iconSize": "16px" }
+      },
+      
+      "states": {
+        "disabled": { 
+          "opacity": 0.5, 
+          "cursor": "not-allowed", 
+          "pointerEvents": "none"
+          // 50% opacity = universal unavailability indicator
+        },
+        "focus": { 
+          "ring": "2px", 
+          "ringColor": "ring", 
+          "ringOffset": "2px"
+          // CRITICAL: For keyboard navigation accessibility
+        },
+        "loading": { 
+          "opacity": 0.8, 
+          "showSpinner": true
+        }
+      }
+    },
+
+    // ───────────────────────────────────────────────────────────────────────
+    // CARDS: Group related content and create visual hierarchy
+    // ───────────────────────────────────────────────────────────────────────
+    "cards": {
+      "base": {
+        "background": "card (white/dark surface)",
+        "border": "1px solid gray-100",
+        "borderRadius": "xl (1rem)",
+        "shadow": "sm",
+        "transition": "all 300ms"
+        // Border + shadow works in both light/dark modes
+      },
+      
+      "variants": {
+        "feature": {
+          "_when": "Feature lists, benefit sections",
+          "padding": "p-5",
+          "hoverShadow": "md",
+          "hoverTransform": "translateY(-2px)",
+          "hoverBorder": "gray-100"
+        },
+        "featureHighlight": {
+          "_when": "Most important feature, recommended option",
+          "padding": "p-6",
+          "shadow": "md",
+          "hoverShadow": "lg",
+          "hoverTransform": "translateY(-4px)",
+          "border": "2px solid indigo-100"
+        },
+        "testimonial": {
+          "_when": "Customer quotes, social proof",
+          "padding": "p-5",
+          "shadow": "sm"
+        },
+        "pricing": {
+          "_when": "Pricing tier cards",
+          "padding": "p-5",
+          "hoverBorder": "indigo-200",
+          "hoverShadow": "md"
+        },
+        "pricingFeatured": {
+          "_when": "Recommended/most popular pricing tier",
+          "padding": "p-5",
+          "background": "gradient from-indigo-50 to-purple-50",
+          "border": "2px solid indigo-200",
+          "shadow": "md",
+          "transform": "scale(1.02)"
+          // Scale visually elevates recommended option
+        },
+        "app": {
+          "_when": "Dashboard content cards",
+          "background": "white",
+          "borderRadius": "xl",
+          "border": "1px solid gray-100",
+          "shadow": "sm",
+          "hoverShadow": "md"
+        },
+        "kpi": {
+          "_when": "Key performance indicator displays",
+          "padding": "p-5",
+          "hoverShadow": "md",
+          "hoverBorder": "indigo-100"
+        },
+        "chart": {
+          "_when": "Data visualization containers",
+          "background": "white",
+          "borderRadius": "xl",
+          "border": "1px solid gray-100",
+          "headerPadding": "px-5 py-4",
+          "contentPadding": "p-5"
+        }
+      }
+    },
+
+    // ───────────────────────────────────────────────────────────────────────
+    // INPUTS: Consistent data entry experience
+    // ───────────────────────────────────────────────────────────────────────
+    "inputs": {
+      "default": {
+        "height": "40px", // Meets touch target requirements
+        "padding": "px-3 py-2",
+        "borderRadius": "md",
+        "border": "1px solid input",
+        "background": "background",
+        "fontSize": { "mobile": "base", "desktop": "sm" },
+        // WHY RESPONSIVE: 16px on mobile prevents iOS zoom on focus
+        "focus": {
+          "ring": "2px",
+          "ringColor": "ring (indigo)",
+          "ringOffset": "2px"
+        },
+        "placeholder": { "color": "muted-foreground" },
+        "disabled": { "opacity": 0.5, "cursor": "not-allowed" }
+      },
+      
+      "variants": {
+        "search": { "icon": "left", "clearButton": "right" },
+        "withAddon": { "addonPosition": "left|right" }
+      }
+    },
+
+    // ───────────────────────────────────────────────────────────────────────
+    // BADGES: Small status indicators
+    // ───────────────────────────────────────────────────────────────────────
+    "badges": {
+      "base": {
+        "padding": "px-2.5 py-0.5",
+        "borderRadius": "full", // Pill shape stands out from rectangular UI
+        "fontSize": "xs (12px)",
+        "fontWeight": 600
+      },
+      
+      "variants": {
+        "default": { "background": "primary", "textColor": "primary-foreground" },
+        "secondary": { "background": "secondary", "textColor": "secondary-foreground" },
+        "destructive": { "background": "destructive", "textColor": "destructive-foreground" },
+        "outline": { "border": "1px solid", "textColor": "foreground" },
+        "success": { 
+          "_when": "Positive status, completed, profit",
+          "background": "emerald-50", 
+          "textColor": "emerald-700"
+        },
+        "warning": { 
+          "_when": "Needs attention, approaching limit",
+          "background": "amber-50", 
+          "textColor": "amber-700"
+        },
+        "danger": { 
+          "_when": "Error state, loss, critical",
+          "background": "red-50", 
+          "textColor": "red-700"
+        },
+        "info": { 
+          "_when": "Informational, neutral status",
+          "background": "blue-50", 
+          "textColor": "blue-700"
+        }
+      }
+    },
+
+    // ───────────────────────────────────────────────────────────────────────
+    // TABS: Switch between related content panels
+    // ───────────────────────────────────────────────────────────────────────
+    "tabs": {
+      "variants": {
+        "pills": {
+          "_when": "Contained tab groups, filter toggles",
+          // Pill style = contained, app-like feel for dashboards
+          "listBackground": "white",
+          "listBorder": "1px solid gray-200",
+          "listPadding": "p-1.5",
+          "listBorderRadius": "xl",
+          "listShadow": "sm",
+          "triggerPadding": "px-4 py-2.5",
+          "triggerRadius": "lg",
+          "triggerFontSize": "sm",
+          "triggerFontWeight": 500,
+          "defaultTextColor": "gray-600",
+          "hoverBackground": "gray-50",
+          "hoverTextColor": "gray-900",
+          "activeBackground": "gradient from-indigo-50 to-purple-50",
+          "activeTextColor": "indigo-700",
+          "activeFontWeight": 600,
+          "activeBorder": "1px solid indigo-200",
+          "activeShadow": "sm"
+        },
+        "underline": {
+          "_when": "Traditional tab layout, page-level navigation",
+          "listBackground": "transparent",
+          "listBorderBottom": "1px solid gray-200",
+          "triggerPadding": "px-4 py-3",
+          "triggerBorderBottom": "2px solid transparent",
+          "activeTextColor": "indigo-600",
+          "activeBorderColor": "indigo-600"
+        }
+      },
+      
+      "contentMarginTop": "mt-4"
+    },
+
+    // ───────────────────────────────────────────────────────────────────────
+    // TABLES: Optimized for financial data display
+    // ───────────────────────────────────────────────────────────────────────
+    "tables": {
+      "base": {
+        "fontSize": "sm",
+        "headerBackground": "gray-50",
+        "headerPadding": "px-4 py-3",
+        "headerFontWeight": 600,
+        "headerTextColor": "foreground",
+        "cellPadding": "px-4 py-3",
+        "borderColor": "gray-100/gray-200",
+        "rowHoverBackground": "muted/50"
+      },
+      
+      "variants": {
+        "financial": {
+          // Specialized for financial statements
+          "totalRowBackground": "gray-50",
+          "totalRowFontWeight": 700,
+          "subtotalRowBackground": "gray-50/50",
+          "subtotalRowFontWeight": 600
+        }
+      }
+    },
+
+    // ───────────────────────────────────────────────────────────────────────
+    // DIALOGS: Focused interactions requiring attention
+    // ───────────────────────────────────────────────────────────────────────
+    "dialogs": {
+      "overlay": {
+        "background": "black/80", // 80% opacity focuses attention
+        "animation": "fade-in/fade-out"
+      },
+      "content": {
+        "maxWidth": "lg (512px)",
+        "padding": "p-6",
+        "background": "background",
+        "borderRadius": "lg",
+        "shadow": "lg",
+        "animation": "zoom-in/zoom-out + slide"
+      },
+      "header": {
+        "spacing": "space-y-1.5",
+        "titleFontSize": "lg",
+        "titleFontWeight": 600,
+        "descriptionFontSize": "sm",
+        "descriptionColor": "muted-foreground"
+      },
+      "closeButton": {
+        "position": "absolute right-4 top-4",
+        "size": "16px",
+        "opacity": { "default": 0.7, "hover": 1 }
+      }
+    },
+
+    // ───────────────────────────────────────────────────────────────────────
+    // SIDEBAR: Application navigation
+    // ───────────────────────────────────────────────────────────────────────
+    "sidebar": {
+      "width": { "collapsed": "auto", "expanded": "240-280px" },
+      "background": "card",
+      "border": "1px solid border (right)",
+      
+      "header": {
+        "height": "56px",
+        "padding": "px-4",
+        "background": "gradient from-card to-primary/5",
+        "borderBottom": "1px solid border"
+      },
+      
+      "menuItem": {
+        "padding": "px-3 py-2.5",
+        "borderRadius": "lg",
+        "fontSize": "sm",
+        "iconSize": "20px",
+        "gap": "12px",
+        "defaultTextColor": "muted-foreground",
+        "hoverBackground": "muted",
+        "hoverTextColor": "foreground",
+        "activeBackground": "gradient from-primary/10 to-primary/5",
+        "activeTextColor": "primary",
+        "activeFontWeight": 600,
+        "activeBorderLeft": "4px solid primary"
+        // Left border + gradient = strong indication without overwhelming
+      },
+      
+      "groupLabel": {
+        "padding": "px-4",
+        "fontSize": "xs",
+        "fontWeight": 600,
+        "textTransform": "uppercase",
+        "letterSpacing": "wider",
+        "textColor": "muted-foreground"
+      },
+      
+      "footer": {
+        "borderTop": "1px solid border",
+        "background": "gradient from-card to-muted/30"
+      }
+    },
+
+    // ───────────────────────────────────────────────────────────────────────
+    // NAVIGATION: Top bar for marketing/landing pages
+    // ───────────────────────────────────────────────────────────────────────
+    "navigation": {
+      "height": "72px (h-18)",
+      "background": { 
+        "default": "transparent", 
+        "scrolled": "white/90 backdrop-blur-lg" 
+      },
+      "shadow": { "scrolled": "soft" },
+      // Transparent-to-solid transition = immersive hero + usability
+      "linkStyle": {
+        "textColor": "gray-700",
+        "fontWeight": 500,
+        "hoverColor": "indigo-600"
+      },
+      "mobileMenu": {
+        "background": "white",
+        "shadow": "large",
+        "animation": "fade-in-up"
+      }
+    },
+
+    "popovers": {
+      "background": "popover",
+      "border": "1px solid border",
+      "borderRadius": "lg",
+      "padding": "p-3",
+      "shadow": "md"
+    },
+
+    "alerts": {
+      "borderRadius": "lg",
+      "padding": "p-4",
+      "iconSize": "16px",
+      "variants": {
+        "default": { "background": "background", "border": "1px solid border" },
+        "destructive": { "background": "destructive/10", "borderColor": "destructive", "textColor": "destructive" }
+      }
+    },
+
+    "emptyStates": {
+      "padding": "py-12",
+      "textAlign": "center",
+      "iconSize": "64px",
+      "iconColor": "gray-300",
+      "iconMarginBottom": "16px",
+      "titleFontSize": "lg",
+      "titleFontWeight": 600,
+      "descriptionFontSize": "sm",
+      "descriptionColor": "foreground-secondary"
+      // Large icon + generous spacing prevents feeling cramped/broken
+    },
+
+    "steppers": {
+      "circleSize": "48px",
+      "circleFontSize": "sm",
+      "circleFontWeight": 700,
+      // Scale + glow on active = directs attention to current action
+      "states": {
+        "pending": {
+          "background": "gray-100",
+          "textColor": "gray-400",
+          "border": "2px solid gray-200"
+        },
+        "active": {
+          "background": "gradient from-indigo-500 to-purple-600",
+          "textColor": "white",
+          "shadow": "0 0 20px hsl(243 75% 58% / 0.4)",
+          "transform": "scale(1.1)"
+        },
+        "completed": {
+          "background": "gradient from-indigo-400 to-purple-500",
+          "textColor": "white",
+          "shadow": "md"
+        }
+      }
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ANIMATIONS
+  // Enhance perceived performance and provide feedback
+  // RULE: Keep durations short to avoid feeling sluggish
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  "animations": {
+    "durations": {
+      "fast": "150ms",    // Hover states, small elements
+      "medium": "300ms",  // Component transitions, dropdowns
+      "slow": "600ms"     // Page transitions, hero animations
+    },
+    
+    "easing": {
+      "default": "ease-out", // Feels natural as elements decelerate
+      "smooth": "cubic-bezier(0.4, 0, 0.6, 1)"
+    },
+    
+    "keyframes": {
+      "fadeInUp": {
+        "_when": "Content appearing on page load, scroll reveal",
+        "from": { "opacity": 0, "transform": "translateY(30px)" },
+        "to": { "opacity": 1, "transform": "translateY(0)" },
+        "duration": "600ms"
+      },
+      "slideInRight": {
+        "_when": "Side content, images entering viewport",
+        "from": { "opacity": 0, "transform": "translateX(50px)" },
+        "to": { "opacity": 1, "transform": "translateX(0)" },
+        "duration": "800ms"
+      },
+      "scaleIn": {
+        "_when": "Modals, popovers appearing",
+        "from": { "opacity": 0, "transform": "scale(0.95)" },
+        "to": { "opacity": 1, "transform": "scale(1)" },
+        "duration": "400ms"
+      },
+      "float": {
+        "_when": "Decorative elements, floating cards in hero",
+        "keyframes": { "0%, 100%": "translateY(0)", "50%": "translateY(-10px)" },
+        "duration": "3000ms",
+        "iteration": "infinite"
+      },
+      "pulseGlow": {
+        "_when": "Attention-grabbing elements, active CTAs",
+        "keyframes": {
+          "0%, 100%": "boxShadow: 0 0 20px hsl(var(--primary-indigo) / 0.3)",
+          "50%": "boxShadow: 0 0 40px hsl(var(--primary-indigo) / 0.6)"
+        },
+        "duration": "2000ms",
+        "iteration": "infinite"
+      },
+      "accordionDown": {
+        "_when": "Expanding accordion content",
+        "from": { "height": 0, "opacity": 0 },
+        "to": { "height": "var(--radix-accordion-content-height)", "opacity": 1 },
+        "duration": "300ms"
+      }
+    },
+    
+    "hover": {
+      "buttons": { "transform": "scale(1.02-1.03)", "duration": "300ms" },
+      "cards": { "transform": "translateY(-2px to -4px)", "shadow": "increase by 1 level" },
+      "icons": { "transform": "scale(1.1)", "duration": "200ms" }
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ICONOGRAPHY
+  // Consistent visual communication through icons
+  // WHY LUCIDE: Clean stroke style matches modern aesthetic
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  "iconography": {
+    "library": "Lucide React",
+    "defaultStrokeWidth": 2, // Ensures visibility at small sizes
+    
+    "sizes": {
+      "xs": "12px",
+      "sm": "16px",
+      "md": "20px",
+      "lg": "24px",
+      "xl": "32px",
+      "2xl": "48px"
+    },
+    
+    "usage": {
+      "navigation": "20px",
+      "buttons": "16px",
+      "kpiCards": "Contained in 40px rounded-lg bg-indigo-50",
+      "emptyStates": "64px",
+      "badges": "12-14px"
+    },
+    
+    "commonIcons": {
+      // Standard assignments for consistency
+      "dashboard": "LayoutDashboard",
+      "upload": "Upload",
+      "reports": "FileText",
+      "analytics": "TrendingUp",
+      "kpis": "Target",
+      "compare": "GitCompare",
+      "charts": "BarChart3",
+      "calendar": "Calendar",
+      "success": "CheckCircle",
+      "warning": "AlertTriangle",
+      "error": "XCircle",
+      "info": "Info",
+      "settings": "Settings",
+      "user": "User",
+      "logout": "LogOut",
+      "menu": "Menu",
+      "close": "X",
+      "chevron": "ChevronDown/Up/Left/Right",
+      "external": "ExternalLink",
+      "shield": "Shield",
+      "sparkles": "Sparkles"
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ACCESSIBILITY
+  // Ensuring usability for ALL users - NOT optional!
+  // Standards meet WCAG 2.1 AA requirements
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  "accessibility": {
+    "focusRing": {
+      "width": "2px",
+      "style": "solid",
+      "color": "ring (indigo)",
+      "offset": "2px"
+      // CRITICAL: For keyboard-only users to see current focus
+    },
+    
+    "minimumTouchTarget": "44px",
+    // 44x44px = WCAG recommended minimum for reliable touch
+    
+    "colorContrast": {
+      "normalText": "4.5:1 minimum",
+      "largeText": "3:1 minimum",
+      "uiComponents": "3:1 minimum"
+    },
+    
+    "motionPreferences": {
+      "respectReducedMotion": true,
+      "fallback": "Remove animations, use instant transitions"
+      // IMPORTANT: Some users experience motion sickness/seizures
+    },
+    
+    "screenReaderSupport": {
+      "srOnlyClass": "sr-only",
+      "ariaLabels": "Required for icon-only buttons",
+      "focusManagement": "Trap focus in modals and dialogs"
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RESPONSIVE DESIGN
+  // Mobile-first strategy for cross-device support
+  // WHY: Ensures core experience works on constrained devices first
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  "responsiveDesign": {
+    "approach": "Mobile-first",
+    
+    "breakpointPrefixes": {
+      "sm": "min-width: 640px",
+      "md": "min-width: 768px",
+      "lg": "min-width: 1024px",
+      "xl": "min-width: 1280px",
+      "2xl": "min-width: 1536px"
+    },
+    
+    "patterns": {
+      "typography": "Scale up heading sizes at md and lg breakpoints",
+      "layout": "Stack on mobile, grid on tablet+",
+      "navigation": "Hamburger menu on mobile, horizontal nav on lg+",
+      "cards": "Single column mobile, 2 cols tablet, 3-4 cols desktop",
+      "sidebar": "Overlay/drawer on mobile, persistent on lg+"
+    },
+    
+    "hiddenUtilities": {
+      "mobile": "hidden sm:block",
+      "desktop": "sm:hidden"
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DARK MODE
+  // Class-based implementation for JS control and persistence
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  "darkMode": {
+    "strategy": "class-based (.dark class on html/body)",
+    
+    "colorInversions": {
+      "background": "Light gray → Near black (0 0% 9%)",
+      "foreground": "Near black → Off white (0 0% 98%)",
+      "cards": "White → Dark gray (0 0% 14%)",
+      "borders": "Light gray → Dark gray (0 0% 32%)"
+    },
+    
+    "specialConsiderations": {
+      "gradients": "Slightly desaturate or adjust luminosity",
+      "shadows": "May need opacity adjustments",
+      "charts": "Use lighter versions of chart colors"
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MICRO-INTERACTIONS
+  // Small, purposeful animations providing feedback without distraction
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  "microInteractions": {
+    "buttons": {
+      "hover": "Scale up slightly (1.02-1.03)",
+      "active": "Scale down slightly (0.98)",
+      "focus": "Show focus ring"
+    },
+    "links": {
+      "hover": "Color transition, underline animation"
+    },
+    "cards": {
+      "hover": "Lift effect (translateY), shadow increase"
+    },
+    "icons": {
+      "hover": "Scale up (1.1), color transition"
+    },
+    "inputs": {
+      "focus": "Border color change, ring appearance",
+      "error": "Border turns destructive, shake animation optional"
+    },
+    "notifications": {
+      "enter": "Slide in from right or top",
+      "exit": "Fade out + slide"
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // UI PATTERNS
+  // Common patterns and their visual treatment
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  "patterns": {
+    "loadingStates": {
+      "skeleton": {
+        "_when": "Content loading, initial page load",
+        "background": "gray-200 dark:gray-700",
+        "animation": "pulse",
+        "borderRadius": "Match component being loaded"
+      },
+      "spinner": {
+        "_when": "Short operations, button loading state",
+        "size": "Match button/component size",
+        "color": "current color or primary"
+      }
+    },
+    
+    "errorStates": {
+      "inputError": {
+        "borderColor": "destructive",
+        "textColor": "destructive",
+        "messagePosition": "Below input"
+      },
+      "pageError": {
+        "useEmptyState": true,
+        "iconColor": "destructive"
+      }
+    },
+    
+    "successStates": {
+      "color": "emerald/accent-emerald",
+      "icon": "CheckCircle",
+      "toastDuration": "3-5 seconds"
+    }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BEST PRACTICES
+  // Guidelines for maintaining consistency and quality
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  "bestPractices": {
+    "hierarchy": {
+      "rules": [
+        "Use size and weight to establish visual hierarchy",
+        "Hero CTA should be visually dominant",
+        "One primary action per section/card",
+        "Secondary actions should be clearly differentiated"
+      ]
+    },
+    
+    "whitespace": {
+      "rules": [
+        "Generous padding inside cards (p-5, p-6)",
+        "Consistent section spacing (py-16 to py-20)",
+        "Use gap utilities for consistent element spacing"
+      ]
+    },
+    
+    "consistency": {
+      "rules": [
+        "Use design tokens (CSS variables) not hardcoded values",
+        "Follow component variant patterns",
+        "Maintain consistent border-radius across similar components"
+      ]
+    },
+    
+    "performance": {
+      "rules": [
+        "Use transform for animations (GPU accelerated)",
+        "Avoid animating layout properties (width, height)",
+        "Lazy load images and heavy components"
+      ]
+    }
+  }
+}

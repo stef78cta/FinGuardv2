@@ -1,4 +1,6 @@
 import { Shield, Linkedin, Twitter, Facebook } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
 const Footer = () => {
   const footerLinks = {
     produs: ['Caracteristici', 'Prețuri', 'Demo interactiv'],
@@ -101,7 +103,13 @@ const Footer = () => {
             </div>
             
             <div className="flex items-center space-x-6 text-sm text-gray-400">
-              
+              <Link 
+                to="/style-guide" 
+                className="hover:text-white transition-colors duration-200 opacity-60 hover:opacity-100"
+                title="Design System"
+              >
+                Style Guide
+              </Link>
               <span>•</span>
               <span>Made with ❤️ în Romania</span>
             </div>

@@ -25,6 +25,7 @@ import AlteAnalize from "./pages/AlteAnalize";
 import PreviziuniBugetare from "./pages/PreviziuniBugetare";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
+import StyleGuide from "./pages/StyleGuide";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/style-guide" element={<StyleGuide />} />
               
               {/* Protected App Routes - with Company Guard */}
               <Route path="/app" element={
