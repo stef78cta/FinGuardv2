@@ -98,14 +98,14 @@ export const useTrialBalances = (companyId: string | null) => {
       setLoading(true);
       
       // Încercăm să folosim funcția optimizată care include totalurile
-      const { data: dataWithTotals, error: rpcError } = await supabase
-        .rpc('get_company_imports_with_totals', {
-          _company_id: companyId
-        });
+      const { data: dataWithTotals, error: rpcError } = await supabase.rpc('get_company_imports_with_totals', {
+        _company_id: companyId
+      });
 
-      if (!rpcError && dataWithTotals) {
+      const dataArray = dataWithTotals as unknown as Array<Record<string, unknown>> | null;
+      if (!rpcError && dataArray) {
         // Funcția RPC disponibilă - folosim datele optimizate
-        const mappedData = dataWithTotals.map((row: Record<string, unknown>) => ({
+        const mappedData = dataArray.map((row: Record<string, unknown>) => ({
           id: row.import_id as string,
           company_id: companyId,
           source_file_name: row.source_file_name as string,
@@ -204,9 +204,8 @@ export const useTrialBalances = (companyId: string | null) => {
     }
 
     // Call edge function to parse the file
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const response = await fetch(
-      `${supabaseUrl}/functions/v1/parse-balanta`,
+      `https://gqxopxbzslwrjgukqbha.supabase.co/functions/v1/parse-balanta`,
       {
         method: 'POST',
         headers: {
@@ -241,10 +240,9 @@ export const useTrialBalances = (companyId: string | null) => {
   const deleteImport = async (importId: string) => {
     try {
       // Încercăm să folosim funcția de soft delete
-      const { data: softDeleteResult, error: rpcError } = await supabase
-        .rpc('soft_delete_import', {
-          _import_id: importId
-        });
+      const { data: softDeleteResult, error: rpcError } = await supabase.rpc('soft_delete_import', {
+        _import_id: importId
+      });
 
       if (!rpcError && softDeleteResult) {
         console.log('[useTrialBalances] Soft delete successful for import:', importId);
@@ -254,41 +252,32 @@ export const useTrialBalances = (companyId: string | null) => {
         return;
       }
 
-      // Fallback: soft delete manual
-      console.warn('[useTrialBalances] RPC not available, using manual soft delete');
-      const { error: updateError } = await supabase
+      // Fallback: hard delete
+      console.warn('[useTrialBalances] RPC not available, using fallback delete');
+      
+      // Get import to find file path
+      const importToDelete = imports.find(i => i.id === importId);
+      
+      if (importToDelete?.source_file_url) {
+        // Delete file from storage
+        await supabase.storage
+          .from('balante')
+          .remove([importToDelete.source_file_url]);
+      }
+
+      // Delete accounts first (foreign key constraint)
+      await supabase
+        .from('trial_balance_accounts')
+        .delete()
+        .eq('import_id', importId);
+
+      // Delete import record
+      const { error: deleteError } = await supabase
         .from('trial_balance_imports')
-        .update({ deleted_at: new Date().toISOString() })
+        .delete()
         .eq('id', importId);
 
-      if (updateError) {
-        // Dacă soft delete nu funcționează (coloana nu există), folosim hard delete
-        console.warn('[useTrialBalances] Soft delete failed, falling back to hard delete');
-        
-        // Get import to find file path
-        const importToDelete = imports.find(i => i.id === importId);
-        
-        if (importToDelete?.source_file_url) {
-          // Delete file from storage
-          await supabase.storage
-            .from('balante')
-            .remove([importToDelete.source_file_url]);
-        }
-
-        // Delete accounts first (foreign key constraint)
-        await supabase
-          .from('trial_balance_accounts')
-          .delete()
-          .eq('import_id', importId);
-
-        // Delete import record
-        const { error: deleteError } = await supabase
-          .from('trial_balance_imports')
-          .delete()
-          .eq('id', importId);
-
-        if (deleteError) throw deleteError;
-      }
+      if (deleteError) throw deleteError;
 
       // Update local state
       setImports(imports.filter(i => i.id !== importId));
@@ -336,21 +325,21 @@ export const useTrialBalances = (companyId: string | null) => {
   const getAccountsTotals = async (importId: string): Promise<ImportTotals> => {
     try {
       // Încercăm să folosim funcția SQL optimizată
-      const { data, error: rpcError } = await supabase
-        .rpc('get_import_totals', {
-          _import_id: importId
-        });
+      const { data, error: rpcError } = await supabase.rpc('get_import_totals', {
+        _import_id: importId
+      });
 
-      if (!rpcError && data && data.length > 0) {
-        const row = data[0];
+      const dataArray = data as unknown as Array<Record<string, unknown>> | null;
+      if (!rpcError && dataArray && dataArray.length > 0) {
+        const rowData = dataArray[0];
         return {
-          opening_debit: Number(row.total_opening_debit) || 0,
-          opening_credit: Number(row.total_opening_credit) || 0,
-          debit_turnover: Number(row.total_debit_turnover) || 0,
-          credit_turnover: Number(row.total_credit_turnover) || 0,
-          closing_debit: Number(row.total_closing_debit) || 0,
-          closing_credit: Number(row.total_closing_credit) || 0,
-          accounts_count: Number(row.accounts_count) || 0,
+          opening_debit: Number(rowData.total_opening_debit) || 0,
+          opening_credit: Number(rowData.total_opening_credit) || 0,
+          debit_turnover: Number(rowData.total_debit_turnover) || 0,
+          credit_turnover: Number(rowData.total_credit_turnover) || 0,
+          closing_debit: Number(rowData.total_closing_debit) || 0,
+          closing_credit: Number(rowData.total_closing_credit) || 0,
+          accounts_count: Number(rowData.accounts_count) || 0,
         };
       }
     } catch (err) {

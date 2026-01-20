@@ -125,12 +125,11 @@ export const useBalante = () => {
     const offset = options?.offset ?? 0;
 
     // Folosim funcția SQL optimizată pentru paginare
-    const { data, error } = await supabase
-      .rpc('get_accounts_paginated', {
-        _import_id: importId,
-        _limit: limit,
-        _offset: offset
-      });
+    const { data, error } = await supabase.rpc('get_accounts_paginated', {
+      _import_id: importId,
+      _limit: limit,
+      _offset: offset
+    });
 
     if (error) {
       console.error('[useBalante] Error fetching accounts for import:', importId, error);
@@ -146,8 +145,9 @@ export const useBalante = () => {
       return fallbackData as BalanceAccount[];
     }
 
-    console.log('[useBalante] Fetched accounts:', data?.length || 0, 'for import:', importId);
-    return (data || []).map((row: Record<string, unknown>) => ({
+    const dataArray = data as unknown as Array<Record<string, unknown>> | null;
+    console.log('[useBalante] Fetched accounts:', dataArray?.length || 0, 'for import:', importId);
+    return (dataArray || []).map((row: Record<string, unknown>) => ({
       id: row.id as string,
       import_id: row.import_id as string,
       account_code: row.account_code as string,
@@ -175,12 +175,11 @@ export const useBalante = () => {
 
     try {
       // Folosim funcția SQL optimizată care face JOIN în loc de N+1 queries
-      const { data, error: fetchError } = await supabase
-        .rpc('get_balances_with_accounts', {
-          _company_id: activeCompany.id,
-          _limit: 1,
-          _offset: 0
-        });
+      const { data, error: fetchError } = await supabase.rpc('get_balances_with_accounts', {
+        _company_id: activeCompany.id,
+        _limit: 1,
+        _offset: 0
+      });
 
       if (fetchError) {
         console.warn('[useBalante] RPC not available, falling back to sequential queries:', fetchError.message);
@@ -188,7 +187,7 @@ export const useBalante = () => {
         return await getLatestBalanceFallback();
       }
 
-      const balancesData = data as BalanceWithAccounts[];
+      const balancesData = data as unknown as BalanceWithAccounts[];
       if (!balancesData || balancesData.length === 0) {
         console.log('[useBalante] getLatestBalance: No completed balances found');
         return null;
@@ -256,12 +255,11 @@ export const useBalante = () => {
 
     try {
       // Folosim funcția SQL optimizată care face JOIN în loc de N+1 queries
-      const { data, error: fetchError } = await supabase
-        .rpc('get_balances_with_accounts', {
-          _company_id: activeCompany.id,
-          _limit: limit,
-          _offset: offset
-        });
+      const { data, error: fetchError } = await supabase.rpc('get_balances_with_accounts', {
+        _company_id: activeCompany.id,
+        _limit: limit,
+        _offset: offset
+      });
 
       if (fetchError) {
         console.warn('[useBalante] RPC not available, falling back to sequential queries:', fetchError.message);
@@ -269,7 +267,7 @@ export const useBalante = () => {
         return await getAllBalancesWithAccountsFallback(limit, offset);
       }
 
-      const balancesData = data as BalanceWithAccounts[];
+      const balancesData = data as unknown as BalanceWithAccounts[];
       console.log('[useBalante] getAllBalancesWithAccounts: Loaded', balancesData?.length || 0, 'balances via batch query');
       return balancesData || [];
     } catch (err) {
@@ -333,12 +331,11 @@ export const useBalante = () => {
     const limit = options.limit ?? 50;
     const offset = options.offset ?? 0;
 
-    const { data, error } = await supabase
-      .rpc('get_accounts_paginated', {
-        _import_id: importId,
-        _limit: limit,
-        _offset: offset
-      });
+    const { data, error } = await supabase.rpc('get_accounts_paginated', {
+      _import_id: importId,
+      _limit: limit,
+      _offset: offset
+    });
 
     if (error) {
       console.error('[useBalante] Error fetching paginated accounts:', error);
@@ -351,7 +348,8 @@ export const useBalante = () => {
       };
     }
 
-    const accounts = (data || []).map((row: Record<string, unknown>) => ({
+    const dataArray = data as unknown as Array<Record<string, unknown>> | null;
+    const accounts = (dataArray || []).map((row: Record<string, unknown>) => ({
       id: row.id as string,
       import_id: row.import_id as string,
       account_code: row.account_code as string,
@@ -364,7 +362,7 @@ export const useBalante = () => {
       closing_credit: Number(row.closing_credit) || 0,
     })) as BalanceAccount[];
 
-    const totalCount = data?.[0]?.total_count || 0;
+    const totalCount = dataArray?.[0]?.total_count || 0;
 
     return {
       data: accounts,
