@@ -99,7 +99,7 @@ const ChartSection = ({
 }) => {
   const filteredData = useMemo(() => {
     return chartData.map(point => {
-      const filtered: any = { month: point.month };
+      const filtered: Partial<typeof point> & { month: string } = { month: point.month };
       (Object.keys(filters) as Array<keyof ChartFilters>).forEach(key => {
         if (filters[key]) filtered[key] = point[key];
       });

@@ -170,7 +170,14 @@ const PreviziuniBugetare = () => {
     const numForecast = parseInt(forecastPeriod);
 
     // Build forecast data
-    const data: any[] = [];
+    interface ForecastDataPoint {
+      month: string;
+      actual: number | null;
+      forecast: number | null;
+      optimist: number | null;
+      pesimist: number | null;
+    }
+    const data: ForecastDataPoint[] = [];
     
     // Add historical data
     historicalData.forEach(h => {
@@ -184,8 +191,8 @@ const PreviziuniBugetare = () => {
     });
 
     // Add forecast data
-    let baseValue = lastPeriod?.venituri || 100000;
-    const forecastMonths: any[] = [];
+    const baseValue = lastPeriod?.venituri || 100000;
+    const forecastMonths: ForecastDataPoint[] = [];
     
     for (let i = 1; i <= numForecast; i++) {
       const forecastDate = addMonths(lastDate, i);

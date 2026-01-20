@@ -170,6 +170,14 @@ const IndicatoriCheie = () => {
 
   const { kpiData } = useFinancialCalculations(latestBalance?.accounts || []);
 
+  // Get previous period accounts for trend calculation (must be at top level for hooks)
+  const prevAccounts = useMemo(() => {
+    return allBalances.length >= 2 ? (allBalances[1]?.accounts || []) : [];
+  }, [allBalances]);
+
+  // Calculate previous period KPIs - hook must be called unconditionally at top level
+  const { kpiData: previousKpiData } = useFinancialCalculations(prevAccounts);
+
   useEffect(() => {
     const loadData = async () => {
       if (loading) {
@@ -202,13 +210,11 @@ const IndicatoriCheie = () => {
     loadData();
   }, [loading, hasData, companyId, getLatestBalance, getAllBalancesWithAccounts]);
 
-  // Calculate previous period KPIs for trend
+  // Return previous KPIs only if we have enough data
   const previousKPIs = useMemo(() => {
     if (allBalances.length < 2) return null;
-    const prevAccounts = allBalances[1]?.accounts || [];
-    const { kpiData: prev } = useFinancialCalculations(prevAccounts);
-    return prev;
-  }, [allBalances]);
+    return previousKpiData;
+  }, [allBalances.length, previousKpiData]);
 
   // Build KPI indicators array from real data
   const kpiIndicators: KPIIndicator[] = useMemo(() => {

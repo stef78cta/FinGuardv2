@@ -143,6 +143,7 @@ function sanitizeString(value: unknown): string {
   strValue = strValue.replace(/^[=+\-@\t\r]+/, "");
   
   // Remove control characters except common whitespace
+  // eslint-disable-next-line no-control-regex
   strValue = strValue.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
   
   return strValue.trim();
@@ -166,7 +167,7 @@ function parseNumber(value: unknown): number {
   }
   
   // Handle string values with Romanian or international format
-  let strValue = String(value).trim();
+  const strValue = String(value).trim();
   
   // Length check to prevent ReDoS attacks
   if (strValue.length > 50) return 0;

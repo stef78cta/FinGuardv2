@@ -78,7 +78,7 @@ const IncarcareBalanta = () => {
   
   // View accounts dialog cu paginare
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [viewingAccounts, setViewingAccounts] = useState<any[]>([]);
+  const [viewingAccounts, setViewingAccounts] = useState<BalanceAccount[]>([]);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
   const [accountsPage, setAccountsPage] = useState(0);
   const [totalAccountsCount, setTotalAccountsCount] = useState(0);
