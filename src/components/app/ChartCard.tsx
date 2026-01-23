@@ -34,12 +34,12 @@ export const ChartCard = ({
         <div className="flex items-center gap-2">
           {actions}
           {onExport && (
-            <Button variant="ghost" size="icon" onClick={onExport} className="h-8 w-8">
+            <Button variant="ghost" size="icon" onClick={onExport} className="h-8 w-8 rounded-full">
               <Download className="w-4 h-4" />
             </Button>
           )}
           {onExpand && (
-            <Button variant="ghost" size="icon" onClick={onExpand} className="h-8 w-8">
+            <Button variant="ghost" size="icon" onClick={onExpand} className="h-8 w-8 rounded-full">
               <Maximize2 className="w-4 h-4" />
             </Button>
           )}

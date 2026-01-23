@@ -35,9 +35,9 @@ export const KPICard = ({
       )}
     >
       <div className="flex items-start justify-between mb-3">
-        <span className="kpi-label">{label}</span>
+        <span className="label-category">{label}</span>
         {icon && (
-          <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
             {icon}
           </div>
         )}
@@ -50,9 +50,9 @@ export const KPICard = ({
           {trend !== undefined && (
             <span
               className={cn(
-                'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium',
-                isPositive && 'bg-emerald-50 text-emerald-700',
-                isNegative && 'bg-red-50 text-red-700',
+                'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold',
+                isPositive && 'bg-emerald-50 text-emerald-600',
+                isNegative && 'bg-red-50 text-red-600',
                 !isPositive && !isNegative && 'bg-gray-50 text-gray-600'
               )}
             >

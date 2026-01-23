@@ -167,14 +167,14 @@ const SolutionSection = () => {
                   }}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-sm transition-all duration-500 ${
+                    <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center text-white font-bold text-sm transition-all duration-500 ${
                       isActive 
                         ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg' 
                         : 'bg-gray-300'
                     }`}>
                       {step.number}
                     </div>
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-500 ${
+                    <div className={`w-10 h-10 rounded-[16px] flex items-center justify-center transition-all duration-500 ${
                       isActive ? 'bg-indigo-50' : 'bg-gray-100'
                     }`}>
                       <IconComponent className={`w-5 h-5 transition-colors duration-500 ${
@@ -207,12 +207,12 @@ const SolutionSection = () => {
                     animationDelay: `${index * 0.3 + 0.2}s`,
                   }}
                 >
-                  <div className={`bg-gray-50 rounded-xl p-6 h-60 flex items-center justify-center border transition-all duration-500 ${
+                  <div className={`bg-gray-50 rounded-[20px] p-6 h-60 flex items-center justify-center border transition-all duration-500 ${
                     isActive ? 'border-indigo-200 shadow-lg' : 'border-gray-100'
                   }`}>
                     {step.visual === 'upload-interface' && (
                       <div className="w-full max-w-xs">
-                        <div className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-500 ${
+                        <div className={`border-2 border-dashed rounded-[16px] p-6 text-center transition-all duration-500 ${
                           isActive ? 'border-indigo-400 bg-indigo-50/70' : 'border-gray-300 bg-gray-50'
                         }`}>
                           <Upload className={`w-10 h-10 mx-auto mb-3 transition-colors duration-500 ${
@@ -253,27 +253,27 @@ const SolutionSection = () => {
                     {step.visual === 'dashboard-results' && (
                       <div className="w-full max-w-xs space-y-3">
                         <div className="grid grid-cols-2 gap-3">
-                          <div className={`bg-white p-3 rounded-lg transition-shadow duration-500 ${
+                          <div className={`bg-white p-3 rounded-[16px] transition-shadow duration-500 ${
                             isActive ? 'shadow-md' : 'shadow-sm'
                           }`}>
-                            <div className={`text-xl font-bold transition-colors duration-500 ${
-                              isActive ? 'text-emerald-600' : 'text-gray-400'
+                            <div className={`text-xl font-mono font-bold transition-colors duration-500 ${
+                              isActive ? 'text-emerald-500' : 'text-gray-400'
                             }`}>87%</div>
-                            <div className="text-xs text-gray-600">Lichiditate</div>
+                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lichiditate</div>
                           </div>
-                          <div className={`bg-white p-3 rounded-lg transition-shadow duration-500 ${
+                          <div className={`bg-white p-3 rounded-[16px] transition-shadow duration-500 ${
                             isActive ? 'shadow-md' : 'shadow-sm'
                           }`}>
-                            <div className={`text-xl font-bold transition-colors duration-500 ${
+                            <div className={`text-xl font-mono font-bold transition-colors duration-500 ${
                               isActive ? 'text-indigo-600' : 'text-gray-400'
                             }`}>15</div>
-                            <div className="text-xs text-gray-600">KPI-uri</div>
+                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">KPI-uri</div>
                           </div>
                         </div>
-                        <div className={`bg-white p-3 rounded-lg transition-shadow duration-500 ${
+                        <div className={`bg-white p-3 rounded-[16px] transition-shadow duration-500 ${
                           isActive ? 'shadow-md' : 'shadow-sm'
                         }`}>
-                          <div className={`h-14 rounded transition-all duration-500 ${
+                          <div className={`h-14 rounded-[12px] transition-all duration-500 ${
                             isActive 
                               ? 'bg-gradient-to-r from-indigo-400 to-purple-500 opacity-80' 
                               : 'bg-gray-200 opacity-50'

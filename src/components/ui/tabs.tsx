@@ -12,7 +12,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-auto items-center justify-center gap-1 rounded-xl bg-white p-1.5 text-muted-foreground border border-gray-200 shadow-sm",
+      "w-full justify-start rounded-none border-b border-gray-200 bg-slate-50 p-0 h-auto inline-flex items-center",
       className,
     )}
     {...props}
@@ -27,14 +27,15 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium text-gray-600 ring-offset-background transition-all duration-300 ease-out",
-      "hover:bg-gray-50 hover:text-gray-900",
+      "inline-flex items-center justify-center whitespace-nowrap px-6 py-3 text-sm font-medium text-gray-600 ring-offset-background transition-all duration-300",
+      "rounded-none border-b-2 border-transparent -mb-px",
+      "hover:text-gray-900 hover:border-gray-300",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       "disabled:pointer-events-none disabled:opacity-50",
-      "data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-50 data-[state=active]:to-purple-50",
-      "data-[state=active]:text-indigo-700 data-[state=active]:font-semibold",
-      "data-[state=active]:border data-[state=active]:border-indigo-200",
-      "data-[state=active]:shadow-sm",
+      "data-[state=active]:text-indigo-600",
+      "data-[state=active]:border-indigo-500",
+      "data-[state=active]:bg-transparent",
+      "data-[state=active]:font-semibold",
       className,
     )}
     {...props}

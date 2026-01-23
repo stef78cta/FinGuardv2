@@ -65,10 +65,10 @@ const Navigation = () => {
         <div className="flex items-center justify-between h-18">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-[#0F172A] rounded-[12px] flex items-center justify-center shadow-lg">
               <Shield className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">FinGuard</span>
+            <span className="text-xl font-bold text-[#0F172A]">FinGuard</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -93,7 +93,7 @@ const Navigation = () => {
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center space-x-3">
             {authLoading ? (
-              <div className="w-24 h-10 bg-gray-200 animate-pulse rounded-lg" />
+              <div className="w-24 h-10 bg-gray-200 animate-pulse rounded-[40px]" />
             ) : user ? (
               <>
                 <Link to="/app/dashboard" className="btn-primary h-10 py-2 leading-tight flex items-center gap-2">
@@ -102,11 +102,11 @@ const Navigation = () => {
                 </Link>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button type="button" className="w-10 h-10 rounded-full bg-primary text-primary-foreground font-semibold flex items-center justify-center hover:bg-primary/90 transition-colors">
+                    <button type="button" className="w-10 h-10 rounded-full bg-indigo-500 text-white font-bold flex items-center justify-center hover:bg-indigo-600 transition-colors">
                       {getUserInitials()}
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-56 p-3" align="end">
+                  <PopoverContent className="w-56 p-3 rounded-[16px]" align="end">
                     <div className="space-y-3">
                       <p className="text-sm text-foreground font-medium">
                         Bună, {getUserDisplayName()}
@@ -116,7 +116,7 @@ const Navigation = () => {
                         type="button"
                         onClick={handleSignOut}
                         disabled={isLoggingOut}
-                        className="w-full flex items-center gap-2 text-destructive hover:text-destructive/90 text-sm font-medium py-2 px-2 rounded hover:bg-destructive/10 transition-colors"
+                        className="w-full flex items-center gap-2 text-destructive hover:text-destructive/90 text-sm font-medium py-2 px-2 rounded-lg hover:bg-destructive/10 transition-colors"
                       >
                         <LogOut className="w-4 h-4" />
                         {isLoggingOut ? 'Se deconectează...' : 'Sign out'}
@@ -144,7 +144,7 @@ const Navigation = () => {
         </div>
 
         {/* Mobile Menu */}
-        {isMobileMenuOpen && <div className="lg:hidden absolute top-full left-0 right-0 bg-white shadow-large border-t border-gray-100 animate-fade-in-up">
+        {isMobileMenuOpen && <div className="lg:hidden absolute top-full left-0 right-0 bg-white shadow-large border-t border-gray-100 animate-fade-in-up rounded-b-[20px]">
             <div className="py-6 px-4 space-y-4">
               <button onClick={() => scrollToSection('demo')} className="block w-full text-left py-3 px-4 text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-lg font-medium transition-all duration-200">
                 Cum funcționează
