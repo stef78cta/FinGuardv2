@@ -121,7 +121,7 @@ const ColorCard = ({ name, hex, desc, colorClass, dark = false }: {
       <span className={`text-xs font-mono font-bold ${dark ? 'text-white' : 'text-slate-600'}`}>{hex}</span>
     </div>
     <div className="p-3 bg-white">
-      <p className="font-bold text-sm text-[#0F172A]">{name}</p>
+      <p className="font-bold text-sm text-slate-900">{name}</p>
       <p className="text-xs text-slate-400">{desc}</p>
     </div>
   </div>
@@ -149,7 +149,7 @@ const StatCard = ({ title, value, trend, negative = false }: {
 }) => (
   <div className="p-3 bg-slate-50 rounded-lg">
     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{title}</p>
-    <div className="text-sm font-mono font-bold text-[#0F172A] mt-1">
+    <div className="text-sm font-mono font-bold text-slate-900 mt-1">
       {value} RON
     </div>
     <div className={`text-[10px] font-bold mt-1 flex items-center gap-1 ${negative ? 'text-rose-500' : 'text-emerald-500'}`}>
@@ -173,11 +173,11 @@ export const StyleGuide = () => {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-8 h-20 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-[#0F172A] rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg">
               <Shield className="text-white w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-xl font-serif font-bold tracking-tight text-[#0F172A]">
+              <h1 className="text-xl font-serif font-bold tracking-tight text-slate-900">
                 FinGuard Design System
               </h1>
               <div className="flex items-center gap-2 mt-0.5">
@@ -196,7 +196,7 @@ export const StyleGuide = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setDensity('comfortable')}
-                className={density === 'comfortable' ? 'bg-white shadow-sm text-[#0F172A]' : 'text-slate-500'}
+                className={density === 'comfortable' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'}
               >
                 Comfortable
               </Button>
@@ -204,7 +204,7 @@ export const StyleGuide = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setDensity('compact')}
-                className={density === 'compact' ? 'bg-white shadow-sm text-[#0F172A]' : 'text-slate-500'}
+                className={density === 'compact' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'}
               >
                 Compact
               </Button>
@@ -243,10 +243,10 @@ export const StyleGuide = () => {
             
             <CardContent className="space-y-8">
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <ColorCard name="Primary Dark" hex="#0F172A" desc="Fundal header/sidebar" colorClass="bg-[#0F172A]" dark />
-                <ColorCard name="Accent Indigo" hex="#6366F1" desc="CTA-uri și focus" colorClass="bg-[#6366F1]" dark />
-                <ColorCard name="Accent Emerald" hex="#34D399" desc="Pozitiv / Profit" colorClass="bg-[#34D399]" dark />
-                <ColorCard name="Danger Rose" hex="#F43F5E" desc="Negativ / Alertă" colorClass="bg-[#F43F5E]" dark />
+                <ColorCard name="Primary Dark" hex="#0F172A" desc="Fundal header/sidebar" colorClass="bg-slate-900" dark />
+                <ColorCard name="Accent Indigo" hex="#6366F1" desc="CTA-uri și focus" colorClass="bg-indigo-500" dark />
+                <ColorCard name="Accent Emerald" hex="#34D399" desc="Pozitiv / Profit" colorClass="bg-emerald-400" dark />
+                <ColorCard name="Danger Rose" hex="#F43F5E" desc="Negativ / Alertă" colorClass="bg-rose-500" dark />
                 <ColorCard name="Surface Light" hex="#FFFFFF" desc="Carduri și zone" colorClass="bg-white border" />
                 <ColorCard name="Canvas" hex="#F8FAFC" desc="Fundal aplicație" colorClass="bg-slate-50 border" />
               </div>
@@ -254,7 +254,7 @@ export const StyleGuide = () => {
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Chart Palette (Data Viz)</p>
                 <div className="flex gap-2">
-                  {['bg-[#6366F1]', 'bg-[#818CF8]', 'bg-[#A5B4FC]', 'bg-[#C7D2FE]', 'bg-[#E0E7FF]'].map((c, i) => (
+                  {['bg-indigo-500', 'bg-indigo-400', 'bg-indigo-300', 'bg-indigo-200', 'bg-indigo-100'].map((c, i) => (
                     <div key={i} className={`${c} w-16 h-16 rounded-lg flex items-center justify-center text-white text-xs font-bold`}>
                       Chart {i+1}
                     </div>
@@ -268,14 +268,14 @@ export const StyleGuide = () => {
         {/* SECTION 2: TIPOGRAFIE */}
         <section>
           <div className="flex items-center gap-4 mb-6">
-            <h2 className="text-2xl font-bold text-[#0F172A]">2. Tipografie & Ierarhie</h2>
+            <h2 className="text-2xl font-bold text-slate-900">2. Tipografie & Ierarhie</h2>
             <Separator className="flex-1" />
           </div>
           
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="p-6">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Stil Editorial (Serif)</p>
-              <h3 className="text-3xl font-serif font-bold text-[#0F172A] leading-tight mb-4">
+              <h3 className="text-3xl font-serif font-bold text-slate-900 leading-tight mb-4">
                 Experiență Premium pentru Utilizator
               </h3>
               <p className="text-slate-500">
@@ -286,12 +286,12 @@ export const StyleGuide = () => {
             <Card className="p-6">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Stil Aplicație (Sans)</p>
               <div className="space-y-4">
-                <h4 className="text-xl font-bold text-[#0F172A]">Titlu Secțiune Dashboard</h4>
+                <h4 className="text-xl font-bold text-slate-900">Titlu Secțiune Dashboard</h4>
                 <p className="text-slate-500 text-sm">
                   Interfață funcțională optimizată pentru scanare rapidă și decizii informate.
                 </p>
                 <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                  <span className="font-mono text-lg font-bold text-[#0F172A]">
+                  <span className="font-mono text-lg font-bold text-slate-900">
                     JetBrains Mono: 12.450,00 RON
                   </span>
                 </div>
@@ -304,7 +304,7 @@ export const StyleGuide = () => {
         {/* SECTION 3: BUTOANE & INTERACȚIUNE */}
         <section>
           <div className="flex items-center gap-4 mb-6">
-            <h2 className="text-2xl font-bold text-[#0F172A]">3. Componente de Acțiune</h2>
+            <h2 className="text-2xl font-bold text-slate-900">3. Componente de Acțiune</h2>
             <CardDescription>Ierarhia de butoane conform secțiunii 1 din Ghid.</CardDescription>
           </div>
           
@@ -339,7 +339,7 @@ export const StyleGuide = () => {
         {/* SECTION 4: ELEMENTE DE FORMULAR */}
         <section>
           <div className="flex items-center gap-4 mb-6">
-            <h2 className="text-2xl font-bold text-[#0F172A]">4. Form Elements & Inputs</h2>
+            <h2 className="text-2xl font-bold text-slate-900">4. Form Elements & Inputs</h2>
             <CardDescription>Optimizate pentru densitate și accesibilitate.</CardDescription>
           </div>
           
@@ -450,7 +450,7 @@ export const StyleGuide = () => {
         {/* SECTION 5: CARDURI ȘI NAVIGATION */}
         <section>
           <div className="flex items-center gap-4 mb-6">
-            <h2 className="text-2xl font-bold text-[#0F172A]">5. Navigation & Structure</h2>
+            <h2 className="text-2xl font-bold text-slate-900">5. Navigation & Structure</h2>
             <CardDescription>Sisteme de taburi și ierarhii de carduri.</CardDescription>
           </div>
           
@@ -494,7 +494,7 @@ export const StyleGuide = () => {
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-mono font-bold text-[#0F172A]">
+                        <div className="text-2xl font-mono font-bold text-slate-900">
                           1.420.500 RON
                         </div>
                         <div className="flex items-center gap-1 text-emerald-500 text-xs font-bold mt-1">
@@ -510,7 +510,7 @@ export const StyleGuide = () => {
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-mono font-bold text-[#0F172A]">
+                        <div className="text-2xl font-mono font-bold text-slate-900">
                           240.000 RON
                         </div>
                         <div className="flex items-center gap-1 text-rose-500 text-xs font-bold mt-1">
@@ -537,7 +537,7 @@ export const StyleGuide = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-mono font-bold text-[#0F172A]">€49</span>
+                  <span className="text-4xl font-mono font-bold text-slate-900">€49</span>
                   <span className="text-slate-400">/lună</span>
                 </div>
                 <Separator />
@@ -609,7 +609,7 @@ export const StyleGuide = () => {
         <section>
           <div className="flex justify-between items-end mb-6">
             <div className="flex items-center gap-4">
-              <h2 className="text-2xl font-bold text-[#0F172A]">6. Tabele Date & Densitate</h2>
+              <h2 className="text-2xl font-bold text-slate-900">6. Tabele Date & Densitate</h2>
               <CardDescription>Regula 8px (Compact) vs 16px (Comfortable).</CardDescription>
             </div>
             <Badge variant="outline" className="font-mono">
@@ -681,7 +681,7 @@ export const StyleGuide = () => {
         {/* SECTION 7: STĂRI UI & FEEDBACK */}
         <section>
           <div className="flex justify-between items-end mb-6">
-            <h2 className="text-2xl font-bold text-[#0F172A]">7. Stări UI & Feedback</h2>
+            <h2 className="text-2xl font-bold text-slate-900">7. Stări UI & Feedback</h2>
             <div className="flex gap-2">
               {(['success', 'loading', 'error', 'empty'] as const).map(s => (
                 <Button 
@@ -689,7 +689,7 @@ export const StyleGuide = () => {
                   variant="outline" 
                   size="sm"
                   onClick={() => setUiState(s)} 
-                  className={uiState === s ? 'border-[#6366F1] text-[#6366F1] bg-indigo-50 shadow-sm' : ''}
+                  className={uiState === s ? 'border-indigo-500 text-indigo-600 bg-indigo-50 shadow-sm' : ''}
                 >
                   Test Stare: {s.toUpperCase()}
                 </Button>
@@ -701,7 +701,7 @@ export const StyleGuide = () => {
             {uiState === 'loading' && (
               <div className="text-center space-y-4">
                 <Loader2 className="w-12 h-12 animate-spin text-indigo-500 mx-auto" />
-                <h3 className="text-lg font-bold text-[#0F172A]">Generăm raportul financiar...</h3>
+                <h3 className="text-lg font-bold text-slate-900">Generăm raportul financiar...</h3>
                 <p className="text-slate-500">Aceasta poate dura câteva secunde.</p>
               </div>
             )}
@@ -711,7 +711,7 @@ export const StyleGuide = () => {
                 <div className="w-20 h-20 mx-auto bg-indigo-100 rounded-full flex items-center justify-center">
                   <Target className="w-10 h-10 text-indigo-500" />
                 </div>
-                <h3 className="text-2xl font-serif font-bold text-[#0F172A]">Nicio balanță găsită</h3>
+                <h3 className="text-2xl font-serif font-bold text-slate-900">Nicio balanță găsită</h3>
                 <p className="text-slate-500">
                   Încarcă prima ta balanță contabilă pentru a începe analiza automată a datelor.
                 </p>
@@ -750,7 +750,7 @@ export const StyleGuide = () => {
                 
                 <Card className="p-4">
                   <div className="flex justify-between items-center mb-4">
-                    <h4 className="font-bold text-[#0F172A]">Sumar Performanță Trimestru 3</h4>
+                    <h4 className="font-bold text-slate-900">Sumar Performanță Trimestru 3</h4>
                     <Badge className="bg-emerald-500">Realizat: 102%</Badge>
                   </div>
                   

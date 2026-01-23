@@ -23,34 +23,32 @@ export const StatCard = ({
   className,
 }: StatCardProps) => {
   return (
-    <div className={cn('card-app p-5', className)}>
-      <div className="flex items-center justify-between mb-4">
-        <span className="label-category">{title}</span>
+    <div className={cn('p-3 bg-slate-50 rounded-lg', className)}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{title}</span>
         {icon && (
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center text-indigo-600">
+          <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
             {icon}
           </div>
         )}
       </div>
-      <div className="text-2xl font-mono font-bold text-[#0F172A] mb-1">{value}</div>
+      <div className="text-sm font-mono font-bold text-slate-900 mt-1">{value}</div>
       {(subtitle || trend) && (
-        <div className="flex items-center gap-2 text-sm">
+        <div className={cn(
+          'text-[10px] font-bold mt-1 flex items-center gap-1',
+          trend && trend.value > 0 && 'text-emerald-500',
+          trend && trend.value < 0 && 'text-rose-500',
+          (!trend || trend.value === 0) && 'text-slate-500'
+        )}>
           {trend && (
-            <span
-              className={cn(
-                'font-bold flex items-center gap-1',
-                trend.value > 0 && 'text-emerald-500',
-                trend.value < 0 && 'text-rose-500',
-                trend.value === 0 && 'text-gray-500'
-              )}
-            >
-              {trend.value > 0 ? <TrendingUp className="w-3 h-3" /> : trend.value < 0 ? <TrendingDown className="w-3 h-3" /> : null}
+            <>
+              {trend.value > 0 ? <TrendingUp className="w-2.5 h-2.5" /> : trend.value < 0 ? <TrendingDown className="w-2.5 h-2.5" /> : null}
               {trend.value > 0 ? '+' : ''}
               {trend.value.toFixed(1)}%
-            </span>
+            </>
           )}
           {subtitle && (
-            <span className="text-gray-500">{subtitle}</span>
+            <span className="text-slate-500 ml-1">{subtitle}</span>
           )}
         </div>
       )}
