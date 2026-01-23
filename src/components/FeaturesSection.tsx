@@ -117,7 +117,7 @@ const FeaturesSection = () => {
                 }}
               >
                 {/* Icon - Larger for highlighted items */}
-                <div className={`bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 ${
+                <div className={`bg-gradient-to-br ${feature.gradient} rounded-[16px] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 ${
                   isHighlight ? 'w-14 h-14' : 'w-12 h-12'
                 }`}>
                   <IconComponent className={`text-white ${isHighlight ? 'w-7 h-7' : 'w-6 h-6'}`} />

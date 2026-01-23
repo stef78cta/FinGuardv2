@@ -114,7 +114,7 @@ const PricingSection = () => {
               {/* Popular Badge */}
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                  <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-1.5 rounded-[40px] text-xs font-bold shadow-md">
                     Recomandat
                   </div>
                 </div>
@@ -122,7 +122,7 @@ const PricingSection = () => {
 
               <div className="text-center">
                 {/* Plan Badge */}
-                <div className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium mb-3 ${plan.badgeColor}`}>
+                <div className={`inline-block px-3 py-1 rounded-[40px] text-xs font-bold mb-3 ${plan.badgeColor}`}>
                   {plan.badge}
                 </div>
 
@@ -133,7 +133,7 @@ const PricingSection = () => {
 
                 {/* Price */}
                 <div className="mb-6">
-                  <span className={`text-3xl font-bold ${plan.popular ? 'gradient-text' : 'text-gray-900'}`}>
+                  <span className={`text-3xl font-mono font-bold ${plan.popular ? 'gradient-text' : 'text-[#0F172A]'}`}>
                     {plan.price}
                   </span>
                   {plan.period && (
@@ -177,34 +177,34 @@ const PricingSection = () => {
 
         {/* Trust & Reassurance Bar */}
         <div className="text-center mt-14">
-          <div className="inline-flex flex-wrap items-center justify-center gap-6 lg:gap-8 bg-gradient-to-r from-gray-50 via-white to-gray-50 px-6 lg:px-8 py-5 rounded-xl border border-gray-100 shadow-sm">
+          <div className="inline-flex flex-wrap items-center justify-center gap-6 lg:gap-8 bg-gradient-to-r from-gray-50 via-white to-gray-50 px-6 lg:px-8 py-5 rounded-[20px] border border-gray-100 shadow-sm">
             <div className="flex items-center gap-2 group">
-              <div className="flex-shrink-0 w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center group-hover:bg-emerald-100 transition-colors duration-300">
+              <div className="flex-shrink-0 w-10 h-10 bg-emerald-50 rounded-[16px] flex items-center justify-center group-hover:bg-emerald-100 transition-colors duration-300">
                 <Sparkles className="w-5 h-5 text-emerald-600" />
               </div>
               <div className="text-left">
-                <div className="font-semibold text-gray-900 text-sm">Start Instant Fără Card</div>
-                <div className="text-xs text-gray-500">Activare în 30 secunde</div>
+                <div className="font-semibold text-[#0F172A] text-sm">Start Instant Fără Card</div>
+                <div className="text-xs text-slate-400">Activare în 30 secunde</div>
               </div>
             </div>
             
             <div className="flex items-center gap-2 group">
-              <div className="flex-shrink-0 w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors duration-300">
+              <div className="flex-shrink-0 w-10 h-10 bg-blue-50 rounded-[16px] flex items-center justify-center group-hover:bg-blue-100 transition-colors duration-300">
                 <Shield className="w-5 h-5 text-blue-600" />
               </div>
               <div className="text-left">
-                <div className="font-semibold text-gray-900 text-sm">Anulare Instant 100%</div>
-                <div className="text-xs text-gray-500">Zero întrebări, zero taxe</div>
+                <div className="font-semibold text-[#0F172A] text-sm">Anulare Instant 100%</div>
+                <div className="text-xs text-slate-400">Zero întrebări, zero taxe</div>
               </div>
             </div>
             
             <div className="flex items-center gap-2 group">
-              <div className="flex-shrink-0 w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center group-hover:bg-purple-100 transition-colors duration-300">
+              <div className="flex-shrink-0 w-10 h-10 bg-purple-50 rounded-[16px] flex items-center justify-center group-hover:bg-purple-100 transition-colors duration-300">
                 <Lock className="w-5 h-5 text-purple-600" />
               </div>
               <div className="text-left">
-                <div className="font-semibold text-gray-900 text-sm">Securitate Bancară</div>
-                <div className="text-xs text-gray-500">Encriptare SSL 256-bit</div>
+                <div className="font-semibold text-[#0F172A] text-sm">Securitate Bancară</div>
+                <div className="text-xs text-slate-400">Encriptare SSL 256-bit</div>
               </div>
             </div>
           </div>
