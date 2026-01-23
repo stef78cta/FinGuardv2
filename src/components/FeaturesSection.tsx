@@ -86,10 +86,10 @@ const FeaturesSection = () => {
       <div className="container-custom">
         {/* Header with proper hierarchy */}
         <div className="text-center mb-10">
-          <h2 className="section-title text-gray-900 mb-4">
+          <h2 className="section-title text-slate-900 mb-4">
             Tot ce ai nevoie pentru control financiar complet
           </h2>
-          <p className="body-large text-gray-600 max-w-2xl mx-auto">
+          <p className="body-large text-slate-600 max-w-2xl mx-auto">
             Funcționalități esențiale pentru analiza financiară profesională
           </p>
         </div>
@@ -124,14 +124,14 @@ const FeaturesSection = () => {
                 </div>
                 
                 {/* Title */}
-                <h3 className={`font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors duration-300 ${
+                <h3 className={`font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors duration-300 ${
                   isHighlight ? 'text-lg' : 'text-base'
                 }`}>
                   {feature.title}
                 </h3>
                 
                 {/* Description */}
-                <p className="body text-gray-600">
+                <p className="body text-slate-600">
                   {feature.description}
                 </p>
               </div>
