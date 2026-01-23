@@ -177,6 +177,15 @@ const PreviziuniBugetare = () => {
       optimist: number | null;
       pesimist: number | null;
     }
+    
+    interface MonthlyBreakdownPoint {
+      month: string;
+      venituri: number;
+      cheltuieli: number;
+      profit: number;
+      variation: number;
+    }
+    
     const data: ForecastDataPoint[] = [];
     
     // Add historical data
@@ -192,7 +201,7 @@ const PreviziuniBugetare = () => {
 
     // Add forecast data
     const baseValue = lastPeriod?.venituri || 100000;
-    const forecastMonths: ForecastDataPoint[] = [];
+    const forecastMonths: MonthlyBreakdownPoint[] = [];
     
     for (let i = 1; i <= numForecast; i++) {
       const forecastDate = addMonths(lastDate, i);
