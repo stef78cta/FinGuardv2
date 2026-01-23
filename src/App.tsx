@@ -25,7 +25,7 @@ import AlteAnalize from "./pages/AlteAnalize";
 import PreviziuniBugetare from "./pages/PreviziuniBugetare";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
-import StyleGuide from "./pages/StyleGuide";
+import StyleGuide from "./pages/new_StyleGuide";
 
 const queryClient = new QueryClient();
 

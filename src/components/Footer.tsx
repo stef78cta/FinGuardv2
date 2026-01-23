@@ -104,7 +104,7 @@ const Footer = () => {
             
             <div className="flex items-center space-x-6 text-sm text-gray-400">
               <Link 
-                to="/new-style-guide" 
+                to="/style-guide" 
                 className="hover:text-white transition-colors duration-200 opacity-60 hover:opacity-100"
                 title="Design System"
               >
