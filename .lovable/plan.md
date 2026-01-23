@@ -1,291 +1,269 @@
 
-# Plan: Aplicarea Stilurilor din new_StyleGuide.tsx în Întreaga Aplicație
+# Plan: Înlocuire new_StyleGuide.tsx și Aplicare Stiluri v1.3 în Întreaga Aplicație
 
 ## Obiectiv
-Actualizarea design system-ului aplicației pentru a reflecta stilurile definite în `new_StyleGuide.tsx`, focalizându-ne exclusiv pe modificări de stil/design.
+1. Înlocuirea completă a conținutului fișierului `src/pages/new_StyleGuide.tsx` cu fișierul încărcat `new_StyleGuide_new.tsx`
+2. Aplicarea tuturor stilurilor noi definite în fișier la întreaga aplicație
 
 ---
 
-## Rezumat Modificări Principale
+## Analiză Diferențe Cheie (Actual vs Nou)
 
-| Element | Stil Actual | Stil Nou (StyleGuide) |
-|---------|-------------|----------------------|
-| Butoane | `rounded-md` (~6px) | `rounded-[40px]` (pill) |
-| Carduri | `rounded-lg` (~20px) | `rounded-[20px]` (explicit) |
-| Primary Dark | Variat | `#0F172A` (slate-900) |
-| Accent Indigo | `hsl(243 75% 58%)` | `#6366F1` |
-| Tabs Active | Gradient bg | Underline `border-b-2 border-indigo-500` |
-| Values monetare | Font normal | `font-mono font-bold` |
-| Labels | Variat | `text-xs uppercase tracking-widest` |
+| Element | Stil Actual | Stil Nou v1.3 |
+|---------|-------------|---------------|
+| Label text | `.label-category` variabil | `text-[10px] font-bold text-slate-400 uppercase tracking-widest` |
+| StatCard | Component separat | Helper component inline cu pattern nou |
+| NavItem | Nu există | Pattern sidebar navigation cu hover states |
+| Density System | Nu există | Toggle Compact (8px) vs Comfortable (16px) |
+| ColorCard | Nu există | Component pentru documentare paleta |
+| Table Density | Padding fix | `cellPadding` bazat pe density mode |
+| UI States | Parțial | 4 stări complete: loading, error, empty, success |
 
 ---
 
-## Faza 1: Actualizare Variabile CSS (`src/index.css`)
+## Faza 1: Înlocuire Completă `new_StyleGuide.tsx`
 
-### 1.1 Actualizare Border Radius
-Modificare `--radius` pentru a reflecta noul sistem:
-- Buttons: `40px` (pill shape)
-- Cards: `20px`
-- Inputs: `8px`
+Copiez integral conținutul fișierului încărcat `new_StyleGuide_new.tsx` în `src/pages/new_StyleGuide.tsx`.
 
-### 1.2 Actualizare Culori Semantice
-Aliniere cu paletă nouă:
-- Primary Dark: `#0F172A` (222 47% 11%)
-- Accent Indigo: `#6366F1`
-- Success: `#34D399`
-- Danger: `#F43F5E`
-- Canvas background: `#F8FAFC`
+**Caracteristici noi ale StyleGuide-ului:**
+- Design tokens export (`designTokens`) cu toate valorile
+- 7 secțiuni documentate:
+  1. Fundamente Vizuale & Brand (Paleta Cromatică)
+  2. Tipografie & Ierarhie
+  3. Componente de Acțiune (Butoane)
+  4. Form Elements & Inputs
+  5. Navigation & Structure (Tabs, Cards)
+  6. Tabele Date & Densitate
+  7. Stări UI & Feedback
 
-### 1.3 Actualizare Clase de Utilitate
-Modificare clase existente pentru consistență:
+---
 
+## Faza 2: Actualizare `src/index.css`
+
+### 2.1 Noi Label Styles
 ```css
-/* Butoane - radius pill */
-.btn-hero {
-  @apply rounded-[40px];
+/* Label style ultra-compact pentru titluri mici */
+.label-micro {
+  @apply text-[10px] font-bold text-slate-400 uppercase tracking-widest;
+}
+```
+
+### 2.2 Stat Card Pattern
+```css
+/* Stat Mini Card - Dashboard quick stats */
+.stat-mini-card {
+  @apply p-3 bg-slate-50 rounded-lg;
 }
 
-.btn-primary {
-  @apply bg-indigo-500 hover:bg-indigo-600 rounded-[40px];
+.stat-mini-title {
+  @apply text-[10px] font-bold text-slate-400 uppercase tracking-widest;
 }
 
-.btn-secondary {
-  @apply rounded-[40px];
+.stat-mini-value {
+  @apply text-sm font-mono font-bold text-[#0F172A] mt-1;
 }
 
-/* Label style consistent */
-.label-uppercase {
-  @apply text-xs font-bold text-slate-400 uppercase tracking-widest;
+.stat-mini-trend {
+  @apply text-[10px] font-bold mt-1 flex items-center gap-1;
+}
+
+.stat-mini-trend-positive {
+  @apply text-emerald-500;
+}
+
+.stat-mini-trend-negative {
+  @apply text-rose-500;
+}
+```
+
+### 2.3 Navigation Item Pattern
+```css
+/* Sidebar Nav Item */
+.nav-item {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors;
+}
+
+.nav-item-default {
+  @apply text-slate-600 hover:bg-slate-50;
+}
+
+.nav-item-active {
+  @apply bg-indigo-50 text-indigo-600 font-medium;
+}
+```
+
+### 2.4 Density Variables
+```css
+:root {
+  --density-compact: 8px;
+  --density-comfortable: 16px;
+}
+
+/* Table density classes */
+.cell-compact {
+  @apply py-2 px-3;
+}
+
+.cell-comfortable {
+  @apply py-4 px-6;
+}
+```
+
+### 2.5 Premium Header Style
+```css
+.header-premium {
+  @apply bg-white border-b border-slate-200 sticky top-0 z-50;
+}
+
+.header-premium-inner {
+  @apply max-w-7xl mx-auto px-8 h-20 flex justify-between items-center;
+}
+```
+
+### 2.6 Card Borders (Accent Color Left Border)
+```css
+.card-accent-emerald {
+  @apply border-l-4 border-l-emerald-500;
+}
+
+.card-accent-rose {
+  @apply border-l-4 border-l-rose-500;
+}
+
+.card-accent-indigo {
+  @apply border-l-4 border-l-indigo-500;
+}
+
+.card-accent-amber {
+  @apply border-l-4 border-l-amber-500;
 }
 ```
 
 ---
 
-## Faza 2: Actualizare Componente UI Base
+## Faza 3: Actualizare Componente App
 
-### 2.1 `src/components/ui/button.tsx`
-Modificare default border-radius la `rounded-[40px]`:
+### 3.1 `src/components/app/KPICard.tsx`
+- Actualizare label cu stil `text-[10px] font-bold text-slate-400 uppercase tracking-widest`
+- Valori cu `text-2xl font-mono font-bold text-[#0F172A]`
 
+### 3.2 `src/components/app/ChartCard.tsx`
+- Aplicare `rounded-[20px]` consistent
+- Header cu stil premium
+
+### 3.3 `src/components/app/StatCard.tsx`
+- Actualizare la pattern-ul StatCard din StyleGuide
+- Font `font-mono font-bold` pentru valori
+- Labels cu `text-[10px] uppercase tracking-widest`
+
+---
+
+## Faza 4: Actualizare UI Components Base
+
+### 4.1 `src/components/ui/badge.tsx`
+Adăugare variante noi pentru stări:
 ```tsx
-const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[40px] text-sm font-medium ...",
-  {
-    variants: {
-      variant: {
-        default: "bg-indigo-500 text-white hover:bg-indigo-600",
-        // ... restul variantelor
-      },
-    },
-  }
-);
+success: "border-transparent bg-emerald-500 text-white",
+warning: "border-transparent bg-amber-500 text-white", 
+info: "border-transparent bg-blue-500 text-white",
 ```
 
-### 2.2 `src/components/ui/card.tsx`
-Actualizare border-radius la `rounded-[20px]`:
-
-```tsx
-const Card = React.forwardRef<...>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("rounded-[20px] border bg-card ...", className)} {...props} />
-));
-```
-
-### 2.3 `src/components/ui/tabs.tsx`
-Adăugare variant "underline" conform StyleGuide:
-
-```tsx
-// TabsList cu stil underline
-className={cn(
-  "w-full justify-start rounded-none border-b bg-slate-50 p-0 h-auto",
-  className
-)}
-
-// TabsTrigger cu border-b active
-className={cn(
-  "rounded-none border-b-2 border-transparent",
-  "data-[state=active]:border-indigo-500 data-[state=active]:bg-transparent",
-  "px-6 py-3",
-  className
-)}
-```
-
-### 2.4 `src/components/ui/input.tsx`
-Ajustare radius și padding:
-
-```tsx
-className={cn(
-  "flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-base ...",
-  className
-)}
-```
+### 4.2 `src/components/ui/table.tsx`
+Confirmare stiluri consistente:
+- Header cu `bg-slate-50`
+- Row hover cu `hover:bg-indigo-50/30`
+- Status indicators cu cercuri colorate (pattern din StyleGuide)
 
 ---
 
-## Faza 3: Actualizare Clase CSS în `index.css`
-
-### 3.1 Butoane
-```css
-.btn-hero {
-  @apply bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 
-         text-white px-10 py-4 rounded-[40px] font-bold text-lg 
-         shadow-xl hover:scale-[1.03] transition-all duration-300;
-}
-
-.btn-primary {
-  @apply bg-indigo-500 hover:bg-indigo-600 text-white 
-         px-7 py-3.5 rounded-[40px] font-semibold text-base 
-         shadow-lg hover:shadow-xl transition-all duration-300;
-}
-
-.btn-secondary {
-  @apply bg-white text-gray-700 border border-gray-300 
-         px-5 py-2.5 rounded-[40px] font-medium text-sm 
-         hover:border-gray-400 hover:bg-gray-50 transition-all duration-300;
-}
-
-.btn-ghost {
-  @apply bg-transparent text-gray-600 border border-gray-200 
-         px-5 py-2.5 rounded-[40px] font-medium text-sm 
-         hover:bg-gray-50 hover:border-gray-300 transition-all duration-300;
-}
-```
-
-### 3.2 Carduri
-```css
-.card-app {
-  @apply bg-white rounded-[20px] border border-gray-100 
-         shadow-sm hover:shadow-md transition-all duration-300;
-}
-
-.card-feature {
-  @apply bg-white p-5 rounded-[20px] shadow-sm hover:shadow-md 
-         transition-all duration-300 hover:-translate-y-0.5 border border-gray-100;
-}
-
-.kpi-card {
-  @apply bg-white rounded-[20px] border border-gray-100 p-5 
-         hover:shadow-md transition-all duration-300 hover:border-indigo-100;
-}
-
-.chart-card {
-  @apply bg-white rounded-[20px] border border-gray-100 overflow-hidden;
-}
-```
-
-### 3.3 Typography
-```css
-/* Label style pentru categorii/secțiuni */
-.label-category {
-  @apply text-xs font-bold text-slate-400 uppercase tracking-widest;
-}
-
-/* Valori financiare în font mono */
-.value-financial {
-  @apply font-mono font-bold text-[#0F172A];
-}
-
-/* Trend indicators */
-.trend-positive {
-  @apply text-emerald-500 flex items-center gap-1 text-xs font-bold;
-}
-
-.trend-negative {
-  @apply text-rose-500 flex items-center gap-1 text-xs font-bold;
-}
-```
-
-### 3.4 Tabs Underline Style
-```css
-.tabs-list-underline {
-  @apply w-full justify-start rounded-none border-b bg-slate-50 p-0 h-auto;
-}
-
-.tabs-trigger-underline {
-  @apply rounded-none border-b-2 border-transparent 
-         data-[state=active]:border-indigo-500 
-         data-[state=active]:bg-transparent px-6 py-3;
-}
-```
-
----
-
-## Faza 4: Actualizare Componente App
-
-### 4.1 `src/components/app/KPICard.tsx`
-- Adăugare `rounded-[20px]` pe container
-- Valori în `font-mono font-bold`
-- Labels cu stil `text-xs uppercase tracking-widest`
-
-### 4.2 `src/components/app/ChartCard.tsx`
-- Border radius `rounded-[20px]`
-
-### 4.3 `src/components/app/StatCard.tsx`
-- Actualizare la noul stil cu radius 20px
-- Valori monetare în font-mono
-
----
-
-## Faza 5: Actualizare Landing Page Components
+## Faza 5: Actualizare Landing Components
 
 ### 5.1 `src/components/HeroSection.tsx`
-- Butoane cu `rounded-[40px]`
+- Butoane cu `rounded-[40px]` (deja aplicat)
 
 ### 5.2 `src/components/PricingSection.tsx`
+- Badge "POPULAR" cu stil premium: `bg-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg`
 - Carduri cu `rounded-[20px]`
-- Badge-uri stilizate
 
 ### 5.3 `src/components/FeaturesSection.tsx`
-- Carduri feature cu noul radius
-
-### 5.4 `src/components/Navigation.tsx`
-- Butoane auth cu `rounded-[40px]`
+- Icon containers cu `group-hover` transitions
+- Pattern: `w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-3 group-hover:bg-indigo-500`
 
 ---
 
 ## Faza 6: Actualizare Pagini App
 
-### 6.1 Dashboard, AnalizeFinanciare, etc.
+### 6.1 Dashboard, AnalizeFinanciare, IndicatoriCheie, etc.
 - Toate cardurile cu `rounded-[20px]`
-- Valori financiare cu `font-mono`
-- Tables cu stil consistent
+- Valori financiare cu `font-mono font-bold text-[#0F172A]`
+- Labels cu `text-[10px] font-bold text-slate-400 uppercase tracking-widest`
 
-### 6.2 Tabele Financiare
+### 6.2 Tabele Financiare în toate paginile
+- Confirmare stiluri conform StyleGuide Section 6
 - Header cu `bg-slate-50`
-- Row hover cu `hover:bg-indigo-50/30`
-- Status indicators cu cercuri colorate
+- Status indicators: cercuri colorate cu text matching
 
 ---
 
 ## Sumar Fișiere de Modificat
 
-### CSS/Config:
-1. `src/index.css` - Clase de utilitate și variabile
-2. `tailwind.config.ts` - Actualizare tokens (radius, culori)
+### Fișierul Principal:
+1. `src/pages/new_StyleGuide.tsx` - Înlocuire completă cu fișierul nou
 
-### Componente UI Base:
-3. `src/components/ui/button.tsx` - Radius 40px
-4. `src/components/ui/card.tsx` - Radius 20px
-5. `src/components/ui/tabs.tsx` - Variant underline
-6. `src/components/ui/input.tsx` - Radius 8px
-7. `src/components/ui/badge.tsx` - Stiluri actualizate
+### CSS:
+2. `src/index.css` - Adăugare clase noi (label-micro, stat-mini, nav-item, density, card-accent)
 
 ### Componente App:
-8. `src/components/app/KPICard.tsx`
-9. `src/components/app/ChartCard.tsx`
-10. `src/components/app/StatCard.tsx`
+3. `src/components/app/KPICard.tsx` - Labels și valori cu stiluri noi
+4. `src/components/app/StatCard.tsx` - Pattern complet nou
+5. `src/components/app/ChartCard.tsx` - Actualizare stiluri
 
-### Landing Components:
-11. `src/components/HeroSection.tsx`
-12. `src/components/PricingSection.tsx`
-13. `src/components/FeaturesSection.tsx`
-14. `src/components/Navigation.tsx`
-15. `src/components/SolutionSection.tsx`
-16. `src/components/ComparisonSection.tsx`
+### Componente UI:
+6. `src/components/ui/badge.tsx` - Variante noi (success, warning, info)
+
+### Landing:
+7. `src/components/FeaturesSection.tsx` - Group hover transitions
+8. `src/components/PricingSection.tsx` - Badge și card styles
+
+---
+
+## Detalii Tehnice
+
+### Pattern Status Indicators (din StyleGuide Section 6)
+```tsx
+<div className={`flex items-center gap-1.5 text-xs font-bold ${
+  status === 'Plătit' ? 'text-emerald-600' : 
+  status === 'Restant' ? 'text-rose-600' : 'text-amber-600'
+}`}>
+  <div className={`w-1.5 h-1.5 rounded-full ${
+    status === 'Plătit' ? 'bg-emerald-500' : 
+    status === 'Restant' ? 'bg-rose-500' : 'bg-amber-500'
+  }`} />
+  {status}
+</div>
+```
+
+### Font Stack Actualizat
+```css
+--font-serif: 'Georgia, serif'
+--font-sans: 'system-ui, -apple-system, sans-serif'
+--font-mono: 'JetBrains Mono, monospace'
+```
+
+### Culori Exacte din StyleGuide
+- Primary Dark: `#0F172A` (text principal)
+- Accent Indigo: `#6366F1` (CTA-uri)
+- Success Emerald: `#34D399` (pozitiv)
+- Danger Rose: `#F43F5E` (negativ)
+- Warning Amber: `#F59E0B` (atenție)
+- Surface Canvas: `#F8FAFC` (fundal)
 
 ---
 
 ## Beneficii
 
-1. **Consistență vizuală**: Toate componentele vor urma același design system
-2. **Look premium**: Butoane pill și carduri cu radius mare creează un aspect modern
-3. **Profesionalism financiar**: Font mono pentru valori, labels uppercase pentru categorii
-4. **Ușor de întreținut**: Stiluri centralizate în CSS utilities
+1. **StyleGuide Complet**: Documentație vizuală actualizată cu toate cele 7 secțiuni
+2. **Density System**: Suport pentru Compact vs Comfortable în tabele
+3. **UI States**: 4 stări complete (loading, error, empty, success)
+4. **Design Tokens Export**: `designTokens` exportabil pentru utilizare în componente
+5. **Consistență**: Toate componentele vor urma același design system v1.3
