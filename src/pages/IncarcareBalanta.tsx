@@ -38,6 +38,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { BalanceAccount } from '@/hooks/useBalante';
 import { useCompanyContext } from '@/contexts/CompanyContext';
 import { useTrialBalances, TrialBalanceImport, TrialBalanceImportWithTotals } from '@/hooks/useTrialBalances';
 import { supabase } from '@/integrations/supabase/client';

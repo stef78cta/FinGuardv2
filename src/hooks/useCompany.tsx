@@ -92,7 +92,7 @@ export const useCompany = () => {
     // Use RPC function to create company and add member atomically
     // This bypasses RLS SELECT restriction
     const { data: companyId, error: rpcError } = await supabase
-      .rpc('create_company_with_member' as unknown as string, { 
+      .rpc('create_company_with_member', { 
         p_name: name, 
         p_cui: cui, 
         p_user_id: userData.id 
