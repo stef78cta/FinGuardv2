@@ -209,6 +209,8 @@ const scopedStyles = `
     --fpsg-table-header-bg: #F8FAFC;
     --fpsg-table-row-hover: #EEF2FF;
     --fpsg-table-row-selected: #E0E7FF;
+    --fpsg-table-row-disabled-bg: #F8FAFC;
+    --fpsg-table-row-disabled-text: #94A3B8;
     --fpsg-table-grid-border: #E2E8F0;
 
     /* ===== FORM (NEW) ===== */
@@ -417,7 +419,9 @@ export const designTokens = {
   },
   table: {
     cellPaddingX: "12px", cellPaddingYCompact: "8px", cellPaddingYComfortable: "12px",
-    headerBackground: "#F8FAFC", rowHoverBackground: "#EEF2FF", rowSelectedBackground: "#E0E7FF", gridBorder: "#E2E8F0"
+    headerBackground: "#F8FAFC", rowHoverBackground: "#EEF2FF", rowSelectedBackground: "#E0E7FF",
+    rowDisabledBackground: "#F8FAFC", rowDisabledText: "#94A3B8",
+    gridBorder: "#E2E8F0"
   },
   form: {
     fieldHeight: { compact: "36px", comfortable: "44px" },
@@ -887,6 +891,82 @@ export const NewaStyleGuide = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Focus vs Selection - Documentation */}
+                <div className="fpsg-card p-6 mt-6">
+                  <p className="fpsg-subsection-title flex items-center gap-2">
+                    <HelpCircle className="w-4 h-4" style={{ color: '#6366F1' }} />
+                    Focus vs Selection - Important!
+                  </p>
+                  <div className="p-4 rounded-lg mb-4" style={{ background: '#EFF6FF', border: '1px solid #3B82F6' }}>
+                    <div className="flex items-start gap-3">
+                      <Info className="w-5 h-5 shrink-0 mt-0.5" style={{ color: '#3B82F6' }} />
+                      <div className="text-sm" style={{ color: '#1E40AF' }}>
+                        <p className="font-semibold mb-2">Focus ≠ Selected</p>
+                        <ul className="space-y-1 list-disc list-inside">
+                          <li><strong>Focus</strong> = elementul activ pentru keyboard navigation (ring vizibil)</li>
+                          <li><strong>Selected</strong> = elementul marcat/ales de utilizator (background colorat)</li>
+                          <li>Cele două stări <strong>pot coexista</strong> simultan pe același element</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="fpsg-subsection-title">Demo: Focus + Selected Coexistent</p>
+                  <div className="flex gap-4">
+                    <div className="text-center">
+                      <div 
+                        className="w-20 h-12 rounded-lg flex items-center justify-center text-xs font-medium mb-2"
+                        style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', color: '#0F172A' }}
+                      >
+                        Normal
+                      </div>
+                      <p className="text-[10px]" style={{ color: '#94A3B8' }}>Default</p>
+                    </div>
+                    <div className="text-center">
+                      <div 
+                        className="w-20 h-12 rounded-lg flex items-center justify-center text-xs font-medium mb-2"
+                        style={{ 
+                          background: '#FFFFFF', 
+                          border: '1px solid #E2E8F0',
+                          outline: '2px solid #6366F1',
+                          outlineOffset: '2px',
+                          color: '#0F172A'
+                        }}
+                      >
+                        Focus
+                      </div>
+                      <p className="text-[10px]" style={{ color: '#94A3B8' }}>Focus only</p>
+                    </div>
+                    <div className="text-center">
+                      <div 
+                        className="w-20 h-12 rounded-lg flex items-center justify-center text-xs font-medium mb-2"
+                        style={{ background: '#E0E7FF', border: '2px solid #6366F1', color: '#0F172A' }}
+                      >
+                        Selected
+                      </div>
+                      <p className="text-[10px]" style={{ color: '#94A3B8' }}>Selected only</p>
+                    </div>
+                    <div className="text-center">
+                      <div 
+                        className="w-20 h-12 rounded-lg flex items-center justify-center text-xs font-medium mb-2"
+                        style={{ 
+                          background: '#E0E7FF', 
+                          border: '2px solid #6366F1',
+                          outline: '2px solid #6366F1',
+                          outlineOffset: '2px',
+                          color: '#0F172A'
+                        }}
+                      >
+                        Both
+                      </div>
+                      <p className="text-[10px]" style={{ color: '#94A3B8' }}>Focus + Selected</p>
+                    </div>
+                  </div>
+                  <p className="text-xs mt-4 italic" style={{ color: '#94A3B8' }}>
+                    Keyboard navigation: Tab pentru focus, Space/Enter pentru select. Ambele stări pot fi active simultan.
+                  </p>
+                </div>
               </section>
 
               {/* ==================== SECTION 4: CHART COLORS ==================== */}
@@ -1269,11 +1349,29 @@ export const NewaStyleGuide = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
+                        <div className="w-24 h-10 rounded flex items-center justify-center" style={{ background: '#F8FAFC' }}>
+                          <span className="text-xs" style={{ color: '#94A3B8' }}>Disabled</span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>Row Disabled</p>
+                          <p className="text-xs fpsg-font-mono" style={{ color: '#94A3B8' }}>bg: #F8FAFC / text: #94A3B8</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
                         <div className="w-24 h-10 rounded border-2" style={{ borderColor: '#E2E8F0' }} />
                         <div>
                           <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>Grid Border</p>
                           <p className="text-xs fpsg-font-mono" style={{ color: '#94A3B8' }}>#E2E8F0</p>
                         </div>
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-lg mt-4" style={{ background: '#FFFBEB', border: '1px solid #F59E0B' }}>
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#F59E0B' }} />
+                        <p className="text-xs" style={{ color: '#92400E' }}>
+                          <strong>Row Disabled</strong> - pentru rânduri blocate de permisiuni sau perioade financiare închise (ex: luni închise).
+                        </p>
                       </div>
                     </div>
 

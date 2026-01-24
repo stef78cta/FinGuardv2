@@ -284,6 +284,8 @@
     "headerBackground": { "value": "#F8FAFC", "description": "Fundal header tabel" },
     "rowHoverBackground": { "value": "#EEF2FF", "description": "Hover row (subtil, indigo 50-like)" },
     "rowSelectedBackground": { "value": "#E0E7FF", "description": "Selected row background" },
+    "rowDisabledBackground": { "value": "#F8FAFC", "description": "Fundal row disabled (perioade închise / permisiuni)" },
+    "rowDisabledText": { "value": "#94A3B8", "description": "Text row disabled" },
 
     "gridBorder": { "value": "#E2E8F0", "description": "Linii tabel / grid" }
   },
