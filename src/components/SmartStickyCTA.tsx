@@ -48,11 +48,11 @@ const SmartStickyCTA = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-8 right-8 z-40 animate-fade-in">
+    <div className="fixed bottom-8 right-8 z-[var(--newa-z-sticky)] animate-fade-in">
       {ctaType === 'scroll-top' && (
         <button
           onClick={scrollToTop}
-          className="flex items-center space-x-2 px-6 py-3 bg-gradient-primary text-white rounded-full shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
+          className="flex items-center space-x-2 px-6 py-3 bg-gradient-primary text-[var(--newa-text-inverse)] rounded-full shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105 newa-focus-ring"
           aria-label="Scroll to top"
         >
           <ArrowUp className="w-5 h-5" />
@@ -63,7 +63,7 @@ const SmartStickyCTA = () => {
       {ctaType === 'demo' && (
         <button
           onClick={scrollToDemo}
-          className="flex items-center space-x-2 px-6 py-3 bg-gradient-primary text-white rounded-full shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
+          className="flex items-center space-x-2 px-6 py-3 bg-gradient-primary text-[var(--newa-text-inverse)] rounded-full shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105 newa-focus-ring"
         >
           <Sparkles className="w-5 h-5" />
           <span className="font-medium">Vezi demo</span>
@@ -73,7 +73,7 @@ const SmartStickyCTA = () => {
       {ctaType === 'signup' && (
         <button
           onClick={goToSignup}
-          className="flex items-center space-x-2 px-6 py-3 bg-gradient-primary text-white rounded-full shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
+          className="flex items-center space-x-2 px-6 py-3 bg-gradient-primary text-[var(--newa-text-inverse)] rounded-full shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105 newa-focus-ring"
         >
           <UserPlus className="w-5 h-5" />
           <span className="font-medium">Înregistrare</span>

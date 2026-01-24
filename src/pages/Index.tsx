@@ -15,7 +15,7 @@ import SmartStickyCTA from '../components/SmartStickyCTA';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[var(--newa-surface-canvas)] text-[var(--newa-text-primary)] font-[var(--newa-font-application)] antialiased">
       <Navigation />
       <main>
         <HeroSection />

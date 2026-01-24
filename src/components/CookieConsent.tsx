@@ -28,16 +28,16 @@ const CookieConsent = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 animate-fade-in-up">
-      <div className="bg-white border-t border-gray-200 shadow-2xl">
+    <div className="fixed bottom-0 left-0 right-0 z-[var(--newa-z-modal)] animate-fade-in-up">
+      <div className="bg-[var(--newa-surface-light)] border-t border-[var(--newa-border-default)] shadow-2xl">
         <div className="container-custom py-6">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex-1">
-              <p className="text-gray-700 text-sm leading-relaxed">
+              <p className="text-[var(--newa-text-secondary)] text-sm leading-relaxed">
                 Folosim cookie-uri pentru a îmbunătăți experiența ta pe site. Citește{' '}
                 <a
                   href="#"
-                  className="text-indigo-600 hover:text-indigo-700 font-medium underline"
+                  className="text-[var(--newa-brand-accent-indigo)] hover:opacity-80 font-medium underline newa-focus-ring rounded"
                 >
                   Politica de Confidențialitate
                 </a>{' '}
@@ -48,19 +48,19 @@ const CookieConsent = () => {
             <div className="flex items-center gap-3">
               <button
                 onClick={handleSettings}
-                className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200"
+                className="px-6 py-2 text-[var(--newa-text-secondary)] border border-[var(--newa-border-default)] rounded-[var(--newa-radius-md)] font-medium hover:bg-[var(--newa-state-hover)] transition-colors duration-200 newa-focus-ring"
               >
                 Setări
               </button>
               <button
                 onClick={handleAccept}
-                className="px-6 py-2 bg-gradient-primary text-white rounded-lg font-medium hover:opacity-90 transition-opacity duration-200"
+                className="px-6 py-2 bg-gradient-primary text-[var(--newa-text-inverse)] rounded-[var(--newa-radius-md)] font-medium hover:opacity-90 transition-opacity duration-200 newa-focus-ring"
               >
                 Acceptă
               </button>
               <button
                 onClick={handleClose}
-                className="p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                className="p-2 text-[var(--newa-text-muted)] hover:text-[var(--newa-text-secondary)] transition-colors duration-200 newa-focus-ring rounded-[var(--newa-radius-sm)]"
                 aria-label="Close"
               >
                 <X className="w-5 h-5" />

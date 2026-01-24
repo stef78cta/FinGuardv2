@@ -1,151 +1,333 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* FinGuard Design System - Premium SaaS Landing Page */
+/* ============================================
+   NEWA Design System - CSS Variables
+   Source: newa_design-tokens.jsonc v2.0.0
+   ============================================ */
 
 @layer base {
   :root {
-    /* Brand Colors - HSL only */
-    --primary-navy: 222 47% 11%;
-    --primary-indigo: 244 58% 64%;
-    --primary-indigo-dark: 243 75% 59%;
-    --accent-emerald: 158 64% 52%;
-    --accent-emerald-dark: 160 84% 39%;
-    --warning-amber: 38 92% 50%;
+    /* ===== NEWA: BRAND COLORS ===== */
+    --newa-brand-primary-dark: #0F172A;
+    --newa-brand-accent-indigo: #6366F1;
+    --newa-brand-accent-emerald: #34D399;
+    --newa-brand-danger-rose: #F43F5E;
 
-    /* Background & Surfaces */
-    --background: 0 0% 96%;
-    --surface: 210 40% 98%;
-    --surface-elevated: 0 0% 100%;
+    /* ===== NEWA: SURFACE COLORS ===== */
+    --newa-surface-light: #FFFFFF;
+    --newa-surface-canvas: #F8FAFC;
 
-    /* Text Colors - Improved contrast */
-    --foreground: 0 0% 9%;
-    --foreground-secondary: 215 20% 40%;
-    --foreground-muted: 215 16% 50%;
+    /* ===== NEWA: TEXT COLORS ===== */
+    --newa-text-primary: #0F172A;
+    --newa-text-secondary: #475569;
+    --newa-text-muted: #94A3B8;
+    --newa-text-inverse: #FFFFFF;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary-indigo)), hsl(var(--primary-indigo-dark)));
-    --gradient-success: linear-gradient(135deg, hsl(var(--accent-emerald)), hsl(var(--accent-emerald-dark)));
-    --gradient-hero: linear-gradient(135deg, hsl(var(--primary-indigo)) 0%, hsl(243 83% 70%) 100%);
+    /* ===== NEWA: BORDER COLORS ===== */
+    --newa-border-default: #E2E8F0;
+    --newa-border-focus: #6366F1;
 
-    /* Component Colors */
-    --card: 0 0% 98%;
-    --card-foreground: 0 0% 9%;
-    --border: 0 0% 83%;
-    --input: 0 0% 83%;
-    --ring: 243 75% 58%;
+    /* ===== NEWA: SEMANTIC COLORS ===== */
+    --newa-semantic-success: #34D399;
+    --newa-semantic-warning: #F59E0B;
+    --newa-semantic-info: #3B82F6;
+    --newa-semantic-danger: #F43F5E;
 
-    /* Interactive States */
-    --primary: 243 75% 58%;
-    --primary-foreground: 225 100% 96%;
-    --secondary: 0 0% 32%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 63%;
-    --muted-foreground: 0 0% 9%;
-    --accent: 250 100% 97%;
-    --accent-foreground: 258 89% 66%;
-    --destructive: 0 72% 50%;
-    --destructive-foreground: 0 85% 97%;
+    /* ===== NEWA: ALERT BACKGROUNDS ===== */
+    --newa-alert-success-bg: #ECFDF5;
+    --newa-alert-warning-bg: #FFFBEB;
+    --newa-alert-info-bg: #EFF6FF;
+    --newa-alert-danger-bg: #FFF1F2;
+    --newa-alert-success-border: #34D399;
+    --newa-alert-warning-border: #F59E0B;
+    --newa-alert-info-border: #3B82F6;
+    --newa-alert-danger-border: #F43F5E;
+
+    /* ===== NEWA: CHART PALETTE ===== */
+    --newa-chart-1: #6366F1;
+    --newa-chart-2: #818CF8;
+    --newa-chart-3: #A5B4FC;
+    --newa-chart-4: #C7D2FE;
+    --newa-chart-5: #E0E7FF;
+
+    /* ===== NEWA: CHART SEMANTIC ===== */
+    --newa-chart-positive: #34D399;
+    --newa-chart-negative: #F43F5E;
+    --newa-chart-neutral: #94A3B8;
+
+    /* ===== NEWA: CHART CATEGORICAL ===== */
+    --newa-chart-cat-1: #6366F1;
+    --newa-chart-cat-2: #34D399;
+    --newa-chart-cat-3: #F59E0B;
+    --newa-chart-cat-4: #3B82F6;
+    --newa-chart-cat-5: #F43F5E;
+    --newa-chart-cat-6: #14B8A6;
+    --newa-chart-cat-7: #A855F7;
+    --newa-chart-cat-8: #64748B;
+
+    /* ===== NEWA: STATE OVERLAYS ===== */
+    --newa-state-hover: rgba(99,102,241,0.08);
+    --newa-state-active: rgba(99,102,241,0.14);
+    --newa-state-selected: rgba(99,102,241,0.10);
+
+    /* ===== NEWA: DISABLED STATE ===== */
+    --newa-disabled-opacity: 0.45;
+    --newa-disabled-text: #94A3B8;
+    --newa-disabled-border: #E2E8F0;
+    --newa-disabled-bg: #F8FAFC;
+
+    /* ===== NEWA: FOCUS RING ===== */
+    --newa-focus-ring-color: #6366F1;
+    --newa-focus-ring-width: 2px;
+    --newa-focus-ring-offset: 2px;
+
+    /* ===== NEWA: SELECTION ===== */
+    --newa-selection-bg: #E0E7FF;
+    --newa-selection-border: #6366F1;
+    --newa-selection-text: #0F172A;
+
+    /* ===== NEWA: TYPOGRAPHY - FONT FAMILY ===== */
+    --newa-font-editorial: 'Playfair Display', serif;
+    --newa-font-application: 'Inter', system-ui, sans-serif;
+    --newa-font-mono: 'JetBrains Mono', monospace;
+
+    /* ===== NEWA: TYPOGRAPHY - FONT SIZE ===== */
+    --newa-font-size-xs: 12px;
+    --newa-font-size-sm: 14px;
+    --newa-font-size-base: 16px;
+    --newa-font-size-lg: 18px;
+    --newa-font-size-xl: 20px;
+    --newa-font-size-2xl: 24px;
+    --newa-font-size-3xl: 30px;
+    --newa-font-size-4xl: 36px;
+
+    /* ===== NEWA: TYPOGRAPHY - FONT WEIGHT ===== */
+    --newa-font-weight-regular: 400;
+    --newa-font-weight-medium: 500;
+    --newa-font-weight-semibold: 600;
+    --newa-font-weight-bold: 700;
+
+    /* ===== NEWA: TYPOGRAPHY - LINE HEIGHT ===== */
+    --newa-line-height-tight: 1.25;
+    --newa-line-height-normal: 1.5;
+    --newa-line-height-relaxed: 1.75;
+
+    /* ===== NEWA: SPACING ===== */
+    --newa-spacing-0: 0px;
+    --newa-spacing-1: 4px;
+    --newa-spacing-2: 8px;
+    --newa-spacing-3: 12px;
+    --newa-spacing-4: 16px;
+    --newa-spacing-5: 20px;
+    --newa-spacing-6: 24px;
+    --newa-spacing-8: 32px;
+    --newa-spacing-10: 40px;
+    --newa-spacing-12: 48px;
+
+    /* ===== NEWA: RADIUS ===== */
+    --newa-radius-sm: 6px;
+    --newa-radius-md: 10px;
+    --newa-radius-lg: 14px;
+    --newa-radius-xl: 20px;
+
+    /* ===== NEWA: SHADOW ===== */
+    --newa-shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --newa-shadow-md: 0 4px 12px rgba(15,23,42,0.08);
+    --newa-shadow-lg: 0 12px 24px rgba(15,23,42,0.12);
+
+    /* ===== NEWA: Z-INDEX ===== */
+    --newa-z-base: 0;
+    --newa-z-dropdown: 10;
+    --newa-z-sticky: 20;
+    --newa-z-modal: 30;
+    --newa-z-tooltip: 40;
+
+    /* ===== NEWA: DENSITY ===== */
+    --newa-density: comfortable;
+    --newa-density-compact-row: 36px;
+    --newa-density-compact-field: 36px;
+    --newa-density-comfortable-row: 44px;
+    --newa-density-comfortable-field: 44px;
+    --newa-table-row-height: var(--newa-density-comfortable-row);
+    --newa-field-height: var(--newa-density-comfortable-field);
+
+    /* ===== NEWA: TABLE TOKENS ===== */
+    --newa-table-cell-px: 12px;
+    --newa-table-cell-py-compact: 8px;
+    --newa-table-cell-py-comfortable: 12px;
+    --newa-table-cell-py: var(--newa-table-cell-py-comfortable);
+    --newa-table-header-bg: #F8FAFC;
+    --newa-table-row-hover: #EEF2FF;
+    --newa-table-row-selected: #E0E7FF;
+    --newa-table-row-disabled-bg: #F8FAFC;
+    --newa-table-row-disabled-text: #94A3B8;
+    --newa-table-grid-border: #E2E8F0;
+
+    /* ===== NEWA: FORM TOKENS ===== */
+    --newa-form-field-px: 12px;
+    --newa-form-field-radius: 10px;
+    --newa-form-placeholder: #94A3B8;
+    --newa-form-helper: #94A3B8;
+    --newa-form-error-text: #F43F5E;
+    --newa-form-error-border: #F43F5E;
+
+    /* ============================================
+       SHADCN/UI COMPATIBILITY LAYER
+       Maps NEWA tokens to shadcn variable names
+       ============================================ */
+    
+    /* Core Colors */
+    --background: var(--newa-surface-canvas);
+    --foreground: var(--newa-text-primary);
+    
+    /* Card */
+    --card: var(--newa-surface-light);
+    --card-foreground: var(--newa-text-primary);
+    
+    /* Popover */
+    --popover: var(--newa-surface-light);
+    --popover-foreground: var(--newa-text-primary);
+    
+    /* Primary */
+    --primary: var(--newa-brand-accent-indigo);
+    --primary-foreground: var(--newa-text-inverse);
+    
+    /* Secondary */
+    --secondary: var(--newa-surface-canvas);
+    --secondary-foreground: var(--newa-text-primary);
+    
+    /* Muted */
+    --muted: var(--newa-surface-canvas);
+    --muted-foreground: var(--newa-text-muted);
+    
+    /* Accent */
+    --accent: var(--newa-state-hover);
+    --accent-foreground: var(--newa-brand-accent-indigo);
+    
+    /* Destructive */
+    --destructive: var(--newa-brand-danger-rose);
+    --destructive-foreground: var(--newa-text-inverse);
+    
+    /* Border & Input */
+    --border: var(--newa-border-default);
+    --input: var(--newa-border-default);
+    --ring: var(--newa-focus-ring-color);
+    
+    /* Radius - use NEWA md as default */
+    --radius: var(--newa-radius-md);
+
+    /* Sidebar (for shadcn sidebar component) */
+    --sidebar-background: var(--newa-surface-light);
+    --sidebar-foreground: var(--newa-text-primary);
+    --sidebar-primary: var(--newa-brand-accent-indigo);
+    --sidebar-primary-foreground: var(--newa-text-inverse);
+    --sidebar-accent: var(--newa-state-hover);
+    --sidebar-accent-foreground: var(--newa-brand-accent-indigo);
+    --sidebar-border: var(--newa-border-default);
+    --sidebar-ring: var(--newa-focus-ring-color);
+
+    /* Charts (shadcn chart component) */
+    --chart-1: var(--newa-chart-1);
+    --chart-2: var(--newa-chart-2);
+    --chart-3: var(--newa-chart-3);
+    --chart-4: var(--newa-chart-4);
+    --chart-5: var(--newa-chart-5);
+
+    /* Legacy variables for backwards compatibility */
+    --primary-navy: var(--newa-brand-primary-dark);
+    --primary-indigo: var(--newa-brand-accent-indigo);
+    --accent-emerald: var(--newa-brand-accent-emerald);
+    --warning-amber: var(--newa-semantic-warning);
+    --surface: var(--newa-surface-canvas);
+    --surface-elevated: var(--newa-surface-light);
+    --foreground-secondary: var(--newa-text-secondary);
+    --foreground-muted: var(--newa-text-muted);
 
     /* Shadows */
-    --shadow-soft: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    --shadow-medium: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-large: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
-    --shadow-hero: 0 20px 40px -15px hsl(243 75% 58% / 0.35);
-
-    /* Animations */
-    --transition-fast: 0.15s ease-out;
-    --transition-medium: 0.3s ease-out;
-    --transition-slow: 0.6s ease-out;
-
-    --radius: 1.25rem;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 9%;
-    --sidebar-primary: 243 75% 58%;
-    --sidebar-primary-foreground: 225 100% 96%;
-    --sidebar-accent: 0 0% 32%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 83%;
-    --sidebar-ring: 243 75% 58%;
-    --popover: 0 0% 89%;
-    --popover-foreground: 0 0% 9%;
-    --chart-1: 234 89% 73%;
-    --chart-2: 255 91% 76%;
-    --chart-3: 270 95% 75%;
-    --chart-4: 238 83% 66%;
-    --chart-5: 0 0% 45%;
-    --sidebar: 0 0% 98%;
-
-    --font-sans: 'Lato', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-    --font-serif: 'EB Garamond', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-    --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-
-    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
-    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
-    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
-
-    --tracking-normal: 0em;
-    --spacing: 0.25rem;
+    --shadow-sm: var(--newa-shadow-sm);
+    --shadow-md: var(--newa-shadow-md);
+    --shadow-lg: var(--newa-shadow-lg);
+    --shadow-soft: var(--newa-shadow-sm);
+    --shadow-medium: var(--newa-shadow-md);
+    --shadow-large: var(--newa-shadow-lg);
   }
 
+  /* ===== DARK MODE ===== */
   .dark {
-    --primary-navy: 222 47% 11%;
-    --primary-indigo: 244 58% 64%;
-    --accent-emerald: 158 64% 52%;
-    --background: 0 0% 9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 14%;
-    --card-foreground: 0 0% 98%;
-    --border: 0 0% 32%;
-    --input: 0 0% 32%;
-    --ring: 234 89% 73%;
-    --popover: 0 0% 25%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 234 89% 73%;
-    --primary-foreground: 243 47% 20%;
-    --secondary: 0 0% 45%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 45%;
-    --muted-foreground: 0 0% 98%;
-    --accent: 261 72% 22%;
-    --accent-foreground: 255 91% 76%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 85% 97%;
-    --chart-1: 229 93% 81%;
-    --chart-2: 252 94% 85%;
-    --chart-3: 269 97% 85%;
-    --chart-4: 234 89% 73%;
-    --chart-5: 0 0% 45%;
-    --sidebar: 0 0% 14%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 234 89% 73%;
-    --sidebar-primary-foreground: 243 47% 20%;
-    --sidebar-accent: 255 91% 76%;
-    --sidebar-accent-foreground: 261 72% 22%;
-    --sidebar-border: 0 0% 32%;
-    --sidebar-ring: 234 89% 73%;
-    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
-    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
-    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
-    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+    --newa-brand-primary-dark: #0F172A;
+    --newa-brand-accent-indigo: #818CF8;
+    --newa-brand-accent-emerald: #34D399;
+    --newa-brand-danger-rose: #FB7185;
+
+    --newa-surface-light: #1E293B;
+    --newa-surface-canvas: #0F172A;
+
+    --newa-text-primary: #F8FAFC;
+    --newa-text-secondary: #CBD5E1;
+    --newa-text-muted: #64748B;
+    --newa-text-inverse: #0F172A;
+
+    --newa-border-default: #334155;
+    --newa-border-focus: #818CF8;
+
+    --newa-state-hover: rgba(129,140,248,0.12);
+    --newa-state-active: rgba(129,140,248,0.20);
+    --newa-state-selected: rgba(129,140,248,0.15);
+
+    --newa-disabled-bg: #1E293B;
+    --newa-disabled-text: #64748B;
+    --newa-disabled-border: #334155;
+
+    --newa-focus-ring-color: #818CF8;
+
+    --newa-selection-bg: #312E81;
+    --newa-selection-border: #818CF8;
+    --newa-selection-text: #F8FAFC;
+
+    --newa-alert-success-bg: #064E3B;
+    --newa-alert-warning-bg: #78350F;
+    --newa-alert-info-bg: #1E3A8A;
+    --newa-alert-danger-bg: #881337;
+
+    --newa-table-header-bg: #1E293B;
+    --newa-table-row-hover: #1E293B;
+    --newa-table-row-selected: #312E81;
+    --newa-table-row-disabled-bg: #1E293B;
+    --newa-table-row-disabled-text: #64748B;
+    --newa-table-grid-border: #334155;
+
+    --newa-chart-1: #818CF8;
+    --newa-chart-2: #A5B4FC;
+    --newa-chart-3: #C7D2FE;
+    --newa-chart-4: #E0E7FF;
+    --newa-chart-5: #EEF2FF;
+  }
+
+  /* ===== DENSITY MODIFIER CLASSES ===== */
+  .density-compact {
+    --newa-density: compact;
+    --newa-table-row-height: var(--newa-density-compact-row);
+    --newa-field-height: var(--newa-density-compact-field);
+    --newa-table-cell-py: var(--newa-table-cell-py-compact);
+  }
+
+  .density-comfortable {
+    --newa-density: comfortable;
+    --newa-table-row-height: var(--newa-density-comfortable-row);
+    --newa-field-height: var(--newa-density-comfortable-field);
+    --newa-table-cell-py: var(--newa-table-cell-py-comfortable);
   }
 }
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
 
 @layer base {
   * {
@@ -153,8 +335,11 @@
   }
 
   body {
-    @apply bg-background text-foreground font-normal;
-    font-family: 'Inter', sans-serif;
+    background-color: var(--newa-surface-canvas);
+    color: var(--newa-text-primary);
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-base);
+    line-height: var(--newa-line-height-normal);
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -165,522 +350,463 @@
   }
 }
 
+/* ============================================
+   TYPOGRAPHY ROLE CLASSES (NEWA Design System)
+   ============================================ */
+
 @layer components {
-  /* ============================================
-     TYPOGRAPHY SCALE - Enhanced Hierarchy
-     ============================================ */
-  
-  /* Headline - Significantly larger for visual dominance */
-  .headline {
-    @apply text-4xl md:text-5xl lg:text-6xl tracking-tight;
-    font-weight: 900;
-    line-height: 1.0;
+  /* Page Title: Inter / 24px / Bold */
+  .text-page-title {
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-2xl);
+    font-weight: var(--newa-font-weight-bold);
+    line-height: var(--newa-line-height-tight);
+    color: var(--newa-text-primary);
   }
 
-  /* Subheadline - Clear differentiation from headline */
-  .subheadline {
-    @apply text-base md:text-lg;
-    font-weight: 500;
-    line-height: 1.5;
-    color: hsl(var(--foreground-secondary));
+  /* Section Title: Inter / 20px / Bold */
+  .text-section-title {
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-xl);
+    font-weight: var(--newa-font-weight-bold);
+    line-height: var(--newa-line-height-tight);
+    color: var(--newa-text-primary);
   }
 
-  /* Section Title - Distinct from subheadline */
-  .section-title {
-    @apply text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight;
-    line-height: 1.15;
-    color: hsl(var(--foreground));
+  /* KPI Value: JetBrains Mono / 24px / Bold */
+  .text-kpi-value {
+    font-family: var(--newa-font-mono);
+    font-size: var(--newa-font-size-2xl);
+    font-weight: var(--newa-font-weight-bold);
+    line-height: var(--newa-line-height-tight);
+    color: var(--newa-text-primary);
   }
 
-  /* Body text - Enhanced line-height for readability */
-  .body-large {
-    @apply text-base md:text-lg;
-    font-weight: 400;
-    line-height: 1.65;
+  /* Table Header: Inter / 12px / Semibold / Uppercase */
+  .text-table-header {
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-xs);
+    font-weight: var(--newa-font-weight-semibold);
+    line-height: var(--newa-line-height-tight);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--newa-text-muted);
   }
 
-  .body {
-    @apply text-sm md:text-base;
-    font-weight: 400;
-    line-height: 1.6;
+  /* Table Cell: Inter / 14px / Medium */
+  .text-table-cell {
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-sm);
+    font-weight: var(--newa-font-weight-medium);
+    line-height: var(--newa-line-height-normal);
+    color: var(--newa-text-primary);
   }
 
-  .text-small {
-    @apply text-xs md:text-sm leading-normal font-medium;
-    font-weight: 500;
-    line-height: 1.5;
+  /* Form Label: Inter / 12px / Semibold */
+  .text-form-label {
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-xs);
+    font-weight: var(--newa-font-weight-semibold);
+    line-height: var(--newa-line-height-tight);
+    color: var(--newa-text-primary);
   }
 
-  /* ============================================
-     BUTTON SYSTEM - Pill Shape (40px radius)
-     ============================================ */
-
-  /* CTA Principal (Hero Only) - Dominant, eye-catching */
-  .btn-hero {
-    @apply bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 text-white px-10 py-4 rounded-[40px] font-bold text-lg shadow-xl hover:scale-[1.03] transition-all duration-300;
-    box-shadow: var(--shadow-hero);
+  /* Helper Text: Inter / 12px / Regular */
+  .text-helper {
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-xs);
+    font-weight: var(--newa-font-weight-regular);
+    line-height: var(--newa-line-height-normal);
+    color: var(--newa-text-muted);
   }
 
-  .btn-hero:hover {
-    box-shadow: 0 25px 50px -15px hsl(243 75% 58% / 0.45);
+  /* Mono Currency: JetBrains Mono / 14px / Semibold / tabular-nums */
+  .text-mono-currency {
+    font-family: var(--newa-font-mono);
+    font-size: var(--newa-font-size-sm);
+    font-weight: var(--newa-font-weight-semibold);
+    line-height: var(--newa-line-height-tight);
+    font-variant-numeric: tabular-nums;
+    color: var(--newa-text-primary);
   }
 
-  /* CTA Primar (Secțiuni) - Prominent but secondary to hero */
-  .btn-primary {
-    @apply bg-indigo-500 hover:bg-indigo-600 text-white px-7 py-3.5 rounded-[40px] font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02];
+  /* Empty Title: Playfair Display / 20px / Semibold */
+  .text-empty-title {
+    font-family: var(--newa-font-editorial);
+    font-size: var(--newa-font-size-xl);
+    font-weight: var(--newa-font-weight-semibold);
+    line-height: var(--newa-line-height-tight);
+    color: var(--newa-text-primary);
   }
 
-  /* CTA Secundar - Visually distinct, less prominent */
-  .btn-secondary {
-    @apply bg-white text-gray-700 border border-gray-300 px-5 py-2.5 rounded-[40px] font-medium text-sm hover:border-gray-400 hover:bg-gray-50 transition-all duration-300;
+  /* Empty Body: Inter / 14px / Regular */
+  .text-empty-body {
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-sm);
+    font-weight: var(--newa-font-weight-regular);
+    line-height: var(--newa-line-height-normal);
+    color: var(--newa-text-secondary);
   }
 
-  /* Ghost Button - Minimal, for secondary actions */
-  .btn-ghost {
-    @apply bg-transparent text-gray-600 border border-gray-200 px-5 py-2.5 rounded-[40px] font-medium text-sm hover:bg-gray-50 hover:border-gray-300 transition-all duration-300;
+  /* Font Family Utilities */
+  .font-editorial {
+    font-family: var(--newa-font-editorial);
   }
 
-  /* ============================================
-     CARD STYLES - 20px Radius System
-     ============================================ */
-  
-  .card-feature {
-    @apply bg-white p-5 rounded-[20px] shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 border border-gray-100;
+  .font-app {
+    font-family: var(--newa-font-application);
   }
 
-  /* Featured card for high-impact items */
-  .card-feature-highlight {
-    @apply bg-white p-6 rounded-[20px] shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 border-indigo-100;
+  .font-mono-newa {
+    font-family: var(--newa-font-mono);
+  }
+}
+
+/* ============================================
+   NEWA COMPONENT CLASSES
+   ============================================ */
+
+@layer components {
+  /* ===== CARDS ===== */
+  .newa-card {
+    background: var(--newa-surface-light);
+    border: 1px solid var(--newa-border-default);
+    border-radius: var(--newa-radius-lg);
+    box-shadow: var(--newa-shadow-sm);
   }
 
-  .card-testimonial {
-    @apply bg-white p-5 rounded-[20px] shadow-sm border border-gray-100;
+  .newa-card-elevated {
+    background: var(--newa-surface-light);
+    border: 1px solid var(--newa-border-default);
+    border-radius: var(--newa-radius-lg);
+    box-shadow: var(--newa-shadow-md);
   }
 
-  .card-pricing {
-    @apply bg-white p-5 rounded-[20px] shadow-sm border border-gray-100 hover:border-indigo-200 hover:shadow-md transition-all duration-300;
+  /* ===== ALERTS ===== */
+  .newa-alert-success {
+    background: var(--newa-alert-success-bg);
+    border-left: 4px solid var(--newa-alert-success-border);
+    border-radius: var(--newa-radius-md);
+    padding: var(--newa-spacing-4);
   }
 
-  .card-pricing-featured {
-    @apply bg-gradient-to-br from-indigo-50 to-purple-50 p-5 rounded-[20px] shadow-md border-2 border-indigo-200 transform scale-[1.02];
+  .newa-alert-warning {
+    background: var(--newa-alert-warning-bg);
+    border-left: 4px solid var(--newa-alert-warning-border);
+    border-radius: var(--newa-radius-md);
+    padding: var(--newa-spacing-4);
   }
 
-  /* ============================================
-     SECTION SPACING - Standardized
-     ============================================ */
-  
-  .section-padding {
-    @apply py-16 md:py-20;
+  .newa-alert-info {
+    background: var(--newa-alert-info-bg);
+    border-left: 4px solid var(--newa-alert-info-border);
+    border-radius: var(--newa-radius-md);
+    padding: var(--newa-spacing-4);
   }
 
-  .section-padding-reduced {
-    @apply py-12 md:py-16;
+  .newa-alert-danger {
+    background: var(--newa-alert-danger-bg);
+    border-left: 4px solid var(--newa-alert-danger-border);
+    border-radius: var(--newa-radius-md);
+    padding: var(--newa-spacing-4);
   }
 
-  .container-custom {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  /* ===== KPI CARDS ===== */
+  .newa-kpi-card {
+    background: var(--newa-surface-light);
+    border: 1px solid var(--newa-border-default);
+    border-radius: var(--newa-radius-lg);
+    padding: var(--newa-spacing-5);
+    transition: all 0.2s ease;
   }
 
-  .container-narrow {
-    @apply max-w-4xl mx-auto px-4 sm:px-6 lg:px-8;
+  .newa-kpi-card:hover {
+    box-shadow: var(--newa-shadow-md);
+    border-color: var(--newa-brand-accent-indigo);
   }
 
-  /* ============================================
-     ANIMATIONS
-     ============================================ */
-  
-  .fade-in-up {
-    animation: fadeInUp 0.6s ease-out forwards;
-    opacity: 0;
+  .newa-kpi-card-accent-success {
+    border-left: 4px solid var(--newa-semantic-success);
   }
 
-  .slide-in-right {
-    animation: slideInRight 0.8s ease-out forwards;
-    opacity: 0;
+  .newa-kpi-card-accent-danger {
+    border-left: 4px solid var(--newa-semantic-danger);
   }
 
-  .float-animation {
-    animation: float 3s ease-in-out infinite;
+  .newa-kpi-card-accent-indigo {
+    border-left: 4px solid var(--newa-brand-accent-indigo);
   }
 
-  .pulse-slow {
-    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  .newa-kpi-card-accent-warning {
+    border-left: 4px solid var(--newa-semantic-warning);
   }
 
-  /* ============================================
-     GRADIENT TEXT - Reserved for emphasis only
-     ============================================ */
-  
-  .gradient-text {
-    @apply bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent;
+  /* ===== EMPTY STATES ===== */
+  .newa-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--newa-spacing-12) var(--newa-spacing-6);
+    text-align: center;
   }
 
-  .gradient-text-success {
-    @apply bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent;
+  .newa-empty-state-icon {
+    width: 64px;
+    height: 64px;
+    color: var(--newa-text-muted);
+    margin-bottom: var(--newa-spacing-4);
   }
 
-  /* ============================================
-     STEPPER ANIMATION STYLES
-     ============================================ */
-  
-  .step-circle {
-    @apply w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500;
+  /* ===== NAVIGATION ===== */
+  .newa-nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--newa-spacing-3);
+    padding: var(--newa-spacing-2) var(--newa-spacing-3);
+    border-radius: var(--newa-radius-sm);
+    color: var(--newa-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
   }
 
-  .step-circle-active {
-    @apply bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg scale-110;
-    box-shadow: 0 0 20px hsl(243 75% 58% / 0.4);
+  .newa-nav-item:hover {
+    background: var(--newa-state-hover);
+    color: var(--newa-text-primary);
   }
 
-  .step-circle-completed {
-    @apply bg-gradient-to-r from-indigo-400 to-purple-500 text-white shadow-md;
+  .newa-nav-item-active {
+    background: var(--newa-brand-primary-dark);
+    color: var(--newa-text-inverse);
   }
 
-  .step-circle-pending {
-    @apply bg-gray-100 text-gray-400 border-2 border-gray-200;
+  /* ===== LOADING SPINNER ===== */
+  .newa-spinner {
+    animation: newa-spin 1s linear infinite;
   }
 
-  .step-content {
-    @apply transition-all duration-500;
+  @keyframes newa-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
 
-  .step-content-active {
-    @apply opacity-100 transform scale-100;
+  /* ===== FOCUS RING UTILITY ===== */
+  .newa-focus-ring:focus-visible {
+    outline: var(--newa-focus-ring-width) solid var(--newa-focus-ring-color);
+    outline-offset: var(--newa-focus-ring-offset);
   }
 
-  .step-content-pending {
-    @apply opacity-40 transform scale-95;
+  /* ===== SELECTION HIGHLIGHT ===== */
+  .newa-selected {
+    background: var(--newa-selection-bg);
+    border-color: var(--newa-selection-border);
+    color: var(--newa-selection-text);
   }
 
-  /* ============================================
-     MICRO-COPY HELPER
-     ============================================ */
-  
-  .micro-copy {
-    @apply text-xs text-gray-500 mt-2;
+  /* ===== TREND INDICATORS ===== */
+  .newa-trend-positive {
+    color: var(--newa-semantic-success);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: var(--newa-font-weight-semibold);
+    font-size: var(--newa-font-size-xs);
   }
 
-  /* ============================================
-     APP-SPECIFIC DESIGN SYSTEM
-     ============================================ */
+  .newa-trend-negative {
+    color: var(--newa-semantic-danger);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: var(--newa-font-weight-semibold);
+    font-size: var(--newa-font-size-xs);
+  }
 
-  /* Page Headers - Application Pages */
+  /* ===== STATUS BADGES ===== */
+  .newa-badge-success {
+    background: var(--newa-alert-success-bg);
+    color: #065F46;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: var(--newa-font-size-xs);
+    font-weight: var(--newa-font-weight-medium);
+  }
+
+  .newa-badge-warning {
+    background: var(--newa-alert-warning-bg);
+    color: #92400E;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: var(--newa-font-size-xs);
+    font-weight: var(--newa-font-weight-medium);
+  }
+
+  .newa-badge-danger {
+    background: var(--newa-alert-danger-bg);
+    color: #9F1239;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: var(--newa-font-size-xs);
+    font-weight: var(--newa-font-weight-medium);
+  }
+
+  .newa-badge-info {
+    background: var(--newa-alert-info-bg);
+    color: #1E40AF;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: var(--newa-font-size-xs);
+    font-weight: var(--newa-font-weight-medium);
+  }
+}
+
+/* ============================================
+   LEGACY/COMPATIBILITY CLASSES
+   (Kept for backwards compatibility)
+   ============================================ */
+
+@layer components {
+  /* Page Headers */
   .page-header {
-    @apply mb-8;
+    margin-bottom: var(--newa-spacing-8);
   }
 
   .page-title {
-    @apply text-2xl md:text-3xl font-bold tracking-tight mb-2;
-    color: hsl(var(--foreground));
+    @apply text-page-title;
+    margin-bottom: var(--newa-spacing-2);
   }
 
   .page-description {
-    @apply text-sm md:text-base;
-    color: hsl(var(--foreground-secondary));
+    font-size: var(--newa-font-size-sm);
+    color: var(--newa-text-secondary);
   }
 
-  /* App Container - Full width utilization with minimal side padding */
-.container-app {
-  @apply w-full max-w-[1920px] mx-auto px-4 sm:px-5 lg:px-6 2xl:px-8 py-5 md:py-6;
-}
-
-  /* App Cards - Standardized 20px Radius */
-  .card-app {
-    @apply bg-white rounded-[20px] border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300;
+  /* App Container */
+  .container-app {
+    @apply w-full max-w-[1920px] mx-auto px-4 sm:px-5 lg:px-6 2xl:px-8 py-5 md:py-6;
   }
 
-  .card-app-header {
-    @apply px-5 py-4 border-b border-gray-100;
-  }
-
-  .card-app-content {
-    @apply p-5;
-  }
-
-  /* KPI Cards - 20px Radius with mono values */
+  /* KPI Cards (legacy) */
   .kpi-card {
-    @apply bg-white rounded-[20px] border border-gray-100 p-5 hover:shadow-md transition-all duration-300 hover:border-indigo-100;
+    @apply newa-kpi-card;
   }
 
   .kpi-value {
-    @apply text-2xl md:text-3xl font-mono font-bold tracking-tight;
-    color: hsl(222 47% 11%);
+    @apply text-kpi-value;
   }
 
   .kpi-label {
-    @apply text-xs font-bold uppercase tracking-widest;
-    color: hsl(var(--foreground-secondary));
+    @apply text-table-header;
   }
 
   .kpi-trend-up {
-    @apply text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-xs font-bold inline-flex items-center gap-1;
+    @apply newa-trend-positive bg-opacity-10 px-2 py-0.5 rounded-full;
+    background-color: var(--newa-alert-success-bg);
   }
 
   .kpi-trend-down {
-    @apply text-red-600 bg-red-50 px-2 py-0.5 rounded-full text-xs font-bold inline-flex items-center gap-1;
+    @apply newa-trend-negative bg-opacity-10 px-2 py-0.5 rounded-full;
+    background-color: var(--newa-alert-danger-bg);
   }
 
-  /* Financial Tables - Slate header */
+  /* Financial Tables */
   .table-financial {
-    @apply w-full text-sm;
+    width: 100%;
+    font-size: var(--newa-font-size-sm);
   }
 
   .table-financial th {
-    @apply px-4 py-3 text-left font-semibold bg-slate-50 border-b border-gray-200 text-foreground;
+    @apply text-table-header;
+    padding: var(--newa-table-cell-py) var(--newa-table-cell-px);
+    text-align: left;
+    background: var(--newa-table-header-bg);
+    border-bottom: 1px solid var(--newa-table-grid-border);
   }
 
   .table-financial td {
-    @apply px-4 py-3 border-b border-gray-100;
+    @apply text-table-cell;
+    padding: var(--newa-table-cell-py) var(--newa-table-cell-px);
+    border-bottom: 1px solid var(--newa-border-default);
   }
 
   .table-financial tr:hover td {
-    @apply bg-indigo-50/30;
+    background: var(--newa-table-row-hover);
   }
 
   .table-row-total {
-    @apply bg-slate-50 font-bold;
+    background: var(--newa-table-header-bg);
+    font-weight: var(--newa-font-weight-bold);
   }
 
-  .table-row-subtotal {
-    @apply bg-slate-50/50 font-semibold;
-  }
-
-  /* App Section Title */
-  .app-section-title {
-    @apply text-lg font-semibold tracking-tight mb-4;
-    color: hsl(var(--foreground));
-  }
-
-  /* Chart Card Wrapper - 20px Radius */
-  .chart-card {
-    @apply bg-white rounded-[20px] border border-gray-100 overflow-hidden;
-  }
-
-  .chart-card-header {
-    @apply px-5 py-4 border-b border-gray-100 flex items-center justify-between;
-  }
-
-  .chart-card-content {
-    @apply p-5;
-  }
-
-  /* Financial Value styling - mono font */
+  /* Value styling */
   .value-financial {
-    @apply font-mono font-bold;
-    color: hsl(222 47% 11%);
+    font-family: var(--newa-font-mono);
+    font-weight: var(--newa-font-weight-bold);
+    color: var(--newa-text-primary);
   }
 
-  /* Category/section label */
+  /* Labels */
   .label-category {
-    @apply text-[10px] font-bold uppercase tracking-widest;
-    color: hsl(215 16% 47%);
-  }
-
-  /* Label style ultra-compact pentru titluri mici */
-  .label-micro {
-    @apply text-[10px] font-bold text-slate-400 uppercase tracking-widest;
-  }
-
-  /* Stat Mini Card - Dashboard quick stats */
-  .stat-mini-card {
-    @apply p-3 bg-slate-50 rounded-lg;
-  }
-
-  .stat-mini-title {
-    @apply text-[10px] font-bold text-slate-400 uppercase tracking-widest;
-  }
-
-  .stat-mini-value {
-    @apply text-sm font-mono font-bold mt-1;
-    color: hsl(222 47% 11%);
-  }
-
-  .stat-mini-trend {
-    @apply text-[10px] font-bold mt-1 flex items-center gap-1;
-  }
-
-  .stat-mini-trend-positive {
-    @apply text-emerald-500;
-  }
-
-  .stat-mini-trend-negative {
-    @apply text-rose-500;
-  }
-
-  /* Sidebar Nav Item */
-  .nav-item {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors;
-  }
-
-  .nav-item-default {
-    @apply text-slate-600 hover:bg-slate-50;
-  }
-
-  .nav-item-active {
-    @apply bg-indigo-50 text-indigo-600 font-medium;
-  }
-
-  /* Premium Header Style */
-  .header-premium {
-    @apply bg-white border-b border-slate-200 sticky top-0 z-50;
-  }
-
-  .header-premium-inner {
-    @apply max-w-7xl mx-auto px-8 h-20 flex justify-between items-center;
-  }
-
-  /* Card Borders - Accent Color Left Border */
-  .card-accent-emerald {
-    @apply border-l-4 border-l-emerald-500;
-  }
-
-  .card-accent-rose {
-    @apply border-l-4 border-l-rose-500;
-  }
-
-  .card-accent-indigo {
-    @apply border-l-4 border-l-indigo-500;
-  }
-
-  .card-accent-amber {
-    @apply border-l-4 border-l-amber-500;
-  }
-
-  /* Density Variables */
-  .cell-compact {
-    @apply py-2 px-3;
-  }
-
-  .cell-comfortable {
-    @apply py-4 px-6;
-  }
-
-  /* Trend indicators */
-  .trend-positive {
-    @apply text-emerald-500 flex items-center gap-1 text-xs font-bold;
-  }
-
-  .trend-negative {
-    @apply text-rose-500 flex items-center gap-1 text-xs font-bold;
-  }
-
-  /* Quick Action Button - Pill shape */
-  .btn-action {
-    @apply inline-flex items-center gap-2 px-4 py-2.5 rounded-[40px] font-medium text-sm transition-all duration-200;
-    @apply bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-foreground border border-gray-200;
-  }
-
-  .btn-action:hover {
-    @apply border-gray-300 shadow-sm;
-  }
-
-  /* Stat Badge */
-  .stat-badge {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
-  }
-
-  .stat-badge-success {
-    @apply bg-emerald-50 text-emerald-700;
-  }
-
-  .stat-badge-warning {
-    @apply bg-amber-50 text-amber-700;
-  }
-
-  .stat-badge-danger {
-    @apply bg-red-50 text-red-700;
-  }
-
-  .stat-badge-info {
-    @apply bg-blue-50 text-blue-700;
-  }
-
-  /* App Header Bar */
-  .app-header {
-    @apply h-14 border-b border-gray-200 bg-white/80 backdrop-blur-sm flex items-center px-4 sticky top-0 z-20;
-  }
-
-  /* Sidebar Active State with Gradient */
-  .sidebar-item-active {
-    @apply bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 font-semibold border-l-4 border-indigo-600;
+    font-size: 10px;
+    font-weight: var(--newa-font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--newa-text-muted);
   }
 
   /* Empty State */
   .empty-state {
-    @apply flex flex-col items-center justify-center py-12 text-center;
-  }
-
-  .empty-state-icon {
-    @apply w-16 h-16 text-gray-300 mb-4;
+    @apply newa-empty-state;
   }
 
   .empty-state-title {
-    @apply text-lg font-semibold text-foreground mb-1;
+    @apply text-empty-title;
+    margin-bottom: var(--newa-spacing-1);
   }
 
   .empty-state-description {
-    @apply text-sm text-foreground-secondary;
+    @apply text-empty-body;
   }
 
-  /* ============================================
-     TABS SYSTEM - Underline Style (StyleGuide)
-     ============================================ */
-
-  /* App Tabs - Underline Style (Default) */
-  .tabs-list-app {
-    @apply w-full justify-start rounded-none border-b border-gray-200 bg-slate-50 p-0 h-auto;
+  /* Sidebar */
+  .nav-item {
+    @apply newa-nav-item;
   }
 
-  .tabs-trigger-app {
-    @apply px-6 py-3 rounded-none text-gray-600 font-medium text-sm
-           border-b-2 border-transparent -mb-px
-           transition-all duration-300
-           hover:text-gray-900 hover:border-gray-300
-           data-[state=active]:text-indigo-600 
-           data-[state=active]:border-indigo-500
-           data-[state=active]:bg-transparent
-           data-[state=active]:font-semibold;
+  .nav-item-active {
+    @apply newa-nav-item-active;
   }
 
-  /* Underline variant (explicit) */
-  .tabs-list-underline {
-    @apply w-full justify-start rounded-none border-b border-gray-200 bg-slate-50 p-0 h-auto;
+  /* Trend indicators */
+  .trend-positive {
+    @apply newa-trend-positive;
   }
 
-  .tabs-trigger-underline {
-    @apply px-6 py-3 text-gray-600 font-medium text-sm border-b-2 border-transparent -mb-px
-           transition-all duration-300
-           hover:text-gray-900 hover:border-gray-300
-           data-[state=active]:text-indigo-600 
-           data-[state=active]:border-indigo-500
-           data-[state=active]:bg-transparent
-           data-[state=active]:font-semibold;
+  .trend-negative {
+    @apply newa-trend-negative;
   }
 
-  /* Tabs with icons */
-  .tabs-trigger-with-icon {
-    @apply inline-flex items-center gap-2;
+  /* Stat Badges */
+  .stat-badge-success {
+    @apply newa-badge-success;
   }
 
-  .tabs-trigger-with-icon svg {
-    @apply w-4 h-4 flex-shrink-0;
+  .stat-badge-warning {
+    @apply newa-badge-warning;
   }
 
-  /* Responsive scrollable tabs */
-  .tabs-list-scrollable {
-    @apply overflow-x-auto scrollbar-hide flex-nowrap;
-    -webkit-overflow-scrolling: touch;
+  .stat-badge-danger {
+    @apply newa-badge-danger;
   }
 
-  /* Hide scrollbar for tabs */
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
+  .stat-badge-info {
+    @apply newa-badge-info;
   }
 }
+
+/* ============================================
+   ANIMATIONS (Preserved from original)
+   ============================================ */
 
 @keyframes fadeInUp {
   from {
@@ -713,22 +839,505 @@
   }
 }
 
-@keyframes counter {
-  from {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+  opacity: 0;
 }
 
-@keyframes progressLine {
-  from {
-    width: 0%;
-  }
-  to {
+.slide-in-right {
+  animation: slideInRight 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* ============================================
+   LANDING PAGE COMPONENTS (NEWA Design System)
+   ============================================ */
+
+@layer components {
+  /* ===== CONTAINERS ===== */
+  .container-custom {
     width: 100%;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--newa-spacing-4);
+    padding-right: var(--newa-spacing-4);
+  }
+
+  @media (min-width: 640px) {
+    .container-custom {
+      padding-left: var(--newa-spacing-6);
+      padding-right: var(--newa-spacing-6);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container-custom {
+      padding-left: var(--newa-spacing-8);
+      padding-right: var(--newa-spacing-8);
+    }
+  }
+
+  .container-narrow {
+    width: 100%;
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--newa-spacing-4);
+    padding-right: var(--newa-spacing-4);
+  }
+
+  @media (min-width: 640px) {
+    .container-narrow {
+      padding-left: var(--newa-spacing-6);
+      padding-right: var(--newa-spacing-6);
+    }
+  }
+
+  /* ===== SECTION SPACING ===== */
+  .section-padding {
+    padding-top: var(--newa-spacing-12);
+    padding-bottom: var(--newa-spacing-12);
+  }
+
+  @media (min-width: 768px) {
+    .section-padding {
+      padding-top: 80px;
+      padding-bottom: 80px;
+    }
+  }
+
+  .section-padding-reduced {
+    padding-top: var(--newa-spacing-10);
+    padding-bottom: var(--newa-spacing-10);
+  }
+
+  @media (min-width: 768px) {
+    .section-padding-reduced {
+      padding-top: 60px;
+      padding-bottom: 60px;
+    }
+  }
+
+  /* ===== LANDING TYPOGRAPHY ===== */
+  .headline {
+    font-family: var(--newa-font-editorial);
+    font-size: var(--newa-font-size-3xl);
+    font-weight: var(--newa-font-weight-bold);
+    line-height: var(--newa-line-height-tight);
+    color: var(--newa-text-primary);
+  }
+
+  @media (min-width: 768px) {
+    .headline {
+      font-size: var(--newa-font-size-4xl);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .headline {
+      font-size: 48px;
+    }
+  }
+
+  .subheadline {
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-xl);
+    font-weight: var(--newa-font-weight-semibold);
+    line-height: var(--newa-line-height-tight);
+    color: var(--newa-text-primary);
+  }
+
+  @media (min-width: 768px) {
+    .subheadline {
+      font-size: var(--newa-font-size-2xl);
+    }
+  }
+
+  .section-title {
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-2xl);
+    font-weight: var(--newa-font-weight-bold);
+    line-height: var(--newa-line-height-tight);
+    color: var(--newa-text-primary);
+  }
+
+  @media (min-width: 768px) {
+    .section-title {
+      font-size: var(--newa-font-size-3xl);
+    }
+  }
+
+  .body {
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-sm);
+    font-weight: var(--newa-font-weight-regular);
+    line-height: var(--newa-line-height-normal);
+    color: var(--newa-text-secondary);
+  }
+
+  .body-large {
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-base);
+    font-weight: var(--newa-font-weight-regular);
+    line-height: var(--newa-line-height-relaxed);
+    color: var(--newa-text-secondary);
+  }
+
+  @media (min-width: 768px) {
+    .body-large {
+      font-size: var(--newa-font-size-lg);
+    }
+  }
+
+  .text-small {
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-sm);
+    font-weight: var(--newa-font-weight-regular);
+    line-height: var(--newa-line-height-normal);
+    color: var(--newa-text-muted);
+  }
+
+  .micro-copy {
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-xs);
+    font-weight: var(--newa-font-weight-regular);
+    line-height: var(--newa-line-height-normal);
+    color: var(--newa-text-muted);
+    margin-top: var(--newa-spacing-3);
+    text-align: center;
+  }
+
+  /* ===== GRADIENT TEXT ===== */
+  .gradient-text {
+    background: linear-gradient(135deg, var(--newa-brand-accent-indigo) 0%, #A855F7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-success {
+    background: linear-gradient(135deg, var(--newa-brand-accent-emerald) 0%, #14B8A6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--newa-spacing-3) var(--newa-spacing-6);
+    background: var(--newa-brand-accent-indigo);
+    color: var(--newa-text-inverse);
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-sm);
+    font-weight: var(--newa-font-weight-semibold);
+    border-radius: 40px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--newa-shadow-sm);
+  }
+
+  .btn-primary:hover {
+    background: #4F46E5;
+    box-shadow: var(--newa-shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:focus-visible {
+    outline: var(--newa-focus-ring-width) solid var(--newa-focus-ring-color);
+    outline-offset: var(--newa-focus-ring-offset);
+  }
+
+  .btn-hero {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--newa-spacing-4) var(--newa-spacing-8);
+    background: linear-gradient(135deg, var(--newa-brand-accent-indigo) 0%, #A855F7 100%);
+    color: var(--newa-text-inverse);
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-base);
+    font-weight: var(--newa-font-weight-bold);
+    border-radius: 40px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+  }
+
+  .btn-hero:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
+  }
+
+  .btn-hero:focus-visible {
+    outline: var(--newa-focus-ring-width) solid var(--newa-focus-ring-color);
+    outline-offset: var(--newa-focus-ring-offset);
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--newa-spacing-3) var(--newa-spacing-6);
+    background: transparent;
+    color: var(--newa-text-primary);
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-sm);
+    font-weight: var(--newa-font-weight-semibold);
+    border-radius: 40px;
+    border: 1px solid var(--newa-border-default);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-ghost:hover {
+    background: var(--newa-state-hover);
+    border-color: var(--newa-brand-accent-indigo);
+    color: var(--newa-brand-accent-indigo);
+  }
+
+  .btn-ghost:focus-visible {
+    outline: var(--newa-focus-ring-width) solid var(--newa-focus-ring-color);
+    outline-offset: var(--newa-focus-ring-offset);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--newa-spacing-3) var(--newa-spacing-6);
+    background: var(--newa-surface-canvas);
+    color: var(--newa-text-primary);
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-sm);
+    font-weight: var(--newa-font-weight-semibold);
+    border-radius: 40px;
+    border: 1px solid var(--newa-border-default);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-secondary:hover {
+    background: var(--newa-surface-light);
+    box-shadow: var(--newa-shadow-sm);
+  }
+
+  .btn-secondary:focus-visible {
+    outline: var(--newa-focus-ring-width) solid var(--newa-focus-ring-color);
+    outline-offset: var(--newa-focus-ring-offset);
+  }
+
+  /* ===== LANDING CARDS ===== */
+  .card-feature {
+    background: var(--newa-surface-light);
+    border: 1px solid var(--newa-border-default);
+    border-radius: var(--newa-radius-xl);
+    padding: var(--newa-spacing-6);
+    transition: all 0.3s ease;
+  }
+
+  .card-feature:hover {
+    box-shadow: var(--newa-shadow-md);
+    border-color: var(--newa-brand-accent-indigo);
+    transform: translateY(-4px);
+  }
+
+  .card-feature-highlight {
+    background: var(--newa-surface-light);
+    border: 2px solid var(--newa-brand-accent-indigo);
+    border-radius: var(--newa-radius-xl);
+    padding: var(--newa-spacing-6);
+    box-shadow: var(--newa-shadow-md);
+    transition: all 0.3s ease;
+  }
+
+  .card-feature-highlight:hover {
+    box-shadow: var(--newa-shadow-lg);
+    transform: translateY(-4px);
+  }
+
+  .card-pricing {
+    background: var(--newa-surface-light);
+    border: 1px solid var(--newa-border-default);
+    border-radius: var(--newa-radius-xl);
+    padding: var(--newa-spacing-8);
+    transition: all 0.3s ease;
+  }
+
+  .card-pricing:hover {
+    box-shadow: var(--newa-shadow-md);
+  }
+
+  .card-pricing-featured {
+    background: var(--newa-surface-light);
+    border: 2px solid var(--newa-brand-accent-indigo);
+    border-radius: var(--newa-radius-xl);
+    padding: var(--newa-spacing-8);
+    box-shadow: var(--newa-shadow-lg);
+    transition: all 0.3s ease;
+  }
+
+  .card-pricing-featured:hover {
+    box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15);
+  }
+
+  .card-testimonial {
+    background: var(--newa-surface-light);
+    border: 1px solid var(--newa-border-default);
+    border-radius: var(--newa-radius-xl);
+    padding: var(--newa-spacing-8);
+    box-shadow: var(--newa-shadow-sm);
+  }
+
+  /* ===== GRADIENT BACKGROUNDS ===== */
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, var(--newa-brand-accent-indigo) 0%, #A855F7 100%);
+  }
+
+  .bg-primary-navy {
+    background: var(--newa-brand-primary-dark);
+  }
+
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(to right, var(--newa-border-default) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--newa-border-default) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* ===== STEP CIRCLES ===== */
+  .step-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--newa-font-mono);
+    font-size: var(--newa-font-size-sm);
+    font-weight: var(--newa-font-weight-bold);
+    transition: all 0.5s ease;
+  }
+
+  .step-circle-active {
+    background: linear-gradient(135deg, var(--newa-brand-accent-indigo) 0%, #A855F7 100%);
+    color: var(--newa-text-inverse);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+    transform: scale(1.1);
+  }
+
+  .step-circle-completed {
+    background: var(--newa-brand-accent-indigo);
+    color: var(--newa-text-inverse);
+  }
+
+  .step-circle-pending {
+    background: var(--newa-surface-canvas);
+    color: var(--newa-text-muted);
+    border: 2px solid var(--newa-border-default);
+  }
+
+  /* ===== SHADOWS ===== */
+  .shadow-soft {
+    box-shadow: var(--newa-shadow-sm);
+  }
+
+  .shadow-medium {
+    box-shadow: var(--newa-shadow-md);
+  }
+
+  .shadow-large {
+    box-shadow: var(--newa-shadow-lg);
+  }
+
+  .shadow-elegant {
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
+  }
+
+  .shadow-glow {
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.35);
+  }
+
+  /* ===== COLOR UTILITIES ===== */
+  .text-primary-indigo {
+    color: var(--newa-brand-accent-indigo);
+  }
+
+  .text-accent-emerald {
+    color: var(--newa-brand-accent-emerald);
+  }
+
+  .bg-primary-indigo {
+    background: var(--newa-brand-accent-indigo);
+  }
+
+  .bg-accent-emerald {
+    background: var(--newa-brand-accent-emerald);
+  }
+
+  .primary-indigo-dark {
+    background: #4F46E5;
+  }
+
+  /* ===== NAVIGATION HEIGHT ===== */
+  .h-18 {
+    height: 72px;
+  }
+
+  /* ===== LANDING ANIMATIONS ===== */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.8s ease-out forwards;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  .animate-pulse-glow {
+    animation: pulseGlow 3s ease-in-out infinite;
+  }
+
+  /* ===== STEP CONTENT ===== */
+  .step-content {
+    transition: all 0.5s ease;
+  }
+
+  .step-content-active {
+    opacity: 1;
+  }
+
+  .step-content-pending {
+    opacity: 0.5;
   }
 }

@@ -29,7 +29,7 @@ const PricingSection = () => {
       planKey: 'starter',
       price: 'Gratuit',
       badge: 'Perfect pentru început',
-      badgeColor: 'bg-gray-100 text-gray-700',
+      badgeColor: 'bg-[var(--newa-surface-canvas)] text-[var(--newa-text-secondary)]',
       features: [
         '3 analize/lună',
         '10 KPI-uri de bază',
@@ -46,7 +46,7 @@ const PricingSection = () => {
       price: '49€',
       period: '/lună',
       badge: 'Cel mai popular',
-      badgeColor: 'bg-indigo-100 text-indigo-700',
+      badgeColor: 'bg-[var(--newa-selection-bg)] text-[var(--newa-brand-accent-indigo)]',
       features: [
         'Analize nelimitate',
         '15+ KPI-uri avansate',
@@ -83,15 +83,15 @@ const PricingSection = () => {
     <section 
       id="pricing"
       ref={sectionRef}
-      className="section-padding bg-white"
+      className="section-padding bg-[var(--newa-surface-light)]"
     >
       <div className="container-custom">
         {/* Header with proper hierarchy */}
         <div className="text-center mb-10">
-          <h2 className="section-title text-gray-900 mb-4">
+          <h2 className="section-title text-[var(--newa-text-primary)] mb-4">
             Prețuri simple, fără surprize
           </h2>
-          <p className="body-large text-gray-600 max-w-2xl mx-auto">
+          <p className="body-large text-[var(--newa-text-secondary)] max-w-2xl mx-auto">
             Începe gratuit, scalează când ești gata
           </p>
         </div>
@@ -114,7 +114,7 @@ const PricingSection = () => {
               {/* Popular Badge */}
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-1.5 rounded-[40px] text-xs font-bold shadow-md">
+                  <div className="bg-gradient-to-r from-[var(--newa-brand-accent-indigo)] to-purple-600 text-[var(--newa-text-inverse)] px-4 py-1.5 rounded-[40px] text-xs font-bold shadow-md">
                     Recomandat
                   </div>
                 </div>
@@ -127,17 +127,17 @@ const PricingSection = () => {
                 </div>
 
                 {/* Plan Name */}
-                <h3 className="text-xl font-bold text-gray-900 mb-1">
+                <h3 className="text-xl font-bold text-[var(--newa-text-primary)] mb-1">
                   {plan.name}
                 </h3>
 
                 {/* Price */}
                 <div className="mb-6">
-                  <span className={`text-3xl font-mono font-bold ${plan.popular ? 'gradient-text' : 'text-[#0F172A]'}`}>
+                  <span className={`text-3xl font-mono font-bold ${plan.popular ? 'gradient-text' : 'text-[var(--newa-brand-primary-dark)]'}`}>
                     {plan.price}
                   </span>
                   {plan.period && (
-                    <span className="text-base text-gray-600">{plan.period}</span>
+                    <span className="text-base text-[var(--newa-text-secondary)]">{plan.period}</span>
                   )}
                 </div>
 
@@ -145,8 +145,8 @@ const PricingSection = () => {
                 <ul className="space-y-3 mb-6 text-left">
                   {plan.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-start space-x-2">
-                      <Check className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">{feature}</span>
+                      <Check className="w-4 h-4 text-[var(--newa-brand-accent-emerald)] mt-0.5 flex-shrink-0" />
+                      <span className="text-sm text-[var(--newa-text-secondary)]">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -177,34 +177,34 @@ const PricingSection = () => {
 
         {/* Trust & Reassurance Bar */}
         <div className="text-center mt-14">
-          <div className="inline-flex flex-wrap items-center justify-center gap-6 lg:gap-8 bg-gradient-to-r from-gray-50 via-white to-gray-50 px-6 lg:px-8 py-5 rounded-[20px] border border-gray-100 shadow-sm">
+          <div className="inline-flex flex-wrap items-center justify-center gap-6 lg:gap-8 bg-gradient-to-r from-[var(--newa-surface-canvas)] via-[var(--newa-surface-light)] to-[var(--newa-surface-canvas)] px-6 lg:px-8 py-5 rounded-[var(--newa-radius-xl)] border border-[var(--newa-border-default)] shadow-sm">
             <div className="flex items-center gap-2 group">
-              <div className="flex-shrink-0 w-10 h-10 bg-emerald-50 rounded-[16px] flex items-center justify-center group-hover:bg-emerald-100 transition-colors duration-300">
-                <Sparkles className="w-5 h-5 text-emerald-600" />
+              <div className="flex-shrink-0 w-10 h-10 bg-[var(--newa-alert-success-bg)] rounded-[var(--newa-radius-lg)] flex items-center justify-center group-hover:opacity-80 transition-opacity duration-300">
+                <Sparkles className="w-5 h-5 text-[var(--newa-brand-accent-emerald)]" />
               </div>
               <div className="text-left">
-                <div className="font-semibold text-[#0F172A] text-sm">Start Instant Fără Card</div>
-                <div className="text-xs text-slate-400">Activare în 30 secunde</div>
+                <div className="font-semibold text-[var(--newa-brand-primary-dark)] text-sm">Start Instant Fără Card</div>
+                <div className="text-xs text-[var(--newa-text-muted)]">Activare în 30 secunde</div>
               </div>
             </div>
             
             <div className="flex items-center gap-2 group">
-              <div className="flex-shrink-0 w-10 h-10 bg-blue-50 rounded-[16px] flex items-center justify-center group-hover:bg-blue-100 transition-colors duration-300">
-                <Shield className="w-5 h-5 text-blue-600" />
+              <div className="flex-shrink-0 w-10 h-10 bg-[var(--newa-alert-info-bg)] rounded-[var(--newa-radius-lg)] flex items-center justify-center group-hover:opacity-80 transition-opacity duration-300">
+                <Shield className="w-5 h-5 text-[var(--newa-semantic-info)]" />
               </div>
               <div className="text-left">
-                <div className="font-semibold text-[#0F172A] text-sm">Anulare Instant 100%</div>
-                <div className="text-xs text-slate-400">Zero întrebări, zero taxe</div>
+                <div className="font-semibold text-[var(--newa-brand-primary-dark)] text-sm">Anulare Instant 100%</div>
+                <div className="text-xs text-[var(--newa-text-muted)]">Zero întrebări, zero taxe</div>
               </div>
             </div>
             
             <div className="flex items-center gap-2 group">
-              <div className="flex-shrink-0 w-10 h-10 bg-purple-50 rounded-[16px] flex items-center justify-center group-hover:bg-purple-100 transition-colors duration-300">
+              <div className="flex-shrink-0 w-10 h-10 bg-purple-50 rounded-[var(--newa-radius-lg)] flex items-center justify-center group-hover:opacity-80 transition-opacity duration-300">
                 <Lock className="w-5 h-5 text-purple-600" />
               </div>
               <div className="text-left">
-                <div className="font-semibold text-[#0F172A] text-sm">Securitate Bancară</div>
-                <div className="text-xs text-slate-400">Encriptare SSL 256-bit</div>
+                <div className="font-semibold text-[var(--newa-brand-primary-dark)] text-sm">Securitate Bancară</div>
+                <div className="text-xs text-[var(--newa-text-muted)]">Encriptare SSL 256-bit</div>
               </div>
             </div>
           </div>

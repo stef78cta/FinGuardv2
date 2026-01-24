@@ -57,9 +57,9 @@ const HeroSection = () => {
       className="relative min-h-[auto] py-12 md:min-h-[80vh] md:py-0 flex items-center overflow-hidden pt-20 md:pt-24"
     >
       {/* Background Elements */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/50"></div>
-      <div className="absolute top-10 right-10 w-48 h-48 bg-gradient-to-br from-indigo-400/20 to-purple-500/20 rounded-full blur-3xl animate-pulse-glow"></div>
-      <div className="absolute bottom-10 left-10 w-64 h-64 bg-gradient-to-br from-emerald-400/10 to-teal-500/10 rounded-full blur-3xl"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-[var(--newa-surface-canvas)] via-[var(--newa-selection-bg)]/30 to-purple-50/50"></div>
+      <div className="absolute top-10 right-10 w-48 h-48 bg-gradient-to-br from-[var(--newa-brand-accent-indigo)]/20 to-purple-500/20 rounded-full blur-3xl animate-pulse-glow"></div>
+      <div className="absolute bottom-10 left-10 w-64 h-64 bg-gradient-to-br from-[var(--newa-brand-accent-emerald)]/10 to-teal-500/10 rounded-full blur-3xl"></div>
 
       <div className="container-custom relative z-10">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -68,18 +68,18 @@ const HeroSection = () => {
             {/* Headline with clear hierarchy */}
             <div className="space-y-5">
               <h1 className="animate-fade-in-up">
-                <span className="block text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-2">
+                <span className="block text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--newa-text-primary)] mb-2">
                   Cum să obții
                 </span>
                 <span className="block headline gradient-text">
                   analiză financiară de nivel CFO
                 </span>
-                <span className="block text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-700 mt-2">
+                <span className="block text-2xl md:text-3xl lg:text-4xl font-semibold text-[var(--newa-text-secondary)] mt-2">
                   în 30 de secunde, fără consultanți scumpi
                 </span>
               </h1>
               
-              <p className="body-large text-gray-600 max-w-xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <p className="body-large text-[var(--newa-text-secondary)] max-w-xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                 FinGuard transformă balanțele contabile în rapoarte detaliate, KPI-uri esențiale 
                 și previziuni bugetare precise – automat și 100% confidențial.
               </p>
@@ -105,13 +105,13 @@ const HeroSection = () => {
               </div>
               
               {/* Micro-copy for reassurance */}
-              <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+              <div className="flex flex-wrap items-center gap-4 text-xs text-[var(--newa-text-muted)]">
                 <span className="inline-flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5 text-emerald-500" />
+                  <Shield className="w-3.5 h-3.5 text-[var(--newa-brand-accent-emerald)]" />
                   Fără card de credit
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                  <Clock className="w-3.5 h-3.5 text-[var(--newa-brand-accent-indigo)]" />
                   Rezultate în 30 secunde
                 </span>
               </div>
@@ -119,18 +119,18 @@ const HeroSection = () => {
 
             {/* Trust Bar - Hidden on mobile for CTA visibility */}
             <div className="hidden sm:block animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-              <p className="text-small text-gray-500 mb-2">
+              <p className="text-small text-[var(--newa-text-muted)] mb-2">
                 Peste 500 de companii românești folosesc FinGuard
               </p>
               <div className="flex items-center space-x-4 opacity-50">
-                <div className="w-16 h-5 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-[10px] font-medium text-gray-500">COMPANY</span>
+                <div className="w-16 h-5 bg-[var(--newa-surface-canvas)] rounded-[var(--newa-radius-sm)] flex items-center justify-center">
+                  <span className="text-[10px] font-medium text-[var(--newa-text-muted)]">COMPANY</span>
                 </div>
-                <div className="w-16 h-5 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-[10px] font-medium text-gray-500">BRAND</span>
+                <div className="w-16 h-5 bg-[var(--newa-surface-canvas)] rounded-[var(--newa-radius-sm)] flex items-center justify-center">
+                  <span className="text-[10px] font-medium text-[var(--newa-text-muted)]">BRAND</span>
                 </div>
-                <div className="w-16 h-5 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-[10px] font-medium text-gray-500">CORP</span>
+                <div className="w-16 h-5 bg-[var(--newa-surface-canvas)] rounded-[var(--newa-radius-sm)] flex items-center justify-center">
+                  <span className="text-[10px] font-medium text-[var(--newa-text-muted)]">CORP</span>
                 </div>
               </div>
             </div>
@@ -142,29 +142,29 @@ const HeroSection = () => {
               <img 
                 src={dashboardMockup}
                 alt="FinGuard Dashboard - Analiză financiară automată"
-                className="w-full h-auto rounded-[20px] shadow-xl"
+                className="w-full h-auto rounded-[var(--newa-radius-xl)] shadow-xl"
               />
               
-              {/* Floating Metric Cards - 20px radius */}
-              <div className="hidden md:block absolute -top-3 -left-3 bg-white p-3 rounded-[20px] shadow-md border border-gray-100 float-animation">
+              {/* Floating Metric Cards - NEWA radius */}
+              <div className="hidden md:block absolute -top-3 -left-3 bg-[var(--newa-surface-light)] p-3 rounded-[var(--newa-radius-xl)] shadow-md border border-[var(--newa-border-default)] float-animation">
                 <div className="text-lg font-mono font-bold gradient-text">
                   {Math.round(counters.saved)}%
                 </div>
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">timp economisit</div>
+                <div className="text-[10px] font-bold text-[var(--newa-text-muted)] uppercase tracking-widest">timp economisit</div>
               </div>
 
-              <div className="hidden md:block absolute top-4 -right-4 bg-white p-3 rounded-[20px] shadow-md border border-gray-100 float-animation" style={{ animationDelay: '0.5s' }}>
+              <div className="hidden md:block absolute top-4 -right-4 bg-[var(--newa-surface-light)] p-3 rounded-[var(--newa-radius-xl)] shadow-md border border-[var(--newa-border-default)] float-animation" style={{ animationDelay: '0.5s' }}>
                 <div className="text-lg font-mono font-bold gradient-text">
                   {Math.round(counters.kpis)}
                 </div>
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">KPI-uri calculate</div>
+                <div className="text-[10px] font-bold text-[var(--newa-text-muted)] uppercase tracking-widest">KPI-uri calculate</div>
               </div>
 
-              <div className="hidden md:block absolute -bottom-2 -left-4 bg-white p-3 rounded-[20px] shadow-md border border-gray-100 float-animation" style={{ animationDelay: '1s' }}>
+              <div className="hidden md:block absolute -bottom-2 -left-4 bg-[var(--newa-surface-light)] p-3 rounded-[var(--newa-radius-xl)] shadow-md border border-[var(--newa-border-default)] float-animation" style={{ animationDelay: '1s' }}>
                 <div className="text-lg font-mono font-bold gradient-text-success">
                   {counters.accuracy.toFixed(1)}%
                 </div>
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">acuratețe</div>
+                <div className="text-[10px] font-bold text-[var(--newa-text-muted)] uppercase tracking-widest">acuratețe</div>
               </div>
             </div>
           </div>

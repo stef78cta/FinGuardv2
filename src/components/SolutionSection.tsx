@@ -76,7 +76,7 @@ const SolutionSection = () => {
     <section 
       id="demo"
       ref={sectionRef}
-      className="section-padding bg-white relative overflow-hidden"
+      className="section-padding bg-[var(--newa-surface-light)] relative overflow-hidden"
     >
       {/* Grid Pattern Background */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
@@ -84,10 +84,10 @@ const SolutionSection = () => {
       <div className="container-narrow relative z-10">
         {/* Header */}
         <div className="text-center mb-10 md:mb-14">
-          <h2 className="section-title text-gray-900 mb-4">
+          <h2 className="section-title text-[var(--newa-text-primary)] mb-4">
             FinGuard oferă claritate financiară instantanee
           </h2>
-          <p className="body-large text-gray-600 max-w-2xl mx-auto">
+          <p className="body-large text-[var(--newa-text-secondary)] max-w-2xl mx-auto">
             Încarcă balanța, primește analiză completă – simplu ca atât
           </p>
         </div>
@@ -96,11 +96,11 @@ const SolutionSection = () => {
         <div className="max-w-3xl mx-auto mb-12">
           <div className="flex items-center justify-between relative">
             {/* Background Line */}
-            <div className="absolute top-6 left-0 right-0 h-1 bg-gray-200 -z-10 rounded-full"></div>
+            <div className="absolute top-6 left-0 right-0 h-1 bg-[var(--newa-border-default)] -z-10 rounded-full"></div>
             
             {/* Animated Progress Line */}
             <div 
-              className="absolute top-6 left-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-600 -z-10 rounded-full transition-all duration-700 ease-out"
+              className="absolute top-6 left-0 h-1 bg-gradient-to-r from-[var(--newa-brand-accent-indigo)] to-purple-600 -z-10 rounded-full transition-all duration-700 ease-out"
               style={{ width: `${progressWidth}%` }}
             ></div>
             
@@ -127,8 +127,8 @@ const SolutionSection = () => {
                   <div className={`flex items-center gap-1.5 mt-3 transition-all duration-300 ${
                     isActive ? 'opacity-100' : 'opacity-50'
                   }`}>
-                    <IconComponent className={`w-4 h-4 ${isActive ? 'text-indigo-600' : 'text-gray-400'}`} />
-                    <p className={`text-xs font-semibold ${isActive ? 'text-gray-900' : 'text-gray-500'}`}>
+                    <IconComponent className={`w-4 h-4 ${isActive ? 'text-[var(--newa-brand-accent-indigo)]' : 'text-[var(--newa-text-muted)]'}`} />
+                    <p className={`text-xs font-semibold ${isActive ? 'text-[var(--newa-text-primary)]' : 'text-[var(--newa-text-muted)]'}`}>
                       {step.title}
                     </p>
                   </div>
@@ -167,30 +167,30 @@ const SolutionSection = () => {
                   }}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center text-white font-bold text-sm transition-all duration-500 ${
+                    <div className={`w-12 h-12 rounded-[var(--newa-radius-lg)] flex items-center justify-center text-[var(--newa-text-inverse)] font-bold text-sm transition-all duration-500 ${
                       isActive 
-                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg' 
-                        : 'bg-gray-300'
+                        ? 'bg-gradient-to-r from-[var(--newa-brand-accent-indigo)] to-purple-600 shadow-lg' 
+                        : 'bg-[var(--newa-border-default)]'
                     }`}>
                       {step.number}
                     </div>
-                    <div className={`w-10 h-10 rounded-[16px] flex items-center justify-center transition-all duration-500 ${
-                      isActive ? 'bg-indigo-50' : 'bg-gray-100'
+                    <div className={`w-10 h-10 rounded-[var(--newa-radius-lg)] flex items-center justify-center transition-all duration-500 ${
+                      isActive ? 'bg-[var(--newa-selection-bg)]' : 'bg-[var(--newa-surface-canvas)]'
                     }`}>
                       <IconComponent className={`w-5 h-5 transition-colors duration-500 ${
-                        isActive ? 'text-indigo-600' : 'text-gray-400'
+                        isActive ? 'text-[var(--newa-brand-accent-indigo)]' : 'text-[var(--newa-text-muted)]'
                       }`} />
                     </div>
                   </div>
                   
                   <h3 className={`text-xl font-bold transition-colors duration-500 ${
-                    isActive ? 'text-gray-900' : 'text-gray-500'
+                    isActive ? 'text-[var(--newa-text-primary)]' : 'text-[var(--newa-text-muted)]'
                   }`}>
                     {step.title}
                   </h3>
                   
                   <p className={`body transition-colors duration-500 ${
-                    isActive ? 'text-gray-600' : 'text-gray-400'
+                    isActive ? 'text-[var(--newa-text-secondary)]' : 'text-[var(--newa-text-muted)]'
                   }`}>
                     {step.description}
                   </p>
@@ -207,22 +207,22 @@ const SolutionSection = () => {
                     animationDelay: `${index * 0.3 + 0.2}s`,
                   }}
                 >
-                  <div className={`bg-gray-50 rounded-[20px] p-6 h-60 flex items-center justify-center border transition-all duration-500 ${
-                    isActive ? 'border-indigo-200 shadow-lg' : 'border-gray-100'
+                  <div className={`bg-[var(--newa-surface-canvas)] rounded-[var(--newa-radius-xl)] p-6 h-60 flex items-center justify-center border transition-all duration-500 ${
+                    isActive ? 'border-[var(--newa-brand-accent-indigo)]/30 shadow-lg' : 'border-[var(--newa-border-default)]'
                   }`}>
                     {step.visual === 'upload-interface' && (
                       <div className="w-full max-w-xs">
-                        <div className={`border-2 border-dashed rounded-[16px] p-6 text-center transition-all duration-500 ${
-                          isActive ? 'border-indigo-400 bg-indigo-50/70' : 'border-gray-300 bg-gray-50'
+                        <div className={`border-2 border-dashed rounded-[var(--newa-radius-lg)] p-6 text-center transition-all duration-500 ${
+                          isActive ? 'border-[var(--newa-brand-accent-indigo)] bg-[var(--newa-selection-bg)]/70' : 'border-[var(--newa-border-default)] bg-[var(--newa-surface-canvas)]'
                         }`}>
                           <Upload className={`w-10 h-10 mx-auto mb-3 transition-colors duration-500 ${
-                            isActive ? 'text-indigo-500' : 'text-gray-400'
+                            isActive ? 'text-[var(--newa-brand-accent-indigo)]' : 'text-[var(--newa-text-muted)]'
                           }`} />
                           <p className={`text-sm font-medium transition-colors duration-500 ${
-                            isActive ? 'text-indigo-700' : 'text-gray-500'
+                            isActive ? 'text-[var(--newa-brand-accent-indigo)]' : 'text-[var(--newa-text-muted)]'
                           }`}>Drag & Drop balanța aici</p>
                           <p className={`text-xs mt-1 transition-colors duration-500 ${
-                            isActive ? 'text-indigo-600' : 'text-gray-400'
+                            isActive ? 'text-[var(--newa-brand-accent-indigo)]' : 'text-[var(--newa-text-muted)]'
                           }`}>PDF, Excel, XLS</p>
                         </div>
                       </div>
@@ -231,20 +231,20 @@ const SolutionSection = () => {
                     {step.visual === 'processing-animation' && (
                       <div className="space-y-3 w-full max-w-xs">
                         <div className="flex items-center space-x-2">
-                          <div className={`w-3 h-3 rounded-full ${isActive ? 'bg-indigo-500 animate-pulse' : 'bg-gray-300'}`}></div>
-                          <div className="h-1.5 bg-gray-200 rounded-full flex-1">
+                          <div className={`w-3 h-3 rounded-full ${isActive ? 'bg-[var(--newa-brand-accent-indigo)] animate-pulse' : 'bg-[var(--newa-border-default)]'}`}></div>
+                          <div className="h-1.5 bg-[var(--newa-border-default)] rounded-full flex-1">
                             <div className={`h-full rounded-full transition-all duration-1000 ${
-                              isActive ? 'bg-indigo-500 w-3/4 animate-pulse' : 'bg-gray-300 w-1/4'
+                              isActive ? 'bg-[var(--newa-brand-accent-indigo)] w-3/4 animate-pulse' : 'bg-[var(--newa-border-default)] w-1/4'
                             }`}></div>
                           </div>
                         </div>
-                        <div className={`text-xs transition-colors duration-500 ${isActive ? 'text-gray-600' : 'text-gray-400'}`}>
+                        <div className={`text-xs transition-colors duration-500 ${isActive ? 'text-[var(--newa-text-secondary)]' : 'text-[var(--newa-text-muted)]'}`}>
                           Analizez KPI-urile...
                         </div>
-                        <div className={`text-xs transition-colors duration-500 ${isActive ? 'text-gray-600' : 'text-gray-400'}`}>
+                        <div className={`text-xs transition-colors duration-500 ${isActive ? 'text-[var(--newa-text-secondary)]' : 'text-[var(--newa-text-muted)]'}`}>
                           Calculez previziunile...
                         </div>
-                        <div className={`text-xs transition-colors duration-500 ${isActive ? 'text-gray-600' : 'text-gray-400'}`}>
+                        <div className={`text-xs transition-colors duration-500 ${isActive ? 'text-[var(--newa-text-secondary)]' : 'text-[var(--newa-text-muted)]'}`}>
                           Generez raportul...
                         </div>
                       </div>
@@ -253,30 +253,30 @@ const SolutionSection = () => {
                     {step.visual === 'dashboard-results' && (
                       <div className="w-full max-w-xs space-y-3">
                         <div className="grid grid-cols-2 gap-3">
-                          <div className={`bg-white p-3 rounded-[16px] transition-shadow duration-500 ${
+                          <div className={`bg-[var(--newa-surface-light)] p-3 rounded-[var(--newa-radius-lg)] transition-shadow duration-500 ${
                             isActive ? 'shadow-md' : 'shadow-sm'
                           }`}>
                             <div className={`text-xl font-mono font-bold transition-colors duration-500 ${
-                              isActive ? 'text-emerald-500' : 'text-gray-400'
+                              isActive ? 'text-[var(--newa-brand-accent-emerald)]' : 'text-[var(--newa-text-muted)]'
                             }`}>87%</div>
-                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lichiditate</div>
+                            <div className="text-[10px] font-bold text-[var(--newa-text-muted)] uppercase tracking-widest">Lichiditate</div>
                           </div>
-                          <div className={`bg-white p-3 rounded-[16px] transition-shadow duration-500 ${
+                          <div className={`bg-[var(--newa-surface-light)] p-3 rounded-[var(--newa-radius-lg)] transition-shadow duration-500 ${
                             isActive ? 'shadow-md' : 'shadow-sm'
                           }`}>
                             <div className={`text-xl font-mono font-bold transition-colors duration-500 ${
-                              isActive ? 'text-indigo-600' : 'text-gray-400'
+                              isActive ? 'text-[var(--newa-brand-accent-indigo)]' : 'text-[var(--newa-text-muted)]'
                             }`}>15</div>
-                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">KPI-uri</div>
+                            <div className="text-[10px] font-bold text-[var(--newa-text-muted)] uppercase tracking-widest">KPI-uri</div>
                           </div>
                         </div>
-                        <div className={`bg-white p-3 rounded-[16px] transition-shadow duration-500 ${
+                        <div className={`bg-[var(--newa-surface-light)] p-3 rounded-[var(--newa-radius-lg)] transition-shadow duration-500 ${
                           isActive ? 'shadow-md' : 'shadow-sm'
                         }`}>
-                          <div className={`h-14 rounded-[12px] transition-all duration-500 ${
+                          <div className={`h-14 rounded-[var(--newa-radius-md)] transition-all duration-500 ${
                             isActive 
-                              ? 'bg-gradient-to-r from-indigo-400 to-purple-500 opacity-80' 
-                              : 'bg-gray-200 opacity-50'
+                              ? 'bg-gradient-to-r from-[var(--newa-brand-accent-indigo)] to-purple-500 opacity-80' 
+                              : 'bg-[var(--newa-border-default)] opacity-50'
                           }`}></div>
                         </div>
                       </div>

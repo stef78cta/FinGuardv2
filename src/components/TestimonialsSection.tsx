@@ -64,10 +64,10 @@ const TestimonialsSection = () => {
   const prevTestimonial = () => {
     setCurrentIndex(prev => (prev - 1 + testimonials.length) % testimonials.length);
   };
-  return <section id="testimonials" ref={sectionRef} className="section-padding-reduced bg-white border-t border-gray-100">
+  return <section id="testimonials" ref={sectionRef} className="section-padding-reduced bg-[var(--newa-surface-light)] border-t border-[var(--newa-border-default)]">
       <div className="container-custom">
         <div className="text-center mb-6">
-          <h2 className="subheadline text-gray-900 mb-3">
+          <h2 className="subheadline text-[var(--newa-text-primary)] mb-3">
             Folosit de companiile care iau decizii bazate pe date
           </h2>
         </div>
@@ -80,22 +80,22 @@ const TestimonialsSection = () => {
           }}>
               {testimonials.map((testimonial, index) => <div key={index} className="w-full flex-shrink-0 px-4">
                   <div className="card-testimonial text-center">
-                    <Quote className="w-12 h-12 text-indigo-500 mx-auto mb-6" />
+                    <Quote className="w-12 h-12 text-[var(--newa-brand-accent-indigo)] mx-auto mb-6" />
                     
-                    <blockquote className="body-large text-gray-700 mb-8 italic leading-relaxed">
+                    <blockquote className="body-large text-[var(--newa-text-secondary)] mb-8 italic leading-relaxed">
                       "{testimonial.quote}"
                     </blockquote>
                     
                     <div className="flex items-center justify-center space-x-4">
-                      <img src={testimonial.image} alt={`${testimonial.author} - ${testimonial.role}`} className="w-16 h-16 rounded-full object-cover border-2 border-gray-100" />
+                      <img src={testimonial.image} alt={`${testimonial.author} - ${testimonial.role}`} className="w-16 h-16 rounded-full object-cover border-2 border-[var(--newa-border-default)]" />
                       <div className="text-left">
-                        <div className="font-semibold text-gray-900">
+                        <div className="font-semibold text-[var(--newa-text-primary)]">
                           {testimonial.author}
                         </div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-[var(--newa-text-secondary)]">
                           {testimonial.role}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-[var(--newa-text-muted)]">
                           {testimonial.company}
                         </div>
                       </div>
@@ -106,54 +106,54 @@ const TestimonialsSection = () => {
           </div>
 
           {/* Navigation Buttons */}
-          <button onClick={prevTestimonial} className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 bg-white rounded-full shadow-medium border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200">
-            <ChevronLeft className="w-5 h-5 text-gray-600" />
+          <button onClick={prevTestimonial} className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 bg-[var(--newa-surface-light)] rounded-full shadow-medium border border-[var(--newa-border-default)] flex items-center justify-center hover:bg-[var(--newa-surface-canvas)] transition-colors duration-200 newa-focus-ring">
+            <ChevronLeft className="w-5 h-5 text-[var(--newa-text-secondary)]" />
           </button>
 
-          <button onClick={nextTestimonial} className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 bg-white rounded-full shadow-medium border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200">
-            <ChevronRight className="w-5 h-5 text-gray-600" />
+          <button onClick={nextTestimonial} className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 bg-[var(--newa-surface-light)] rounded-full shadow-medium border border-[var(--newa-border-default)] flex items-center justify-center hover:bg-[var(--newa-surface-canvas)] transition-colors duration-200 newa-focus-ring">
+            <ChevronRight className="w-5 h-5 text-[var(--newa-text-secondary)]" />
           </button>
 
           {/* Indicators */}
           <div className="flex justify-center space-x-2 mt-8">
-            {testimonials.map((_, index) => <button key={index} onClick={() => setCurrentIndex(index)} className={`w-3 h-3 rounded-full transition-colors duration-200 ${index === currentIndex ? 'bg-indigo-500' : 'bg-gray-300'}`} />)}
+            {testimonials.map((_, index) => <button key={index} onClick={() => setCurrentIndex(index)} className={`w-3 h-3 rounded-full transition-colors duration-200 newa-focus-ring ${index === currentIndex ? 'bg-[var(--newa-brand-accent-indigo)]' : 'bg-[var(--newa-border-default)]'}`} />)}
           </div>
         </div>
 
         {/* Stats Bar */}
-        <div className={`border-t border-gray-100 pt-16 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
+        <div className={`border-t border-[var(--newa-border-default)] pt-16 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             {/* Stat 1 */}
             <div className="text-center space-y-3">
-              <div className="text-4xl font-bold text-gray-900">500+</div>
-              <div className="text-sm font-semibold text-gray-900 uppercase tracking-wide">companii</div>
-              <p className="body-large text-gray-700 leading-relaxed px-4">
+              <div className="text-4xl font-bold text-[var(--newa-text-primary)]">500+</div>
+              <div className="text-sm font-semibold text-[var(--newa-text-primary)] uppercase tracking-wide">companii</div>
+              <p className="body-large text-[var(--newa-text-secondary)] leading-relaxed px-4">
                 au încredere în analiza noastră pentru decizii mai rapide
               </p>
             </div>
 
             {/* Stat 2 */}
             <div className="text-center space-y-3">
-              <div className="text-4xl font-bold text-gray-900">&lt; 1 minut</div>
-              <div className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Viteză de analiză</div>
-              <p className="body-large text-gray-700 leading-relaxed px-4">
+              <div className="text-4xl font-bold text-[var(--newa-text-primary)]">&lt; 1 minut</div>
+              <div className="text-sm font-semibold text-[var(--newa-text-primary)] uppercase tracking-wide">Viteză de analiză</div>
+              <p className="body-large text-[var(--newa-text-secondary)] leading-relaxed px-4">
                 rezultate financiare clare, fără fișiere Excel complicate
               </p>
             </div>
 
             {/* Stat 3 */}
             <div className="text-center space-y-3">
-              <div className="text-4xl font-bold text-gray-900">€250k+</div>
-              <div className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Economii reale</div>
-              <p className="body-large text-gray-700 leading-relaxed px-4">
+              <div className="text-4xl font-bold text-[var(--newa-text-primary)]">€250k+</div>
+              <div className="text-sm font-semibold text-[var(--newa-text-primary)] uppercase tracking-wide">Economii reale</div>
+              <p className="body-large text-[var(--newa-text-secondary)] leading-relaxed px-4">
                 clienții noștri au redus drastic costurile de consultanță
               </p>
             </div>
           </div>
 
           {/* Final Benefit */}
-          <div className="text-center pt-8 border-t border-gray-100 mx-0 px-0">
-            <p className="subheadline text-gray-900 max-w-3xl mx-auto text-center">Alătură-te liderilor care au trecut deja la o soluție modernă de Financial Planning and Analysis</p>
+          <div className="text-center pt-8 border-t border-[var(--newa-border-default)] mx-0 px-0">
+            <p className="subheadline text-[var(--newa-text-primary)] max-w-3xl mx-auto text-center">Alătură-te liderilor care au trecut deja la o soluție modernă de Financial Planning and Analysis</p>
           </div>
         </div>
       </div>

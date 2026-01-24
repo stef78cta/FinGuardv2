@@ -36,10 +36,10 @@ const FAQSection = () => {
   };
 
   return (
-    <section id="faq" className="section-padding-reduced bg-surface">
+    <section id="faq" className="section-padding-reduced bg-[var(--newa-surface-canvas)]">
       <div className="container-narrow">
         <div className="text-center mb-6">
-          <h2 className="subheadline text-gray-900 mb-3">
+          <h2 className="subheadline text-[var(--newa-text-primary)] mb-3">
             Întrebări frecvente
           </h2>
         </div>
@@ -48,17 +48,17 @@ const FAQSection = () => {
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className="bg-white rounded-lg border border-gray-100 overflow-hidden"
+              className="bg-[var(--newa-surface-light)] rounded-[var(--newa-radius-md)] border border-[var(--newa-border-default)] overflow-hidden"
             >
               <button
                 onClick={() => toggleFAQ(index)}
-                className="w-full text-left p-4 hover:bg-gray-50 transition-colors duration-200 flex items-center justify-between"
+                className="w-full text-left p-4 hover:bg-[var(--newa-state-hover)] transition-colors duration-200 flex items-center justify-between newa-focus-ring"
               >
-                <span className="font-semibold text-sm text-gray-900 pr-3">
+                <span className="font-semibold text-sm text-[var(--newa-text-primary)] pr-3">
                   {faq.question}
                 </span>
                 <ChevronDown 
-                  className={`w-4 h-4 text-gray-500 transition-transform duration-300 flex-shrink-0 ${
+                  className={`w-4 h-4 text-[var(--newa-text-muted)] transition-transform duration-300 flex-shrink-0 ${
                     openIndex === index ? 'rotate-180' : ''
                   }`}
                 />
@@ -72,7 +72,7 @@ const FAQSection = () => {
                 }`}
               >
                 <div className="px-4 pb-4">
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-[var(--newa-text-secondary)]">
                     {faq.answer}
                   </p>
                 </div>

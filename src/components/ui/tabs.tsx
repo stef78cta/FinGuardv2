@@ -3,6 +3,16 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * NEWA Design System - Tabs Component
+ * 
+ * Uses tokens from newa_design-tokens.jsonc:
+ * - Active indicator: var(--newa-brand-accent-indigo)
+ * - Text: var(--newa-text-secondary) default, var(--newa-brand-accent-indigo) active
+ * - Background: var(--newa-table-header-bg) for list
+ * - Border: var(--newa-border-default)
+ */
+
 const Tabs = TabsPrimitive.Root;
 
 const TabsList = React.forwardRef<
@@ -12,8 +22,11 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "w-full justify-start rounded-none border-b border-gray-200 bg-slate-50 p-0 h-auto inline-flex items-center",
-      className,
+      "inline-flex items-center w-full justify-start",
+      "rounded-none p-0 h-auto",
+      "border-b border-[var(--newa-border-default)]",
+      "bg-[var(--newa-table-header-bg)]",
+      className
     )}
     {...props}
   />
@@ -27,16 +40,28 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap px-6 py-3 text-sm font-medium text-gray-600 ring-offset-background transition-all duration-300",
+      "inline-flex items-center justify-center whitespace-nowrap",
+      "px-[var(--newa-spacing-6)] py-3",
+      "text-sm font-medium",
+      "text-[var(--newa-text-secondary)]",
+      // Underline indicator
       "rounded-none border-b-2 border-transparent -mb-px",
-      "hover:text-gray-900 hover:border-gray-300",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-      "disabled:pointer-events-none disabled:opacity-50",
-      "data-[state=active]:text-indigo-600",
-      "data-[state=active]:border-indigo-500",
+      // Transition
+      "transition-all duration-200",
+      // Hover state
+      "hover:text-[var(--newa-text-primary)] hover:border-[var(--newa-text-muted)]",
+      // Focus state
+      "focus-visible:outline-none",
+      "focus-visible:ring-2 focus-visible:ring-[#6366F1]",
+      "focus-visible:ring-offset-2",
+      // Disabled state
+      "disabled:pointer-events-none disabled:opacity-[var(--newa-disabled-opacity)]",
+      // Active state
+      "data-[state=active]:text-[var(--newa-brand-accent-indigo)]",
+      "data-[state=active]:border-[var(--newa-brand-accent-indigo)]",
       "data-[state=active]:bg-transparent",
       "data-[state=active]:font-semibold",
-      className,
+      className
     )}
     {...props}
   />
@@ -50,8 +75,11 @@ const TabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     className={cn(
-      "mt-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-      className,
+      "mt-[var(--newa-spacing-4)]",
+      "focus-visible:outline-none",
+      "focus-visible:ring-2 focus-visible:ring-[#6366F1]",
+      "focus-visible:ring-offset-2",
+      className
     )}
     {...props}
   />

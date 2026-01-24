@@ -25,22 +25,22 @@ const ProblemSection = () => {
   const problems = [
     {
       icon: Clock,
-      iconColor: 'text-red-500',
-      bgColor: 'bg-red-50',
+      iconColor: 'text-[var(--newa-brand-danger-rose)]',
+      bgColor: 'bg-[var(--newa-alert-danger-bg)]',
       title: '48+ ore pe lună pierdute',
       description: 'Compilarea manuală a rapoartelor financiare consumă timpul pe care l-ai putea investi în dezvoltarea afacerii.',
     },
     {
       icon: FileX,
-      iconColor: 'text-orange-500',
-      bgColor: 'bg-orange-50',
+      iconColor: 'text-[var(--newa-semantic-warning)]',
+      bgColor: 'bg-[var(--newa-alert-warning-bg)]',
       title: 'Erori costisitoare umane',
       description: 'O singură greșeală de calcul poate duce la decizii financiare greșite care afectează cashflow-ul companiei.',
     },
     {
       icon: DollarSign,
-      iconColor: 'text-red-600',
-      bgColor: 'bg-red-50',
+      iconColor: 'text-[var(--newa-brand-danger-rose)]',
+      bgColor: 'bg-[var(--newa-alert-danger-bg)]',
       title: '5.000€+ consultanță/an',
       description: 'Serviciile de analiză financiară tradiționale sunt accesibile doar companiilor mari, lasând IMM-urile fără suport.',
     },
@@ -49,15 +49,15 @@ const ProblemSection = () => {
   return (
     <section 
       ref={sectionRef}
-      className="section-padding bg-gradient-to-b from-white to-surface"
+      className="section-padding bg-gradient-to-b from-[var(--newa-surface-light)] to-[var(--newa-surface-canvas)]"
     >
       <div className="container-narrow">
         {/* Header with proper hierarchy */}
         <div className="text-center mb-10">
-          <h2 className="section-title text-gray-900 mb-4">
+          <h2 className="section-title text-[var(--newa-text-primary)] mb-4">
             Cunosc frustrarea: zile întregi consumate de analiza manuală
           </h2>
-          <p className="body-large text-gray-600 max-w-2xl mx-auto">
+          <p className="body-large text-[var(--newa-text-secondary)] max-w-2xl mx-auto">
             Probleme pe care le întâlnesc zilnic antreprenorii și contabilii
           </p>
         </div>
@@ -78,15 +78,15 @@ const ProblemSection = () => {
                   transitionDelay: `${index * 0.1}s`
                 }}
               >
-                <div className={`w-14 h-14 ${problem.bgColor} rounded-xl flex items-center justify-center mx-auto mb-4`}>
+                <div className={`w-14 h-14 ${problem.bgColor} rounded-[var(--newa-radius-lg)] flex items-center justify-center mx-auto mb-4`}>
                   <IconComponent className={`w-7 h-7 ${problem.iconColor}`} />
                 </div>
                 
-                <h3 className="text-lg font-bold text-gray-900 mb-3">
+                <h3 className="text-lg font-bold text-[var(--newa-text-primary)] mb-3">
                   {problem.title}
                 </h3>
                 
-                <p className="body text-gray-600">
+                <p className="body text-[var(--newa-text-secondary)]">
                   {problem.description}
                 </p>
               </div>
