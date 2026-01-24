@@ -1,168 +1,305 @@
 {
-    "meta": {
-      "name": "FP&A SaaS Design Tokens",
-      "version": "1.1.0",
-      "description": "Design tokens centralizate pentru brand, aplicație și data viz"
-    },
-  
-    "color": {
-      "brand": {
-        "primaryDark": {
-          "value": "#0F172A",
-          "description": "Fundal header / sidebar"
-        },
-        "accentIndigo": {
-          "value": "#6366F1",
-          "description": "CTA-uri și focus"
-        },
-        "accentEmerald": {
-          "value": "#34D399",
-          "description": "Pozitiv / Profit"
-        },
-        "dangerRose": {
-          "value": "#F43F5E",
-          "description": "Negativ / Alertă"
-        }
+  "meta": {
+    "name": "FP&A SaaS Design Tokens",
+    "version": "2.0.0",
+    "description": "Design tokens centralizate pentru brand, aplicație și data viz - Extins cu stări UI, semantic, density, forms, tables, charts"
+  },
+
+  "color": {
+    "brand": {
+      "primaryDark": {
+        "value": "#0F172A",
+        "description": "Fundal header / sidebar"
       },
-  
-      "surface": {
-        "light": {
-          "value": "#FFFFFF",
-          "description": "Carduri și zone"
-        },
-        "canvas": {
-          "value": "#F8FAFC",
-          "description": "Fundal aplicație"
-        }
+      "accentIndigo": {
+        "value": "#6366F1",
+        "description": "CTA-uri și focus"
       },
-  
-      "text": {
-        "primary": {
-          "value": "#0F172A"
-        },
-        "secondary": {
-          "value": "#475569"
-        },
-        "muted": {
-          "value": "#94A3B8"
-        },
-        "inverse": {
-          "value": "#FFFFFF"
-        }
+      "accentEmerald": {
+        "value": "#34D399",
+        "description": "Pozitiv / Profit"
       },
-  
-      "border": {
-        "default": {
-          "value": "#E2E8F0"
-        },
-        "focus": {
-          "value": "#6366F1"
-        }
-      },
-  
-      "chart": {
-        "1": {
-          "value": "#6366F1",
-          "description": "Indigo-500, cel mai intens"
-        },
-        "2": {
-          "value": "#818CF8",
-          "description": "Indigo-400"
-        },
-        "3": {
-          "value": "#A5B4FC",
-          "description": "Indigo-300"
-        },
-        "4": {
-          "value": "#C7D2FE",
-          "description": "Indigo-200"
-        },
-        "5": {
-          "value": "#E0E7FF",
-          "description": "Indigo-100, cel mai deschis"
-        }
+      "dangerRose": {
+        "value": "#F43F5E",
+        "description": "Negativ / Alertă"
       }
     },
-  
-    "typography": {
-      "fontFamily": {
-        "editorial": {
-          "value": "Playfair Display, serif",
-          "description": "Stil editorial premium, landing pages, empty states"
-        },
-        "application": {
-          "value": "Inter, system-ui, sans-serif",
-          "description": "Interfață aplicație, dashboard, UI funcțional"
-        },
-        "mono": {
-          "value": "JetBrains Mono, monospace",
-          "description": "Valori monetare și coduri"
-        }
+
+    "surface": {
+      "light": {
+        "value": "#FFFFFF",
+        "description": "Carduri și zone"
       },
-  
-      "fontSize": {
-        "xs": { "value": "12px" },
-        "sm": { "value": "14px" },
-        "base": { "value": "16px" },
-        "lg": { "value": "18px" },
-        "xl": { "value": "20px" },
-        "2xl": { "value": "24px" },
-        "3xl": { "value": "30px" },
-        "4xl": { "value": "36px" }
-      },
-  
-      "fontWeight": {
-        "regular": { "value": 400 },
-        "medium": { "value": 500 },
-        "semibold": { "value": 600 },
-        "bold": { "value": 700 }
-      },
-  
-      "lineHeight": {
-        "tight": { "value": 1.25 },
-        "normal": { "value": 1.5 },
-        "relaxed": { "value": 1.75 }
+      "canvas": {
+        "value": "#F8FAFC",
+        "description": "Fundal aplicație"
       }
     },
-  
-    "spacing": {
-      "0": { "value": "0px" },
-      "1": { "value": "4px" },
-      "2": { "value": "8px" },
-      "3": { "value": "12px" },
-      "4": { "value": "16px" },
-      "5": { "value": "20px" },
-      "6": { "value": "24px" },
-      "8": { "value": "32px" },
-      "10": { "value": "40px" },
-      "12": { "value": "48px" }
+
+    "text": {
+      "primary": { "value": "#0F172A" },
+      "secondary": { "value": "#475569" },
+      "muted": { "value": "#94A3B8" },
+      "inverse": { "value": "#FFFFFF" }
     },
-  
-    "radius": {
-      "sm": { "value": "6px" },
-      "md": { "value": "10px" },
-      "lg": { "value": "14px" },
-      "xl": { "value": "20px" }
+
+    "border": {
+      "default": { "value": "#E2E8F0" },
+      "focus": { "value": "#6366F1" }
     },
-  
-    "shadow": {
-      "sm": {
-        "value": "0 1px 2px rgba(0,0,0,0.05)"
+
+    "semantic": {
+      "success": { "value": "#34D399", "description": "Succes / pozitiv / profit" },
+      "warning": { "value": "#F59E0B", "description": "Atenție / pending / verificare" },
+      "info": { "value": "#3B82F6", "description": "Informare / neutru explicativ" },
+      "danger": { "value": "#F43F5E", "description": "Eroare / negativ / alertă" }
+    },
+
+    "alert": {
+      "successBg": { "value": "#ECFDF5", "description": "Fundal alert success" },
+      "warningBg": { "value": "#FFFBEB", "description": "Fundal alert warning" },
+      "infoBg": { "value": "#EFF6FF", "description": "Fundal alert info" },
+      "dangerBg": { "value": "#FFF1F2", "description": "Fundal alert danger" },
+
+      "successBorder": { "value": "#34D399", "description": "Border alert success" },
+      "warningBorder": { "value": "#F59E0B", "description": "Border alert warning" },
+      "infoBorder": { "value": "#3B82F6", "description": "Border alert info" },
+      "dangerBorder": { "value": "#F43F5E", "description": "Border alert danger" }
+    },
+
+    "chart": {
+      "1": { "value": "#6366F1", "description": "Indigo-500, cel mai intens" },
+      "2": { "value": "#818CF8", "description": "Indigo-400" },
+      "3": { "value": "#A5B4FC", "description": "Indigo-300" },
+      "4": { "value": "#C7D2FE", "description": "Indigo-200" },
+      "5": { "value": "#E0E7FF", "description": "Indigo-100, cel mai deschis" },
+
+      "semantic": {
+        "positive": { "value": "#34D399", "description": "Serii pozitive (profit)" },
+        "negative": { "value": "#F43F5E", "description": "Serii negative (loss)" },
+        "neutral": { "value": "#94A3B8", "description": "Serii neutre / benchmark" }
       },
-      "md": {
-        "value": "0 4px 12px rgba(15,23,42,0.08)"
-      },
-      "lg": {
-        "value": "0 12px 24px rgba(15,23,42,0.12)"
+
+      "categorical": {
+        "1": { "value": "#6366F1", "description": "Indigo" },
+        "2": { "value": "#34D399", "description": "Emerald" },
+        "3": { "value": "#F59E0B", "description": "Amber" },
+        "4": { "value": "#3B82F6", "description": "Blue" },
+        "5": { "value": "#F43F5E", "description": "Rose" },
+        "6": { "value": "#14B8A6", "description": "Teal" },
+        "7": { "value": "#A855F7", "description": "Purple" },
+        "8": { "value": "#64748B", "description": "Slate" }
       }
-    },
-  
-    "zIndex": {
-      "base": { "value": 0 },
-      "dropdown": { "value": 10 },
-      "sticky": { "value": 20 },
-      "modal": { "value": 30 },
-      "tooltip": { "value": 40 }
     }
+  },
+
+  "state": {
+    "hoverOverlay": { "value": "rgba(99,102,241,0.08)", "description": "Overlay subtil pe hover (pe surface/canvas)" },
+    "activeOverlay": { "value": "rgba(99,102,241,0.14)", "description": "Overlay pe active/pressed" },
+    "selectedOverlay": { "value": "rgba(99,102,241,0.10)", "description": "Overlay pentru selected row/item" },
+
+    "disabled": {
+      "opacity": { "value": 0.45, "description": "Opacity standard pentru disabled UI" },
+      "text": { "value": "#94A3B8", "description": "Text disabled" },
+      "border": { "value": "#E2E8F0", "description": "Border disabled" },
+      "background": { "value": "#F8FAFC", "description": "Background disabled pe surface" }
+    }
+  },
+
+  "focus": {
+    "ring": {
+      "color": { "value": "#6366F1", "description": "Culoare focus ring (CTA / focus)" },
+      "width": { "value": "2px", "description": "Grosime ring" },
+      "offset": { "value": "2px", "description": "Distanță ring față de componentă" }
+    },
+    "outline": {
+      "color": { "value": "#6366F1", "description": "Fallback outline color" },
+      "width": { "value": "2px", "description": "Fallback outline width" }
+    }
+  },
+
+  "selection": {
+    "background": { "value": "#E0E7FF", "description": "Selected background (subtil, non-overlay) pentru chips/rows" },
+    "border": { "value": "#6366F1", "description": "Selected border pentru input/row" },
+    "text": { "value": "#0F172A", "description": "Text pe selected background" }
+  },
+
+  "typography": {
+    "fontFamily": {
+      "editorial": {
+        "value": "Playfair Display, serif",
+        "description": "Stil editorial premium, landing pages, empty states"
+      },
+      "application": {
+        "value": "Inter, system-ui, sans-serif",
+        "description": "Interfață aplicație, dashboard, UI funcțional"
+      },
+      "mono": {
+        "value": "JetBrains Mono, monospace",
+        "description": "Valori monetare și coduri"
+      }
+    },
+
+    "fontSize": {
+      "xs": { "value": "12px" },
+      "sm": { "value": "14px" },
+      "base": { "value": "16px" },
+      "lg": { "value": "18px" },
+      "xl": { "value": "20px" },
+      "2xl": { "value": "24px" },
+      "3xl": { "value": "30px" },
+      "4xl": { "value": "36px" }
+    },
+
+    "fontWeight": {
+      "regular": { "value": 400 },
+      "medium": { "value": 500 },
+      "semibold": { "value": 600 },
+      "bold": { "value": 700 }
+    },
+
+    "lineHeight": {
+      "tight": { "value": 1.25 },
+      "normal": { "value": 1.5 },
+      "relaxed": { "value": 1.75 }
+    },
+
+    "role": {
+      "pageTitle": {
+        "fontFamily": { "value": "Inter, system-ui, sans-serif" },
+        "fontSize": { "value": "24px" },
+        "fontWeight": { "value": 700 },
+        "lineHeight": { "value": 1.25 }
+      },
+      "sectionTitle": {
+        "fontFamily": { "value": "Inter, system-ui, sans-serif" },
+        "fontSize": { "value": "20px" },
+        "fontWeight": { "value": 700 },
+        "lineHeight": { "value": 1.25 }
+      },
+      "kpiValue": {
+        "fontFamily": { "value": "JetBrains Mono, monospace" },
+        "fontSize": { "value": "24px" },
+        "fontWeight": { "value": 700 },
+        "lineHeight": { "value": 1.25 }
+      },
+      "tableHeader": {
+        "fontFamily": { "value": "Inter, system-ui, sans-serif" },
+        "fontSize": { "value": "12px" },
+        "fontWeight": { "value": 600 },
+        "lineHeight": { "value": 1.25 },
+        "letterSpacing": { "value": "0.05em" },
+        "textTransform": { "value": "uppercase" }
+      },
+      "tableCell": {
+        "fontFamily": { "value": "Inter, system-ui, sans-serif" },
+        "fontSize": { "value": "14px" },
+        "fontWeight": { "value": 500 },
+        "lineHeight": { "value": 1.5 }
+      },
+      "formLabel": {
+        "fontFamily": { "value": "Inter, system-ui, sans-serif" },
+        "fontSize": { "value": "12px" },
+        "fontWeight": { "value": 600 },
+        "lineHeight": { "value": 1.25 }
+      },
+      "helperText": {
+        "fontFamily": { "value": "Inter, system-ui, sans-serif" },
+        "fontSize": { "value": "12px" },
+        "fontWeight": { "value": 400 },
+        "lineHeight": { "value": 1.5 }
+      },
+      "monoCurrency": {
+        "fontFamily": { "value": "JetBrains Mono, monospace" },
+        "fontSize": { "value": "14px" },
+        "fontWeight": { "value": 600 },
+        "lineHeight": { "value": 1.25 },
+        "fontVariantNumeric": { "value": "tabular-nums" }
+      },
+      "emptyTitle": {
+        "fontFamily": { "value": "Playfair Display, serif" },
+        "fontSize": { "value": "20px" },
+        "fontWeight": { "value": 600 },
+        "lineHeight": { "value": 1.25 }
+      },
+      "emptyBody": {
+        "fontFamily": { "value": "Inter, system-ui, sans-serif" },
+        "fontSize": { "value": "14px" },
+        "fontWeight": { "value": 400 },
+        "lineHeight": { "value": 1.5 }
+      }
+    }
+  },
+
+  "spacing": {
+    "0": { "value": "0px" },
+    "1": { "value": "4px" },
+    "2": { "value": "8px" },
+    "3": { "value": "12px" },
+    "4": { "value": "16px" },
+    "5": { "value": "20px" },
+    "6": { "value": "24px" },
+    "8": { "value": "32px" },
+    "10": { "value": "40px" },
+    "12": { "value": "48px" }
+  },
+
+  "radius": {
+    "sm": { "value": "6px" },
+    "md": { "value": "10px" },
+    "lg": { "value": "14px" },
+    "xl": { "value": "20px" }
+  },
+
+  "shadow": {
+    "sm": { "value": "0 1px 2px rgba(0,0,0,0.05)" },
+    "md": { "value": "0 4px 12px rgba(15,23,42,0.08)" },
+    "lg": { "value": "0 12px 24px rgba(15,23,42,0.12)" }
+  },
+
+  "zIndex": {
+    "base": { "value": 0 },
+    "dropdown": { "value": 10 },
+    "sticky": { "value": 20 },
+    "modal": { "value": 30 },
+    "tooltip": { "value": 40 }
+  },
+
+  "density": {
+    "compact": {
+      "tableRowHeight": { "value": "36px", "description": "Rând tabel compact" },
+      "fieldHeight": { "value": "36px", "description": "Input compact" }
+    },
+    "comfortable": {
+      "tableRowHeight": { "value": "44px", "description": "Rând tabel comfortable" },
+      "fieldHeight": { "value": "44px", "description": "Input comfortable" }
+    }
+  },
+
+  "table": {
+    "cellPaddingX": { "value": "12px", "description": "Padding orizontal celulă" },
+    "cellPaddingYCompact": { "value": "8px", "description": "Padding vertical celulă (compact)" },
+    "cellPaddingYComfortable": { "value": "12px", "description": "Padding vertical celulă (comfortable)" },
+
+    "headerBackground": { "value": "#F8FAFC", "description": "Fundal header tabel" },
+    "rowHoverBackground": { "value": "#EEF2FF", "description": "Hover row (subtil, indigo 50-like)" },
+    "rowSelectedBackground": { "value": "#E0E7FF", "description": "Selected row background" },
+
+    "gridBorder": { "value": "#E2E8F0", "description": "Linii tabel / grid" }
+  },
+
+  "form": {
+    "fieldHeight": {
+      "compact": { "value": "36px" },
+      "comfortable": { "value": "44px" }
+    },
+    "fieldPaddingX": { "value": "12px", "description": "Padding intern input" },
+    "fieldRadius": { "value": "10px", "description": "Radius input (aliniat cu radius.md)" },
+
+    "placeholderText": { "value": "#94A3B8", "description": "Placeholder" },
+    "helperText": { "value": "#94A3B8", "description": "Helper / hint" },
+
+    "errorText": { "value": "#F43F5E", "description": "Text eroare" },
+    "errorBorder": { "value": "#F43F5E", "description": "Border input invalid" }
   }
-  
+}

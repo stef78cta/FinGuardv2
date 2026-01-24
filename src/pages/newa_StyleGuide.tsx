@@ -42,19 +42,22 @@ import {
 
 /**
  * FP&A SaaS Design System - Style Guide
- * Version 1.1.0
+ * Version 2.0.0
  * 
  * Design tokens source: planning/newa_design-tokens.jsonc
  * 
  * This page showcases ALL UI components styled according to the design tokens.
  * Styles are SCOPED to this page only using the .fpsg- prefix (FP&A Style Guide).
+ * 
+ * NEW in v2.0: State, Focus, Selection, Semantic/Alert, Typography Roles,
+ * Density, Table, Form, Chart Semantic/Categorical tokens
  */
 
 // ============= SCOPED STYLES (Only for this page) =============
 const scopedStyles = `
   /* ========================================
      FPSG (FP&A Style Guide) - Scoped Variables
-     Source: newa_design-tokens.jsonc v1.1.0
+     Source: newa_design-tokens.jsonc v2.0.0
      ======================================== */
   
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
@@ -80,12 +83,62 @@ const scopedStyles = `
     --fpsg-border-default: #E2E8F0;
     --fpsg-border-focus: #6366F1;
 
+    /* ===== COLOR: SEMANTIC (NEW) ===== */
+    --fpsg-semantic-success: #34D399;
+    --fpsg-semantic-warning: #F59E0B;
+    --fpsg-semantic-info: #3B82F6;
+    --fpsg-semantic-danger: #F43F5E;
+
+    /* ===== COLOR: ALERT (NEW) ===== */
+    --fpsg-alert-success-bg: #ECFDF5;
+    --fpsg-alert-warning-bg: #FFFBEB;
+    --fpsg-alert-info-bg: #EFF6FF;
+    --fpsg-alert-danger-bg: #FFF1F2;
+    --fpsg-alert-success-border: #34D399;
+    --fpsg-alert-warning-border: #F59E0B;
+    --fpsg-alert-info-border: #3B82F6;
+    --fpsg-alert-danger-border: #F43F5E;
+
     /* ===== COLOR: CHART PALETTE ===== */
     --fpsg-chart-1: #6366F1;
     --fpsg-chart-2: #818CF8;
     --fpsg-chart-3: #A5B4FC;
     --fpsg-chart-4: #C7D2FE;
     --fpsg-chart-5: #E0E7FF;
+
+    /* ===== COLOR: CHART SEMANTIC (NEW) ===== */
+    --fpsg-chart-positive: #34D399;
+    --fpsg-chart-negative: #F43F5E;
+    --fpsg-chart-neutral: #94A3B8;
+
+    /* ===== COLOR: CHART CATEGORICAL (NEW) ===== */
+    --fpsg-chart-cat-1: #6366F1;
+    --fpsg-chart-cat-2: #34D399;
+    --fpsg-chart-cat-3: #F59E0B;
+    --fpsg-chart-cat-4: #3B82F6;
+    --fpsg-chart-cat-5: #F43F5E;
+    --fpsg-chart-cat-6: #14B8A6;
+    --fpsg-chart-cat-7: #A855F7;
+    --fpsg-chart-cat-8: #64748B;
+
+    /* ===== STATE (NEW) ===== */
+    --fpsg-state-hover: rgba(99,102,241,0.08);
+    --fpsg-state-active: rgba(99,102,241,0.14);
+    --fpsg-state-selected: rgba(99,102,241,0.10);
+    --fpsg-disabled-opacity: 0.45;
+    --fpsg-disabled-text: #94A3B8;
+    --fpsg-disabled-border: #E2E8F0;
+    --fpsg-disabled-bg: #F8FAFC;
+
+    /* ===== FOCUS (NEW) ===== */
+    --fpsg-focus-ring-color: #6366F1;
+    --fpsg-focus-ring-width: 2px;
+    --fpsg-focus-ring-offset: 2px;
+
+    /* ===== SELECTION (NEW) ===== */
+    --fpsg-selection-bg: #E0E7FF;
+    --fpsg-selection-border: #6366F1;
+    --fpsg-selection-text: #0F172A;
 
     /* ===== TYPOGRAPHY: FONT FAMILY ===== */
     --fpsg-font-editorial: 'Playfair Display', serif;
@@ -142,6 +195,29 @@ const scopedStyles = `
     --fpsg-z-sticky: 20;
     --fpsg-z-modal: 30;
     --fpsg-z-tooltip: 40;
+
+    /* ===== DENSITY (NEW) ===== */
+    --fpsg-density-compact-row: 36px;
+    --fpsg-density-compact-field: 36px;
+    --fpsg-density-comfortable-row: 44px;
+    --fpsg-density-comfortable-field: 44px;
+
+    /* ===== TABLE (NEW) ===== */
+    --fpsg-table-cell-px: 12px;
+    --fpsg-table-cell-py-compact: 8px;
+    --fpsg-table-cell-py-comfortable: 12px;
+    --fpsg-table-header-bg: #F8FAFC;
+    --fpsg-table-row-hover: #EEF2FF;
+    --fpsg-table-row-selected: #E0E7FF;
+    --fpsg-table-grid-border: #E2E8F0;
+
+    /* ===== FORM (NEW) ===== */
+    --fpsg-form-field-px: 12px;
+    --fpsg-form-field-radius: 10px;
+    --fpsg-form-placeholder: #94A3B8;
+    --fpsg-form-helper: #94A3B8;
+    --fpsg-form-error-text: #F43F5E;
+    --fpsg-form-error-border: #F43F5E;
   }
 
   /* ========================================
@@ -276,12 +352,12 @@ const scopedStyles = `
   }
 `;
 
-// ============= DESIGN TOKENS EXPORT (matches newa_design-tokens.jsonc) =============
+// ============= DESIGN TOKENS EXPORT (matches newa_design-tokens.jsonc v2.0.0) =============
 export const designTokens = {
   meta: {
     name: "FP&A SaaS Design Tokens",
-    version: "1.1.0",
-    description: "Design tokens centralizate pentru brand, aplicație și data viz"
+    version: "2.0.0",
+    description: "Design tokens centralizate pentru brand, aplicație și data viz - Extins cu state, semantic, density, forms, tables, charts"
   },
   color: {
     brand: {
@@ -290,52 +366,64 @@ export const designTokens = {
       accentEmerald: "#34D399",
       dangerRose: "#F43F5E"
     },
-    surface: {
-      light: "#FFFFFF",
-      canvas: "#F8FAFC"
-    },
-    text: {
-      primary: "#0F172A",
-      secondary: "#475569",
-      muted: "#94A3B8",
-      inverse: "#FFFFFF"
-    },
-    border: {
-      default: "#E2E8F0",
-      focus: "#6366F1"
+    surface: { light: "#FFFFFF", canvas: "#F8FAFC" },
+    text: { primary: "#0F172A", secondary: "#475569", muted: "#94A3B8", inverse: "#FFFFFF" },
+    border: { default: "#E2E8F0", focus: "#6366F1" },
+    semantic: { success: "#34D399", warning: "#F59E0B", info: "#3B82F6", danger: "#F43F5E" },
+    alert: {
+      successBg: "#ECFDF5", warningBg: "#FFFBEB", infoBg: "#EFF6FF", dangerBg: "#FFF1F2",
+      successBorder: "#34D399", warningBorder: "#F59E0B", infoBorder: "#3B82F6", dangerBorder: "#F43F5E"
     },
     chart: {
-      1: "#6366F1",
-      2: "#818CF8",
-      3: "#A5B4FC",
-      4: "#C7D2FE",
-      5: "#E0E7FF"
+      1: "#6366F1", 2: "#818CF8", 3: "#A5B4FC", 4: "#C7D2FE", 5: "#E0E7FF",
+      semantic: { positive: "#34D399", negative: "#F43F5E", neutral: "#94A3B8" },
+      categorical: ["#6366F1", "#34D399", "#F59E0B", "#3B82F6", "#F43F5E", "#14B8A6", "#A855F7", "#64748B"]
     }
   },
+  state: {
+    hoverOverlay: "rgba(99,102,241,0.08)",
+    activeOverlay: "rgba(99,102,241,0.14)",
+    selectedOverlay: "rgba(99,102,241,0.10)",
+    disabled: { opacity: 0.45, text: "#94A3B8", border: "#E2E8F0", background: "#F8FAFC" }
+  },
+  focus: {
+    ring: { color: "#6366F1", width: "2px", offset: "2px" },
+    outline: { color: "#6366F1", width: "2px" }
+  },
+  selection: { background: "#E0E7FF", border: "#6366F1", text: "#0F172A" },
   typography: {
-    fontFamily: {
-      editorial: "Playfair Display, serif",
-      application: "Inter, system-ui, sans-serif",
-      mono: "JetBrains Mono, monospace"
-    },
-    fontSize: {
-      xs: "12px", sm: "14px", base: "16px", lg: "18px",
-      xl: "20px", "2xl": "24px", "3xl": "30px", "4xl": "36px"
-    },
+    fontFamily: { editorial: "Playfair Display, serif", application: "Inter, system-ui, sans-serif", mono: "JetBrains Mono, monospace" },
+    fontSize: { xs: "12px", sm: "14px", base: "16px", lg: "18px", xl: "20px", "2xl": "24px", "3xl": "30px", "4xl": "36px" },
     fontWeight: { regular: 400, medium: 500, semibold: 600, bold: 700 },
-    lineHeight: { tight: 1.25, normal: 1.5, relaxed: 1.75 }
+    lineHeight: { tight: 1.25, normal: 1.5, relaxed: 1.75 },
+    role: {
+      pageTitle: { fontSize: "24px", fontWeight: 700 },
+      sectionTitle: { fontSize: "20px", fontWeight: 700 },
+      kpiValue: { fontFamily: "mono", fontSize: "24px", fontWeight: 700 },
+      tableHeader: { fontSize: "12px", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" },
+      tableCell: { fontSize: "14px", fontWeight: 500 },
+      formLabel: { fontSize: "12px", fontWeight: 600 },
+      helperText: { fontSize: "12px", fontWeight: 400 },
+      monoCurrency: { fontFamily: "mono", fontSize: "14px", fontWeight: 600, fontVariantNumeric: "tabular-nums" }
+    }
   },
-  spacing: {
-    0: "0px", 1: "4px", 2: "8px", 3: "12px", 4: "16px",
-    5: "20px", 6: "24px", 8: "32px", 10: "40px", 12: "48px"
-  },
+  spacing: { 0: "0px", 1: "4px", 2: "8px", 3: "12px", 4: "16px", 5: "20px", 6: "24px", 8: "32px", 10: "40px", 12: "48px" },
   radius: { sm: "6px", md: "10px", lg: "14px", xl: "20px" },
-  shadow: {
-    sm: "0 1px 2px rgba(0,0,0,0.05)",
-    md: "0 4px 12px rgba(15,23,42,0.08)",
-    lg: "0 12px 24px rgba(15,23,42,0.12)"
+  shadow: { sm: "0 1px 2px rgba(0,0,0,0.05)", md: "0 4px 12px rgba(15,23,42,0.08)", lg: "0 12px 24px rgba(15,23,42,0.12)" },
+  zIndex: { base: 0, dropdown: 10, sticky: 20, modal: 30, tooltip: 40 },
+  density: {
+    compact: { tableRowHeight: "36px", fieldHeight: "36px" },
+    comfortable: { tableRowHeight: "44px", fieldHeight: "44px" }
   },
-  zIndex: { base: 0, dropdown: 10, sticky: 20, modal: 30, tooltip: 40 }
+  table: {
+    cellPaddingX: "12px", cellPaddingYCompact: "8px", cellPaddingYComfortable: "12px",
+    headerBackground: "#F8FAFC", rowHoverBackground: "#EEF2FF", rowSelectedBackground: "#E0E7FF", gridBorder: "#E2E8F0"
+  },
+  form: {
+    fieldHeight: { compact: "36px", comfortable: "44px" },
+    fieldPaddingX: "12px", fieldRadius: "10px",
+    placeholderText: "#94A3B8", helperText: "#94A3B8", errorText: "#F43F5E", errorBorder: "#F43F5E"
+  }
 };
 
 // ============= HELPER COMPONENTS =============
@@ -482,21 +570,26 @@ const KPICard = ({ title, value, trend, trendLabel, icon, accentColor = '#6366F1
 
 // ============= TABLE OF CONTENTS =============
 const tableOfContents = [
-  { id: 'colors', label: '1. Culori', icon: <div className="w-3 h-3 rounded-full" style={{ background: '#6366F1' }} /> },
-  { id: 'typography', label: '2. Tipografie', icon: <FileText className="w-4 h-4" /> },
-  { id: 'spacing', label: '3. Spacing & Radius', icon: <LayoutDashboard className="w-4 h-4" /> },
-  { id: 'buttons', label: '4. Butoane', icon: <div className="w-4 h-4 rounded-full" style={{ background: '#0F172A' }} /> },
-  { id: 'forms', label: '5. Formulare', icon: <Edit className="w-4 h-4" /> },
-  { id: 'cards', label: '6. Carduri', icon: <Folder className="w-4 h-4" /> },
-  { id: 'badges', label: '7. Badges', icon: <Star className="w-4 h-4" /> },
-  { id: 'tables', label: '8. Tabele', icon: <BarChart3 className="w-4 h-4" /> },
-  { id: 'navigation', label: '9. Navigație', icon: <Menu className="w-4 h-4" /> },
-  { id: 'alerts', label: '10. Alerte', icon: <AlertCircle className="w-4 h-4" /> },
-  { id: 'modals', label: '11. Modale', icon: <ExternalLink className="w-4 h-4" /> },
-  { id: 'avatars', label: '12. Avatare', icon: <User className="w-4 h-4" /> },
-  { id: 'loading', label: '13. Loading', icon: <RefreshCw className="w-4 h-4" /> },
-  { id: 'empty', label: '14. Empty States', icon: <Target className="w-4 h-4" /> },
-  { id: 'misc', label: '15. Extra', icon: <Zap className="w-4 h-4" /> },
+  { id: 'colors', label: '1. Culori Brand', icon: <div className="w-3 h-3 rounded-full" style={{ background: '#6366F1' }} /> },
+  { id: 'semantic', label: '2. Semantic & Alert', icon: <AlertCircle className="w-4 h-4" /> },
+  { id: 'state-focus', label: '3. State & Focus', icon: <Target className="w-4 h-4" /> },
+  { id: 'charts', label: '4. Charts', icon: <PieChart className="w-4 h-4" /> },
+  { id: 'typography', label: '5. Tipografie', icon: <FileText className="w-4 h-4" /> },
+  { id: 'typography-roles', label: '6. Typography Roles', icon: <Code className="w-4 h-4" /> },
+  { id: 'spacing', label: '7. Spacing & Radius', icon: <LayoutDashboard className="w-4 h-4" /> },
+  { id: 'density', label: '8. Density & Table', icon: <BarChart3 className="w-4 h-4" /> },
+  { id: 'buttons', label: '9. Butoane', icon: <div className="w-4 h-4 rounded-full" style={{ background: '#0F172A' }} /> },
+  { id: 'forms', label: '10. Formulare', icon: <Edit className="w-4 h-4" /> },
+  { id: 'cards', label: '11. Carduri', icon: <Folder className="w-4 h-4" /> },
+  { id: 'badges', label: '12. Badges', icon: <Star className="w-4 h-4" /> },
+  { id: 'tables', label: '13. Tabele Demo', icon: <Menu className="w-4 h-4" /> },
+  { id: 'navigation', label: '14. Navigație', icon: <Home className="w-4 h-4" /> },
+  { id: 'alerts', label: '15. Alerte Demo', icon: <AlertTriangle className="w-4 h-4" /> },
+  { id: 'modals', label: '16. Modale', icon: <ExternalLink className="w-4 h-4" /> },
+  { id: 'avatars', label: '17. Avatare', icon: <User className="w-4 h-4" /> },
+  { id: 'loading', label: '18. Loading', icon: <RefreshCw className="w-4 h-4" /> },
+  { id: 'empty', label: '19. Empty States', icon: <Search className="w-4 h-4" /> },
+  { id: 'misc', label: '20. Extra', icon: <Zap className="w-4 h-4" /> },
 ];
 
 // ============= MAIN STYLE GUIDE COMPONENT =============
@@ -533,7 +626,7 @@ export const NewaStyleGuide = () => {
                     FP&A Design System
                   </h1>
                   <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: '#94A3B8' }}>
-                    v1.1.0 • newa_design-tokens.jsonc
+                    v2.0.0 • newa_design-tokens.jsonc
                   </span>
                 </div>
               </div>
@@ -588,10 +681,10 @@ export const NewaStyleGuide = () => {
             {/* ========== MAIN SECTIONS ========== */}
             <main className="col-span-12 lg:col-span-9 space-y-12">
 
-              {/* ==================== SECTION 1: COLORS ==================== */}
+              {/* ==================== SECTION 1: COLORS BRAND ==================== */}
               <section id="colors" className="fpsg-section">
-                <h2 className="fpsg-section-title">1. Paletă Cromatică</h2>
-                <p className="fpsg-section-desc">Culorile definite în design tokens pentru brand, UI și data visualization.</p>
+                <h2 className="fpsg-section-title">1. Culori Brand & Surface</h2>
+                <p className="fpsg-section-desc">Culorile de bază definite în design tokens pentru brand, surface și text.</p>
                 
                 <div className="fpsg-card p-6">
                   {/* Brand Colors */}
@@ -660,9 +753,218 @@ export const NewaStyleGuide = () => {
                 </div>
               </section>
 
-              {/* ==================== SECTION 2: TYPOGRAPHY ==================== */}
+              {/* ==================== SECTION 2: SEMANTIC & ALERT COLORS ==================== */}
+              <section id="semantic" className="fpsg-section">
+                <h2 className="fpsg-section-title">2. Culori Semantice & Alert</h2>
+                <p className="fpsg-section-desc">Culorile pentru stări semantice (success, warning, info, danger) și backgrounds pentru alerte.</p>
+                
+                <div className="fpsg-card p-6">
+                  <p className="fpsg-subsection-title">Semantic Colors</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <ColorSwatch name="Success" value="#34D399" description="Succes / pozitiv / profit" isDark />
+                    <ColorSwatch name="Warning" value="#F59E0B" description="Atenție / pending" isDark />
+                    <ColorSwatch name="Info" value="#3B82F6" description="Informare / neutru" isDark />
+                    <ColorSwatch name="Danger" value="#F43F5E" description="Eroare / negativ" isDark />
+                  </div>
+
+                  <p className="fpsg-subsection-title">Alert Backgrounds</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <ColorSwatch name="Success Bg" value="#ECFDF5" description="Fundal alert success" />
+                    <ColorSwatch name="Warning Bg" value="#FFFBEB" description="Fundal alert warning" />
+                    <ColorSwatch name="Info Bg" value="#EFF6FF" description="Fundal alert info" />
+                    <ColorSwatch name="Danger Bg" value="#FFF1F2" description="Fundal alert danger" />
+                  </div>
+
+                  <p className="fpsg-subsection-title">Alert Demos</p>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-lg border-l-4" style={{ background: '#ECFDF5', borderColor: '#34D399' }}>
+                      <div className="flex items-center gap-2 font-semibold text-sm" style={{ color: '#065F46' }}>
+                        <CheckCircle className="w-4 h-4" style={{ color: '#34D399' }} /> Success Alert
+                      </div>
+                      <p className="text-sm mt-1" style={{ color: '#047857' }}>Operațiunea a fost finalizată cu succes.</p>
+                    </div>
+                    <div className="p-4 rounded-lg border-l-4" style={{ background: '#FFFBEB', borderColor: '#F59E0B' }}>
+                      <div className="flex items-center gap-2 font-semibold text-sm" style={{ color: '#92400E' }}>
+                        <AlertTriangle className="w-4 h-4" style={{ color: '#F59E0B' }} /> Warning Alert
+                      </div>
+                      <p className="text-sm mt-1" style={{ color: '#B45309' }}>Verifică datele înainte de continuare.</p>
+                    </div>
+                    <div className="p-4 rounded-lg border-l-4" style={{ background: '#EFF6FF', borderColor: '#3B82F6' }}>
+                      <div className="flex items-center gap-2 font-semibold text-sm" style={{ color: '#1E40AF' }}>
+                        <Info className="w-4 h-4" style={{ color: '#3B82F6' }} /> Info Alert
+                      </div>
+                      <p className="text-sm mt-1" style={{ color: '#1D4ED8' }}>Raportul va fi disponibil în câteva minute.</p>
+                    </div>
+                    <div className="p-4 rounded-lg border-l-4" style={{ background: '#FFF1F2', borderColor: '#F43F5E' }}>
+                      <div className="flex items-center gap-2 font-semibold text-sm" style={{ color: '#9F1239' }}>
+                        <XCircle className="w-4 h-4" style={{ color: '#F43F5E' }} /> Danger Alert
+                      </div>
+                      <p className="text-sm mt-1" style={{ color: '#BE123C' }}>Eroare la procesarea fișierului.</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* ==================== SECTION 3: STATE & FOCUS ==================== */}
+              <section id="state-focus" className="fpsg-section">
+                <h2 className="fpsg-section-title">3. State & Focus</h2>
+                <p className="fpsg-section-desc">Overlay-uri pentru hover, active, selected și tokens pentru focus ring și disabled states.</p>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="fpsg-card p-6">
+                    <p className="fpsg-subsection-title">State Overlays</p>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-lg border relative" style={{ background: '#FFFFFF', borderColor: '#E2E8F0' }}>
+                          <div className="absolute inset-0 rounded-lg" style={{ background: 'rgba(99,102,241,0.08)' }} />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm" style={{ color: '#0F172A' }}>Hover Overlay</p>
+                          <p className="text-xs fpsg-font-mono" style={{ color: '#94A3B8' }}>rgba(99,102,241,0.08)</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-lg border relative" style={{ background: '#FFFFFF', borderColor: '#E2E8F0' }}>
+                          <div className="absolute inset-0 rounded-lg" style={{ background: 'rgba(99,102,241,0.14)' }} />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm" style={{ color: '#0F172A' }}>Active Overlay</p>
+                          <p className="text-xs fpsg-font-mono" style={{ color: '#94A3B8' }}>rgba(99,102,241,0.14)</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-lg border relative" style={{ background: '#FFFFFF', borderColor: '#E2E8F0' }}>
+                          <div className="absolute inset-0 rounded-lg" style={{ background: 'rgba(99,102,241,0.10)' }} />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm" style={{ color: '#0F172A' }}>Selected Overlay</p>
+                          <p className="text-xs fpsg-font-mono" style={{ color: '#94A3B8' }}>rgba(99,102,241,0.10)</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="fpsg-card p-6">
+                    <p className="fpsg-subsection-title">Focus Ring</p>
+                    <div className="space-y-4 mb-6">
+                      <div className="flex items-center gap-4">
+                        <div 
+                          className="w-16 h-10 rounded-lg"
+                          style={{ 
+                            background: '#FFFFFF', 
+                            border: '1px solid #E2E8F0',
+                            outline: '2px solid #6366F1',
+                            outlineOffset: '2px'
+                          }} 
+                        />
+                        <div>
+                          <p className="font-semibold text-sm" style={{ color: '#0F172A' }}>Focus State</p>
+                          <p className="text-xs fpsg-font-mono" style={{ color: '#94A3B8' }}>ring: #6366F1 / 2px / offset 2px</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="fpsg-subsection-title">Disabled State</p>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-4">
+                        <Button disabled>Disabled Button</Button>
+                        <p className="text-xs fpsg-font-mono" style={{ color: '#94A3B8' }}>opacity: 0.45</p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Input disabled placeholder="Disabled input" className="max-w-[200px]" />
+                      </div>
+                    </div>
+
+                    <p className="fpsg-subsection-title mt-6">Selection</p>
+                    <div className="flex items-center gap-4">
+                      <div 
+                        className="px-4 py-2 rounded-lg border-2 text-sm font-medium"
+                        style={{ background: '#E0E7FF', borderColor: '#6366F1', color: '#0F172A' }}
+                      >
+                        Selected Item
+                      </div>
+                      <p className="text-xs fpsg-font-mono" style={{ color: '#94A3B8' }}>bg: #E0E7FF / border: #6366F1</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* ==================== SECTION 4: CHART COLORS ==================== */}
+              <section id="charts" className="fpsg-section">
+                <h2 className="fpsg-section-title">4. Chart Colors</h2>
+                <p className="fpsg-section-desc">Palette de culori pentru grafice: indigo gradient, semantic (positive/negative/neutral), și categorical (8 culori distincte).</p>
+                
+                <div className="fpsg-card p-6">
+                  <p className="fpsg-subsection-title">Indigo Gradient (Rampă)</p>
+                  <div className="flex gap-2 mb-2">
+                    {[
+                      { color: '#6366F1', label: '1' },
+                      { color: '#818CF8', label: '2' },
+                      { color: '#A5B4FC', label: '3' },
+                      { color: '#C7D2FE', label: '4' },
+                      { color: '#E0E7FF', label: '5' },
+                    ].map((c, i) => (
+                      <div 
+                        key={i}
+                        className="flex-1 h-16 flex items-center justify-center"
+                        style={{ background: c.color, borderRadius: '10px' }}
+                      >
+                        <span className="text-xs font-bold" style={{ color: i < 2 ? '#FFFFFF' : '#475569' }}>{c.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-center mb-8" style={{ color: '#94A3B8' }}>Utilizat pentru heatmaps, gradient charts</p>
+
+                  <p className="fpsg-subsection-title">Semantic (Profit/Loss/Neutral)</p>
+                  <div className="flex gap-4 mb-8">
+                    <div className="flex-1 text-center">
+                      <div className="h-16 flex items-center justify-center rounded-lg mb-2" style={{ background: '#34D399' }}>
+                        <TrendingUp className="w-6 h-6 text-white" />
+                      </div>
+                      <p className="text-xs font-semibold" style={{ color: '#0F172A' }}>Positive</p>
+                      <p className="text-[10px] fpsg-font-mono" style={{ color: '#94A3B8' }}>#34D399</p>
+                    </div>
+                    <div className="flex-1 text-center">
+                      <div className="h-16 flex items-center justify-center rounded-lg mb-2" style={{ background: '#F43F5E' }}>
+                        <TrendingDown className="w-6 h-6 text-white" />
+                      </div>
+                      <p className="text-xs font-semibold" style={{ color: '#0F172A' }}>Negative</p>
+                      <p className="text-[10px] fpsg-font-mono" style={{ color: '#94A3B8' }}>#F43F5E</p>
+                    </div>
+                    <div className="flex-1 text-center">
+                      <div className="h-16 flex items-center justify-center rounded-lg mb-2" style={{ background: '#94A3B8' }}>
+                        <Minus className="w-6 h-6 text-white" />
+                      </div>
+                      <p className="text-xs font-semibold" style={{ color: '#0F172A' }}>Neutral</p>
+                      <p className="text-[10px] fpsg-font-mono" style={{ color: '#94A3B8' }}>#94A3B8</p>
+                    </div>
+                  </div>
+
+                  <p className="fpsg-subsection-title">Categorical (8 culori distincte)</p>
+                  <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
+                    {[
+                      { color: '#6366F1', name: 'Indigo' },
+                      { color: '#34D399', name: 'Emerald' },
+                      { color: '#F59E0B', name: 'Amber' },
+                      { color: '#3B82F6', name: 'Blue' },
+                      { color: '#F43F5E', name: 'Rose' },
+                      { color: '#14B8A6', name: 'Teal' },
+                      { color: '#A855F7', name: 'Purple' },
+                      { color: '#64748B', name: 'Slate' },
+                    ].map((c, i) => (
+                      <div key={i} className="text-center">
+                        <div className="h-12 rounded-lg mb-1" style={{ background: c.color }} />
+                        <p className="text-[10px] font-semibold" style={{ color: '#0F172A' }}>{i + 1}</p>
+                        <p className="text-[9px]" style={{ color: '#94A3B8' }}>{c.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              {/* ==================== SECTION 5: TYPOGRAPHY ==================== */}
               <section id="typography" className="fpsg-section">
-                <h2 className="fpsg-section-title">2. Tipografie</h2>
+                <h2 className="fpsg-section-title">5. Tipografie</h2>
                 <p className="fpsg-section-desc">Familii de fonturi, dimensiuni, weights și line-heights.</p>
                 
                 <div className="grid md:grid-cols-2 gap-6">
@@ -748,9 +1050,94 @@ export const NewaStyleGuide = () => {
                 </div>
               </section>
 
-              {/* ==================== SECTION 3: SPACING & RADIUS ==================== */}
+              {/* ==================== SECTION 6: TYPOGRAPHY ROLES ==================== */}
+              <section id="typography-roles" className="fpsg-section">
+                <h2 className="fpsg-section-title">6. Typography Roles</h2>
+                <p className="fpsg-section-desc">Combinații predefinite de font-family, size și weight pentru roluri specifice în UI.</p>
+                
+                <div className="fpsg-card p-6">
+                  <div className="space-y-6">
+                    {/* Page Title */}
+                    <div className="p-4 rounded-lg" style={{ background: '#F8FAFC' }}>
+                      <p className="text-xs fpsg-font-mono mb-2" style={{ color: '#94A3B8' }}>pageTitle: Inter / 24px / Bold</p>
+                      <p style={{ fontFamily: 'Inter, system-ui', fontSize: '24px', fontWeight: 700, lineHeight: 1.25, color: '#0F172A' }}>
+                        Page Title Example
+                      </p>
+                    </div>
+
+                    {/* Section Title */}
+                    <div className="p-4 rounded-lg" style={{ background: '#F8FAFC' }}>
+                      <p className="text-xs fpsg-font-mono mb-2" style={{ color: '#94A3B8' }}>sectionTitle: Inter / 20px / Bold</p>
+                      <p style={{ fontFamily: 'Inter, system-ui', fontSize: '20px', fontWeight: 700, lineHeight: 1.25, color: '#0F172A' }}>
+                        Section Title Example
+                      </p>
+                    </div>
+
+                    {/* KPI Value */}
+                    <div className="p-4 rounded-lg" style={{ background: '#F8FAFC' }}>
+                      <p className="text-xs fpsg-font-mono mb-2" style={{ color: '#94A3B8' }}>kpiValue: JetBrains Mono / 24px / Bold</p>
+                      <p className="fpsg-font-mono" style={{ fontSize: '24px', fontWeight: 700, lineHeight: 1.25, color: '#0F172A' }}>
+                        €124,500.00
+                      </p>
+                    </div>
+
+                    {/* Table Header */}
+                    <div className="p-4 rounded-lg" style={{ background: '#F8FAFC' }}>
+                      <p className="text-xs fpsg-font-mono mb-2" style={{ color: '#94A3B8' }}>tableHeader: Inter / 12px / Semibold / Uppercase / 0.05em spacing</p>
+                      <p style={{ fontFamily: 'Inter, system-ui', fontSize: '12px', fontWeight: 600, lineHeight: 1.25, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#0F172A' }}>
+                        Table Column Header
+                      </p>
+                    </div>
+
+                    {/* Table Cell */}
+                    <div className="p-4 rounded-lg" style={{ background: '#F8FAFC' }}>
+                      <p className="text-xs fpsg-font-mono mb-2" style={{ color: '#94A3B8' }}>tableCell: Inter / 14px / Medium</p>
+                      <p style={{ fontFamily: 'Inter, system-ui', fontSize: '14px', fontWeight: 500, lineHeight: 1.5, color: '#0F172A' }}>
+                        Table cell content value
+                      </p>
+                    </div>
+
+                    {/* Form Label */}
+                    <div className="p-4 rounded-lg" style={{ background: '#F8FAFC' }}>
+                      <p className="text-xs fpsg-font-mono mb-2" style={{ color: '#94A3B8' }}>formLabel: Inter / 12px / Semibold</p>
+                      <p style={{ fontFamily: 'Inter, system-ui', fontSize: '12px', fontWeight: 600, lineHeight: 1.25, color: '#0F172A' }}>
+                        Form Field Label
+                      </p>
+                    </div>
+
+                    {/* Helper Text */}
+                    <div className="p-4 rounded-lg" style={{ background: '#F8FAFC' }}>
+                      <p className="text-xs fpsg-font-mono mb-2" style={{ color: '#94A3B8' }}>helperText: Inter / 12px / Regular</p>
+                      <p style={{ fontFamily: 'Inter, system-ui', fontSize: '12px', fontWeight: 400, lineHeight: 1.5, color: '#94A3B8' }}>
+                        Helper text providing additional context for the field above.
+                      </p>
+                    </div>
+
+                    {/* Mono Currency */}
+                    <div className="p-4 rounded-lg" style={{ background: '#F8FAFC' }}>
+                      <p className="text-xs fpsg-font-mono mb-2" style={{ color: '#94A3B8' }}>monoCurrency: JetBrains Mono / 14px / Semibold / tabular-nums</p>
+                      <div className="flex gap-8">
+                        <span className="fpsg-font-mono" style={{ fontSize: '14px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: '#0F172A' }}>1,234.56</span>
+                        <span className="fpsg-font-mono" style={{ fontSize: '14px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: '#0F172A' }}>12,345.67</span>
+                        <span className="fpsg-font-mono" style={{ fontSize: '14px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: '#0F172A' }}>123.45</span>
+                      </div>
+                      <p className="text-[10px] mt-2" style={{ color: '#94A3B8' }}>tabular-nums asigură alinierea verticală a cifrelor</p>
+                    </div>
+
+                    {/* Empty Title */}
+                    <div className="p-4 rounded-lg" style={{ background: '#F8FAFC' }}>
+                      <p className="text-xs fpsg-font-mono mb-2" style={{ color: '#94A3B8' }}>emptyTitle: Playfair Display / 20px / Semibold</p>
+                      <p className="fpsg-font-editorial" style={{ fontSize: '20px', fontWeight: 600, lineHeight: 1.25, color: '#0F172A' }}>
+                        No Data Available Yet
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* ==================== SECTION 7: SPACING & RADIUS ==================== */}
               <section id="spacing" className="fpsg-section">
-                <h2 className="fpsg-section-title">3. Spacing & Border Radius</h2>
+                <h2 className="fpsg-section-title">7. Spacing & Border Radius</h2>
                 <p className="fpsg-section-desc">Tokens pentru spacing, radius și shadows.</p>
                 
                 <div className="grid md:grid-cols-2 gap-6">
@@ -791,9 +1178,131 @@ export const NewaStyleGuide = () => {
                 </div>
               </section>
 
-              {/* ==================== SECTION 4: BUTTONS ==================== */}
+              {/* ==================== SECTION 8: DENSITY & TABLE TOKENS ==================== */}
+              <section id="density" className="fpsg-section">
+                <h2 className="fpsg-section-title">8. Density & Table/Form Tokens</h2>
+                <p className="fpsg-section-desc">Tokens pentru moduri de densitate (compact/comfortable) și tokens specifice pentru tabele și formulare.</p>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Density Modes */}
+                  <div className="fpsg-card p-6">
+                    <p className="fpsg-subsection-title">Density Modes</p>
+                    
+                    <div className="space-y-4">
+                      <div className="p-4 rounded-lg border" style={{ borderColor: '#E2E8F0' }}>
+                        <p className="text-xs font-semibold mb-3" style={{ color: '#6366F1' }}>COMPACT</p>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center text-sm">
+                            <span style={{ color: '#475569' }}>Table Row Height</span>
+                            <span className="fpsg-font-mono font-semibold">36px</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
+                            <span style={{ color: '#475569' }}>Field Height</span>
+                            <span className="fpsg-font-mono font-semibold">36px</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
+                            <span style={{ color: '#475569' }}>Cell Padding Y</span>
+                            <span className="fpsg-font-mono font-semibold">8px</span>
+                          </div>
+                        </div>
+                        <div className="mt-4 flex gap-2">
+                          {[1, 2, 3, 4, 5].map(i => (
+                            <div key={i} className="flex-1 h-9 rounded flex items-center justify-center text-xs" 
+                              style={{ background: '#E0E7FF', color: '#6366F1' }}>
+                              {i}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-lg border-2" style={{ borderColor: '#6366F1' }}>
+                        <p className="text-xs font-semibold mb-3" style={{ color: '#6366F1' }}>COMFORTABLE (Default)</p>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center text-sm">
+                            <span style={{ color: '#475569' }}>Table Row Height</span>
+                            <span className="fpsg-font-mono font-semibold">44px</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
+                            <span style={{ color: '#475569' }}>Field Height</span>
+                            <span className="fpsg-font-mono font-semibold">44px</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
+                            <span style={{ color: '#475569' }}>Cell Padding Y</span>
+                            <span className="fpsg-font-mono font-semibold">12px</span>
+                          </div>
+                        </div>
+                        <div className="mt-4 flex gap-3">
+                          {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="flex-1 h-11 rounded-lg flex items-center justify-center text-sm font-medium" 
+                              style={{ background: '#E0E7FF', color: '#6366F1' }}>
+                              {i}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Table & Form Tokens */}
+                  <div className="fpsg-card p-6">
+                    <p className="fpsg-subsection-title">Table Tokens</p>
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-24 h-10 rounded" style={{ background: '#F8FAFC' }} />
+                        <div>
+                          <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>Header Background</p>
+                          <p className="text-xs fpsg-font-mono" style={{ color: '#94A3B8' }}>#F8FAFC</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-24 h-10 rounded" style={{ background: '#EEF2FF' }} />
+                        <div>
+                          <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>Row Hover</p>
+                          <p className="text-xs fpsg-font-mono" style={{ color: '#94A3B8' }}>#EEF2FF</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-24 h-10 rounded" style={{ background: '#E0E7FF' }} />
+                        <div>
+                          <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>Row Selected</p>
+                          <p className="text-xs fpsg-font-mono" style={{ color: '#94A3B8' }}>#E0E7FF</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-24 h-10 rounded border-2" style={{ borderColor: '#E2E8F0' }} />
+                        <div>
+                          <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>Grid Border</p>
+                          <p className="text-xs fpsg-font-mono" style={{ color: '#94A3B8' }}>#E2E8F0</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="fpsg-subsection-title">Form Tokens</p>
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span style={{ color: '#475569' }}>Field Padding X</span>
+                        <span className="fpsg-font-mono font-semibold">12px</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span style={{ color: '#475569' }}>Field Radius</span>
+                        <span className="fpsg-font-mono font-semibold">10px</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span style={{ color: '#475569' }}>Placeholder Text</span>
+                        <span className="fpsg-font-mono" style={{ color: '#94A3B8' }}>#94A3B8</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span style={{ color: '#475569' }}>Error Text/Border</span>
+                        <span className="fpsg-font-mono" style={{ color: '#F43F5E' }}>#F43F5E</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* ==================== SECTION 9: BUTTONS ==================== */}
               <section id="buttons" className="fpsg-section">
-                <h2 className="fpsg-section-title">4. Butoane</h2>
+                <h2 className="fpsg-section-title">9. Butoane</h2>
                 <p className="fpsg-section-desc">Toate variantele și dimensiunile de butoane.</p>
                 
                 <div className="fpsg-card p-6">
@@ -844,9 +1353,9 @@ export const NewaStyleGuide = () => {
                 </div>
               </section>
 
-              {/* ==================== SECTION 5: FORMS ==================== */}
+              {/* ==================== SECTION 10: FORMS ==================== */}
               <section id="forms" className="fpsg-section">
-                <h2 className="fpsg-section-title">5. Elemente de Formular</h2>
+                <h2 className="fpsg-section-title">10. Elemente de Formular</h2>
                 <p className="fpsg-section-desc">Input-uri, select-uri, checkbox-uri și controale.</p>
                 
                 <div className="fpsg-card p-6">
@@ -972,9 +1481,9 @@ export const NewaStyleGuide = () => {
                 </div>
               </section>
 
-              {/* ==================== SECTION 6: CARDS ==================== */}
+              {/* ==================== SECTION 11: CARDS ==================== */}
               <section id="cards" className="fpsg-section">
-                <h2 className="fpsg-section-title">6. Carduri</h2>
+                <h2 className="fpsg-section-title">11. Carduri</h2>
                 <p className="fpsg-section-desc">Containere pentru gruparea conținutului.</p>
                 
                 <div className="grid md:grid-cols-3 gap-6">
@@ -1071,9 +1580,9 @@ export const NewaStyleGuide = () => {
                 </div>
               </section>
 
-              {/* ==================== SECTION 7: BADGES ==================== */}
+              {/* ==================== SECTION 12: BADGES ==================== */}
               <section id="badges" className="fpsg-section">
-                <h2 className="fpsg-section-title">7. Badges & Tags</h2>
+                <h2 className="fpsg-section-title">12. Badges & Tags</h2>
                 <p className="fpsg-section-desc">Status indicators și etichete.</p>
                 
                 <div className="fpsg-card p-6">
@@ -1123,9 +1632,9 @@ export const NewaStyleGuide = () => {
                 </div>
               </section>
 
-              {/* ==================== SECTION 8: TABLES ==================== */}
+              {/* ==================== SECTION 13: TABLES ==================== */}
               <section id="tables" className="fpsg-section">
-                <h2 className="fpsg-section-title">8. Tabele</h2>
+                <h2 className="fpsg-section-title">13. Tabele Demo</h2>
                 <p className="fpsg-section-desc">Afișarea datelor în format tabelar.</p>
                 
                 <div className="fpsg-card overflow-hidden">
@@ -1213,9 +1722,9 @@ export const NewaStyleGuide = () => {
                 </div>
               </section>
 
-              {/* ==================== SECTION 9: NAVIGATION ==================== */}
+              {/* ==================== SECTION 14: NAVIGATION ==================== */}
               <section id="navigation" className="fpsg-section">
-                <h2 className="fpsg-section-title">9. Navigație</h2>
+                <h2 className="fpsg-section-title">14. Navigație</h2>
                 <p className="fpsg-section-desc">Sidebar, tabs și breadcrumbs.</p>
                 
                 <div className="grid md:grid-cols-3 gap-6">
@@ -1298,9 +1807,9 @@ export const NewaStyleGuide = () => {
                 </div>
               </section>
 
-              {/* ==================== SECTION 10: ALERTS ==================== */}
+              {/* ==================== SECTION 15: ALERTS ==================== */}
               <section id="alerts" className="fpsg-section">
-                <h2 className="fpsg-section-title">10. Alerte</h2>
+                <h2 className="fpsg-section-title">15. Alerte Demo</h2>
                 <p className="fpsg-section-desc">Mesaje de feedback pentru utilizator.</p>
                 
                 <div className="fpsg-card p-6 space-y-4">
@@ -1330,9 +1839,9 @@ export const NewaStyleGuide = () => {
                 </div>
               </section>
 
-              {/* ==================== SECTION 11: MODALS ==================== */}
+              {/* ==================== SECTION 16: MODALS ==================== */}
               <section id="modals" className="fpsg-section">
-                <h2 className="fpsg-section-title">11. Modale</h2>
+                <h2 className="fpsg-section-title">16. Modale</h2>
                 <p className="fpsg-section-desc">Dialog boxes pentru confirmări și input.</p>
                 
                 <div className="fpsg-card p-6">
@@ -1402,9 +1911,9 @@ export const NewaStyleGuide = () => {
                 </div>
               </section>
 
-              {/* ==================== SECTION 12: AVATARS ==================== */}
+              {/* ==================== SECTION 17: AVATARS ==================== */}
               <section id="avatars" className="fpsg-section">
-                <h2 className="fpsg-section-title">12. Avatare</h2>
+                <h2 className="fpsg-section-title">17. Avatare</h2>
                 <p className="fpsg-section-desc">Reprezentări vizuale pentru utilizatori.</p>
                 
                 <div className="fpsg-card p-6">
@@ -1462,9 +1971,9 @@ export const NewaStyleGuide = () => {
                 </div>
               </section>
 
-              {/* ==================== SECTION 13: LOADING ==================== */}
+              {/* ==================== SECTION 18: LOADING ==================== */}
               <section id="loading" className="fpsg-section">
-                <h2 className="fpsg-section-title">13. Loading States</h2>
+                <h2 className="fpsg-section-title">18. Loading States</h2>
                 <p className="fpsg-section-desc">Indicatori de încărcare și progres.</p>
                 
                 <div className="fpsg-card p-6">
@@ -1526,9 +2035,9 @@ export const NewaStyleGuide = () => {
                 </div>
               </section>
 
-              {/* ==================== SECTION 14: EMPTY STATES ==================== */}
+              {/* ==================== SECTION 19: EMPTY STATES ==================== */}
               <section id="empty" className="fpsg-section">
-                <h2 className="fpsg-section-title">14. Empty States</h2>
+                <h2 className="fpsg-section-title">19. Empty States</h2>
                 <p className="fpsg-section-desc">Stări de placeholder când nu există date.</p>
                 
                 <div className="grid md:grid-cols-2 gap-6">
@@ -1570,9 +2079,9 @@ export const NewaStyleGuide = () => {
                 </div>
               </section>
 
-              {/* ==================== SECTION 15: MISC ==================== */}
+              {/* ==================== SECTION 20: MISC ==================== */}
               <section id="misc" className="fpsg-section">
-                <h2 className="fpsg-section-title">15. Componente Extra</h2>
+                <h2 className="fpsg-section-title">20. Componente Extra</h2>
                 <p className="fpsg-section-desc">Tooltips, dropdown-uri și alte elemente.</p>
                 
                 <div className="fpsg-card p-6">
@@ -1700,10 +2209,13 @@ export const NewaStyleGuide = () => {
               {/* ========== FOOTER ========== */}
               <footer className="pt-12 pb-8 text-center border-t" style={{ borderColor: '#E2E8F0' }}>
                 <p className="text-sm" style={{ color: '#94A3B8' }}>
-                  FP&A SaaS Design System v1.1.0
+                  FP&A SaaS Design System v2.0.0
                 </p>
                 <p className="text-xs mt-1" style={{ color: '#94A3B8' }}>
                   Design Tokens: <code className="px-1" style={{ background: '#F8FAFC', borderRadius: '4px' }}>newa_design-tokens.jsonc</code>
+                </p>
+                <p className="text-[10px] mt-2" style={{ color: '#94A3B8' }}>
+                  20 secțiuni • State • Focus • Selection • Semantic • Alert • Typography Roles • Density • Table • Form • Charts
                 </p>
               </footer>
 
