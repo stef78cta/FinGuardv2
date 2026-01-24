@@ -212,12 +212,12 @@
   }
 
   /* ============================================
-     BUTTON SYSTEM - Hierarchical Differentiation
+     BUTTON SYSTEM - Pill Shape (40px radius)
      ============================================ */
 
   /* CTA Principal (Hero Only) - Dominant, eye-catching */
   .btn-hero {
-    @apply bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 text-white px-10 py-4 rounded-xl font-bold text-lg shadow-xl hover:scale-[1.03] transition-all duration-300;
+    @apply bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 text-white px-10 py-4 rounded-[40px] font-bold text-lg shadow-xl hover:scale-[1.03] transition-all duration-300;
     box-shadow: var(--shadow-hero);
   }
 
@@ -227,42 +227,42 @@
 
   /* CTA Primar (Secțiuni) - Prominent but secondary to hero */
   .btn-primary {
-    @apply bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-7 py-3.5 rounded-lg font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02];
+    @apply bg-indigo-500 hover:bg-indigo-600 text-white px-7 py-3.5 rounded-[40px] font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02];
   }
 
   /* CTA Secundar - Visually distinct, less prominent */
   .btn-secondary {
-    @apply bg-white text-gray-700 border border-gray-300 px-5 py-2.5 rounded-lg font-medium text-sm hover:border-gray-400 hover:bg-gray-50 transition-all duration-300;
+    @apply bg-white text-gray-700 border border-gray-300 px-5 py-2.5 rounded-[40px] font-medium text-sm hover:border-gray-400 hover:bg-gray-50 transition-all duration-300;
   }
 
   /* Ghost Button - Minimal, for secondary actions */
   .btn-ghost {
-    @apply bg-transparent text-gray-600 border border-gray-200 px-5 py-2.5 rounded-lg font-medium text-sm hover:bg-gray-50 hover:border-gray-300 transition-all duration-300;
+    @apply bg-transparent text-gray-600 border border-gray-200 px-5 py-2.5 rounded-[40px] font-medium text-sm hover:bg-gray-50 hover:border-gray-300 transition-all duration-300;
   }
 
   /* ============================================
-     CARD STYLES - Compact & Consistent
+     CARD STYLES - 20px Radius System
      ============================================ */
   
   .card-feature {
-    @apply bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 border border-gray-100;
+    @apply bg-white p-5 rounded-[20px] shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 border border-gray-100;
   }
 
   /* Featured card for high-impact items */
   .card-feature-highlight {
-    @apply bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 border-indigo-100;
+    @apply bg-white p-6 rounded-[20px] shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 border-indigo-100;
   }
 
   .card-testimonial {
-    @apply bg-white p-5 rounded-xl shadow-sm border border-gray-100;
+    @apply bg-white p-5 rounded-[20px] shadow-sm border border-gray-100;
   }
 
   .card-pricing {
-    @apply bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:border-indigo-200 hover:shadow-md transition-all duration-300;
+    @apply bg-white p-5 rounded-[20px] shadow-sm border border-gray-100 hover:border-indigo-200 hover:shadow-md transition-all duration-300;
   }
 
   .card-pricing-featured {
-    @apply bg-gradient-to-br from-indigo-50 to-purple-50 p-5 rounded-xl shadow-md border-2 border-indigo-200 transform scale-[1.02];
+    @apply bg-gradient-to-br from-indigo-50 to-purple-50 p-5 rounded-[20px] shadow-md border-2 border-indigo-200 transform scale-[1.02];
   }
 
   /* ============================================
@@ -384,9 +384,9 @@
   @apply w-full max-w-[1920px] mx-auto px-4 sm:px-5 lg:px-6 2xl:px-8 py-5 md:py-6;
 }
 
-  /* App Cards - Standardized */
+  /* App Cards - Standardized 20px Radius */
   .card-app {
-    @apply bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300;
+    @apply bg-white rounded-[20px] border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300;
   }
 
   .card-app-header {
@@ -397,48 +397,52 @@
     @apply p-5;
   }
 
-  /* KPI Cards */
+  /* KPI Cards - 20px Radius with mono values */
   .kpi-card {
-    @apply bg-white rounded-xl border border-gray-100 p-5 hover:shadow-md transition-all duration-300 hover:border-indigo-100;
+    @apply bg-white rounded-[20px] border border-gray-100 p-5 hover:shadow-md transition-all duration-300 hover:border-indigo-100;
   }
 
   .kpi-value {
-    @apply text-2xl md:text-3xl font-bold tracking-tight;
-    color: hsl(var(--foreground));
+    @apply text-2xl md:text-3xl font-mono font-bold tracking-tight;
+    color: hsl(222 47% 11%);
   }
 
   .kpi-label {
-    @apply text-sm font-medium;
+    @apply text-xs font-bold uppercase tracking-widest;
     color: hsl(var(--foreground-secondary));
   }
 
   .kpi-trend-up {
-    @apply text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-xs font-medium inline-flex items-center gap-1;
+    @apply text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-xs font-bold inline-flex items-center gap-1;
   }
 
   .kpi-trend-down {
-    @apply text-red-600 bg-red-50 px-2 py-0.5 rounded-full text-xs font-medium inline-flex items-center gap-1;
+    @apply text-red-600 bg-red-50 px-2 py-0.5 rounded-full text-xs font-bold inline-flex items-center gap-1;
   }
 
-  /* Financial Tables */
+  /* Financial Tables - Slate header */
   .table-financial {
     @apply w-full text-sm;
   }
 
   .table-financial th {
-    @apply px-4 py-3 text-left font-semibold bg-gray-50 border-b border-gray-200 text-foreground;
+    @apply px-4 py-3 text-left font-semibold bg-slate-50 border-b border-gray-200 text-foreground;
   }
 
   .table-financial td {
     @apply px-4 py-3 border-b border-gray-100;
   }
 
+  .table-financial tr:hover td {
+    @apply bg-indigo-50/30;
+  }
+
   .table-row-total {
-    @apply bg-gray-50 font-bold;
+    @apply bg-slate-50 font-bold;
   }
 
   .table-row-subtotal {
-    @apply bg-gray-50/50 font-semibold;
+    @apply bg-slate-50/50 font-semibold;
   }
 
   /* App Section Title */
@@ -447,9 +451,9 @@
     color: hsl(var(--foreground));
   }
 
-  /* Chart Card Wrapper */
+  /* Chart Card Wrapper - 20px Radius */
   .chart-card {
-    @apply bg-white rounded-xl border border-gray-100 overflow-hidden;
+    @apply bg-white rounded-[20px] border border-gray-100 overflow-hidden;
   }
 
   .chart-card-header {
@@ -460,9 +464,109 @@
     @apply p-5;
   }
 
-  /* Quick Action Button */
+  /* Financial Value styling - mono font */
+  .value-financial {
+    @apply font-mono font-bold;
+    color: hsl(222 47% 11%);
+  }
+
+  /* Category/section label */
+  .label-category {
+    @apply text-[10px] font-bold uppercase tracking-widest;
+    color: hsl(215 16% 47%);
+  }
+
+  /* Label style ultra-compact pentru titluri mici */
+  .label-micro {
+    @apply text-[10px] font-bold text-slate-400 uppercase tracking-widest;
+  }
+
+  /* Stat Mini Card - Dashboard quick stats */
+  .stat-mini-card {
+    @apply p-3 bg-slate-50 rounded-lg;
+  }
+
+  .stat-mini-title {
+    @apply text-[10px] font-bold text-slate-400 uppercase tracking-widest;
+  }
+
+  .stat-mini-value {
+    @apply text-sm font-mono font-bold mt-1;
+    color: hsl(222 47% 11%);
+  }
+
+  .stat-mini-trend {
+    @apply text-[10px] font-bold mt-1 flex items-center gap-1;
+  }
+
+  .stat-mini-trend-positive {
+    @apply text-emerald-500;
+  }
+
+  .stat-mini-trend-negative {
+    @apply text-rose-500;
+  }
+
+  /* Sidebar Nav Item */
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors;
+  }
+
+  .nav-item-default {
+    @apply text-slate-600 hover:bg-slate-50;
+  }
+
+  .nav-item-active {
+    @apply bg-indigo-50 text-indigo-600 font-medium;
+  }
+
+  /* Premium Header Style */
+  .header-premium {
+    @apply bg-white border-b border-slate-200 sticky top-0 z-50;
+  }
+
+  .header-premium-inner {
+    @apply max-w-7xl mx-auto px-8 h-20 flex justify-between items-center;
+  }
+
+  /* Card Borders - Accent Color Left Border */
+  .card-accent-emerald {
+    @apply border-l-4 border-l-emerald-500;
+  }
+
+  .card-accent-rose {
+    @apply border-l-4 border-l-rose-500;
+  }
+
+  .card-accent-indigo {
+    @apply border-l-4 border-l-indigo-500;
+  }
+
+  .card-accent-amber {
+    @apply border-l-4 border-l-amber-500;
+  }
+
+  /* Density Variables */
+  .cell-compact {
+    @apply py-2 px-3;
+  }
+
+  .cell-comfortable {
+    @apply py-4 px-6;
+  }
+
+  /* Trend indicators */
+  .trend-positive {
+    @apply text-emerald-500 flex items-center gap-1 text-xs font-bold;
+  }
+
+  .trend-negative {
+    @apply text-rose-500 flex items-center gap-1 text-xs font-bold;
+  }
+
+  /* Quick Action Button - Pill shape */
   .btn-action {
-    @apply inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200;
+    @apply inline-flex items-center gap-2 px-4 py-2.5 rounded-[40px] font-medium text-sm transition-all duration-200;
     @apply bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-foreground border border-gray-200;
   }
 
@@ -519,39 +623,37 @@
   }
 
   /* ============================================
-     TABS SYSTEM - Premium App Style
+     TABS SYSTEM - Underline Style (StyleGuide)
      ============================================ */
 
-  /* App Tabs - Default Pills Style */
+  /* App Tabs - Underline Style (Default) */
   .tabs-list-app {
-    @apply inline-flex h-auto items-center justify-center gap-1 rounded-xl bg-white p-1.5 border border-gray-200 shadow-sm;
+    @apply w-full justify-start rounded-none border-b border-gray-200 bg-slate-50 p-0 h-auto;
   }
 
   .tabs-trigger-app {
-    @apply px-4 py-2.5 rounded-lg text-gray-600 font-medium text-sm
-           transition-all duration-300 ease-out
-           hover:bg-gray-50 hover:text-gray-900
-           data-[state=active]:bg-gradient-to-r 
-           data-[state=active]:from-indigo-50 
-           data-[state=active]:to-purple-50
-           data-[state=active]:text-indigo-700 
-           data-[state=active]:font-semibold
-           data-[state=active]:border 
-           data-[state=active]:border-indigo-200
-           data-[state=active]:shadow-sm;
-  }
-
-  /* Underline variant */
-  .tabs-list-underline {
-    @apply inline-flex h-auto items-center justify-center gap-1 border-b border-gray-200 bg-transparent p-0;
-  }
-
-  .tabs-trigger-underline {
-    @apply px-4 py-3 text-gray-600 font-medium text-sm border-b-2 border-transparent -mb-px
+    @apply px-6 py-3 rounded-none text-gray-600 font-medium text-sm
+           border-b-2 border-transparent -mb-px
            transition-all duration-300
            hover:text-gray-900 hover:border-gray-300
            data-[state=active]:text-indigo-600 
-           data-[state=active]:border-indigo-600
+           data-[state=active]:border-indigo-500
+           data-[state=active]:bg-transparent
+           data-[state=active]:font-semibold;
+  }
+
+  /* Underline variant (explicit) */
+  .tabs-list-underline {
+    @apply w-full justify-start rounded-none border-b border-gray-200 bg-slate-50 p-0 h-auto;
+  }
+
+  .tabs-trigger-underline {
+    @apply px-6 py-3 text-gray-600 font-medium text-sm border-b-2 border-transparent -mb-px
+           transition-all duration-300
+           hover:text-gray-900 hover:border-gray-300
+           data-[state=active]:text-indigo-600 
+           data-[state=active]:border-indigo-500
+           data-[state=active]:bg-transparent
            data-[state=active]:font-semibold;
   }
 

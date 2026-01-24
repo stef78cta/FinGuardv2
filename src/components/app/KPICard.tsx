@@ -35,25 +35,25 @@ export const KPICard = ({
       )}
     >
       <div className="flex items-start justify-between mb-3">
-        <span className="kpi-label">{label}</span>
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</span>
         {icon && (
-          <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
             {icon}
           </div>
         )}
       </div>
 
-      <div className="kpi-value mb-2">{value}</div>
+      <div className="text-2xl font-mono font-bold text-[#0F172A] mb-2">{value}</div>
 
       {(trend !== undefined || trendLabel) && (
         <div className="flex items-center gap-2">
           {trend !== undefined && (
             <span
               className={cn(
-                'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium',
-                isPositive && 'bg-emerald-50 text-emerald-700',
-                isNegative && 'bg-red-50 text-red-700',
-                !isPositive && !isNegative && 'bg-gray-50 text-gray-600'
+                'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold',
+                isPositive && 'bg-emerald-50 text-emerald-600',
+                isNegative && 'bg-rose-50 text-rose-600',
+                !isPositive && !isNegative && 'bg-slate-50 text-slate-600'
               )}
             >
               {isPositive ? (
@@ -66,13 +66,13 @@ export const KPICard = ({
             </span>
           )}
           {trendLabel && (
-            <span className="text-xs text-gray-500">{trendLabel}</span>
+            <span className="text-xs text-slate-500">{trendLabel}</span>
           )}
         </div>
       )}
 
       {description && (
-        <p className="text-xs text-gray-500 mt-2">{description}</p>
+        <p className="text-xs text-slate-500 mt-2">{description}</p>
       )}
     </div>
   );

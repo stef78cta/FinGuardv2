@@ -23,29 +23,29 @@ export const ChartCard = ({
   className,
 }: ChartCardProps) => {
   return (
-    <div className={cn('chart-card', className)}>
-      <div className="chart-card-header">
+    <div className={cn('bg-white rounded-[20px] border border-slate-100 overflow-hidden', className)}>
+      <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
         <div>
-          <h3 className="font-semibold text-foreground">{title}</h3>
+          <h3 className="font-semibold text-slate-900">{title}</h3>
           {subtitle && (
-            <p className="text-sm text-foreground-secondary mt-0.5">{subtitle}</p>
+            <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>
           )}
         </div>
         <div className="flex items-center gap-2">
           {actions}
           {onExport && (
-            <Button variant="ghost" size="icon" onClick={onExport} className="h-8 w-8">
+            <Button variant="ghost" size="icon" onClick={onExport} className="h-8 w-8 rounded-full">
               <Download className="w-4 h-4" />
             </Button>
           )}
           {onExpand && (
-            <Button variant="ghost" size="icon" onClick={onExpand} className="h-8 w-8">
+            <Button variant="ghost" size="icon" onClick={onExpand} className="h-8 w-8 rounded-full">
               <Maximize2 className="w-4 h-4" />
             </Button>
           )}
         </div>
       </div>
-      <div className="chart-card-content">{children}</div>
+      <div className="p-5">{children}</div>
     </div>
   );
 };

@@ -142,29 +142,29 @@ const HeroSection = () => {
               <img 
                 src={dashboardMockup}
                 alt="FinGuard Dashboard - Analiză financiară automată"
-                className="w-full h-auto rounded-xl shadow-xl"
+                className="w-full h-auto rounded-[20px] shadow-xl"
               />
               
-              {/* Floating Metric Cards - Compact */}
-              <div className="hidden md:block absolute -top-3 -left-3 bg-white p-3 rounded-lg shadow-md border border-gray-100 float-animation">
-                <div className="text-lg font-bold gradient-text">
+              {/* Floating Metric Cards - 20px radius */}
+              <div className="hidden md:block absolute -top-3 -left-3 bg-white p-3 rounded-[20px] shadow-md border border-gray-100 float-animation">
+                <div className="text-lg font-mono font-bold gradient-text">
                   {Math.round(counters.saved)}%
                 </div>
-                <div className="text-[10px] text-gray-600">timp economisit</div>
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">timp economisit</div>
               </div>
 
-              <div className="hidden md:block absolute top-4 -right-4 bg-white p-3 rounded-lg shadow-md border border-gray-100 float-animation" style={{ animationDelay: '0.5s' }}>
-                <div className="text-lg font-bold gradient-text">
+              <div className="hidden md:block absolute top-4 -right-4 bg-white p-3 rounded-[20px] shadow-md border border-gray-100 float-animation" style={{ animationDelay: '0.5s' }}>
+                <div className="text-lg font-mono font-bold gradient-text">
                   {Math.round(counters.kpis)}
                 </div>
-                <div className="text-[10px] text-gray-600">KPI-uri calculate</div>
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">KPI-uri calculate</div>
               </div>
 
-              <div className="hidden md:block absolute -bottom-2 -left-4 bg-white p-3 rounded-lg shadow-md border border-gray-100 float-animation" style={{ animationDelay: '1s' }}>
-                <div className="text-lg font-bold gradient-text-success">
+              <div className="hidden md:block absolute -bottom-2 -left-4 bg-white p-3 rounded-[20px] shadow-md border border-gray-100 float-animation" style={{ animationDelay: '1s' }}>
+                <div className="text-lg font-mono font-bold gradient-text-success">
                   {counters.accuracy.toFixed(1)}%
                 </div>
-                <div className="text-[10px] text-gray-600">acuratețe</div>
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">acuratețe</div>
               </div>
             </div>
           </div>
