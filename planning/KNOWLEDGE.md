@@ -1,6 +1,6 @@
 # FinGuard v2 - Custom Knowledge File
 
-> **Ultima actualizare**: Ianuarie 2026  
+> **Ultima actualizare**: 26 Ianuarie 2026  
 > **Status proiect**: ✅ Production-ready (7/11 probleme critice rezolvate)  
 > **Versiune**: 2.0
 
