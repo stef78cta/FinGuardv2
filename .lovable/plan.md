@@ -441,4 +441,3 @@ FOR EACH ROW
 EXECUTE FUNCTION public.block_incomplete_mapping_generation_on_update();
 */
 ```
-
