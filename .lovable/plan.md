@@ -1,269 +1,444 @@
 
-# Plan: Înlocuire new_StyleGuide.tsx și Aplicare Stiluri v1.3 în Întreaga Aplicație
 
-## Obiectiv
-1. Înlocuirea completă a conținutului fișierului `src/pages/new_StyleGuide.tsx` cu fișierul încărcat `new_StyleGuide_new.tsx`
-2. Aplicarea tuturor stilurilor noi definite în fișier la întreaga aplicație
+# Plan Final v3.3: Clarificări de Produs, Securitate și Politici
 
----
+## Rezumat Modificări față de Plan v3.2
 
-## Analiză Diferențe Cheie (Actual vs Nou)
-
-| Element | Stil Actual | Stil Nou v1.3 |
-|---------|-------------|---------------|
-| Label text | `.label-category` variabil | `text-[10px] font-bold text-slate-400 uppercase tracking-widest` |
-| StatCard | Component separat | Helper component inline cu pattern nou |
-| NavItem | Nu există | Pattern sidebar navigation cu hover states |
-| Density System | Nu există | Toggle Compact (8px) vs Comfortable (16px) |
-| ColorCard | Nu există | Component pentru documentare paleta |
-| Table Density | Padding fix | `cellPadding` bazat pe density mode |
-| UI States | Parțial | 4 stări complete: loading, error, empty, success |
+| # | Punct | Modificare |
+|---|-------|------------|
+| 1 | Immutabilitate Financial Statements | Decizie explicită: immutable ca default, trigger UPDATE ca fallback |
+| 2 | Conturi relevante vs toate | Verificare 100% doar pentru conturi cu activitate (sold/rulaj nenul) |
+| 3 | Hardening securitate | Verificare acces în `assert_mappings_complete_for_import` |
 
 ---
 
-## Faza 1: Înlocuire Completă `new_StyleGuide.tsx`
+## Logica Principală Pragmatică (CONFIRMATĂ - NESCHIMBATĂ)
 
-Copiez integral conținutul fișierului încărcat `new_StyleGuide_new.tsx` în `src/pages/new_StyleGuide.tsx`.
-
-**Caracteristici noi ale StyleGuide-ului:**
-- Design tokens export (`designTokens`) cu toate valorile
-- 7 secțiuni documentate:
-  1. Fundamente Vizuale & Brand (Paleta Cromatică)
-  2. Tipografie & Ierarhie
-  3. Componente de Acțiune (Butoane)
-  4. Form Elements & Inputs
-  5. Navigation & Structure (Tabs, Cards)
-  6. Tabele Date & Densitate
-  7. Stări UI & Feedback
+| Aspect | Comportament |
+|--------|--------------|
+| Editare mapări curente | Liberă, cu gard "≤ 100%" prin trigger |
+| Completitudine "= 100%" | Doar la generare, la ref_date (period_end) |
+| Non-overlap intervale | Prin EXCLUDE constraint + btree_gist |
+| Gaps la închidere | WARNING opțional, fără blocare la scriere |
 
 ---
 
-## Faza 2: Actualizare `src/index.css`
+## (1) Policy: Financial Statements Immutability (DECIZIE)
 
-### 2.1 Noi Label Styles
-```css
-/* Label style ultra-compact pentru titluri mici */
-.label-micro {
-  @apply text-[10px] font-bold text-slate-400 uppercase tracking-widest;
-}
+### Decizie Explicită pentru Plan Final v3.3
+
+**Default (RECOMANDAT)**: Tratează `financial_statements` ca **immutable** pentru câmpurile:
+- `source_import_id`
+- `period_start`
+- `period_end`
+- `statement_type`
+- `company_id`
+
+### Consecințe
+
+| Acțiune | Cum se implementează |
+|---------|---------------------|
+| Modificare statement | Se creează o **versiune nouă** (INSERT) cu `is_current = true` |
+| Versiune veche | Trigger existent setează automat `is_current = false` |
+| UPDATE pe câmpuri imutabile | **Nu se expune** în UI/API |
+
+### Fallback (Dacă proiectul insistă pe UPDATE)
+
+Dacă se decide să se permită UPDATE pe aceste câmpuri, atunci se activează triggerul:
+
+```sql
+-- Triggerul există deja în v3.2, se activează doar dacă e necesar
+CREATE TRIGGER trg_block_incomplete_mapping_generation_on_update
+BEFORE UPDATE ON public.financial_statements
+FOR EACH ROW
+EXECUTE FUNCTION public.block_incomplete_mapping_generation_on_update();
 ```
 
-### 2.2 Stat Card Pattern
-```css
-/* Stat Mini Card - Dashboard quick stats */
-.stat-mini-card {
-  @apply p-3 bg-slate-50 rounded-lg;
-}
+### Tabel Actualizat: Reguli de Validare
 
-.stat-mini-title {
-  @apply text-[10px] font-bold text-slate-400 uppercase tracking-widest;
-}
+| Regulă | Moment | Comportament | Status |
+|--------|--------|--------------|--------|
+| Suma alocări = 100% la INSERT | INSERT financial_statement | RAISE EXCEPTION | **Obligatoriu** |
+| Suma alocări = 100% la UPDATE | UPDATE financial_statement | RAISE EXCEPTION | **Fallback** (doar dacă se permite UPDATE) |
 
-.stat-mini-value {
-  @apply text-sm font-mono font-bold text-[#0F172A] mt-1;
-}
+---
 
-.stat-mini-trend {
-  @apply text-[10px] font-bold mt-1 flex items-center gap-1;
-}
+## (2) Clarificare Produs: Mapare 100% - Conturi Relevante vs Toate
 
-.stat-mini-trend-positive {
-  @apply text-emerald-500;
-}
+### Regula de Business (DECIZIE)
 
-.stat-mini-trend-negative {
-  @apply text-rose-500;
-}
+**Variantă B (RECOMANDATĂ în Plan Final v3.3)**:
+
+> "Verificarea completitudinii 100% se aplică doar pentru **conturile relevante** - cele cu activitate (sold sau rulaj nenul)."
+
+### Motivație
+
+- Conturile cu sold zero și rulaj zero sunt tehnice sau inactive
+- Blocarea generării din cauza conturilor zero creează fricțiune inutilă
+- Maparea conturilor zero nu aduce valoare în situațiile financiare
+
+### Definiție "Cont Relevant"
+
+Un cont este relevant dacă **oricare** din următoarele este diferit de zero:
+
+| Coloană | Descriere |
+|---------|-----------|
+| `closing_debit` | Sold final debitor |
+| `closing_credit` | Sold final creditor |
+| `debit_turnover` | Rulaj debitor |
+| `credit_turnover` | Rulaj creditor |
+
+### Patch SQL pentru `assert_mappings_complete_for_import`
+
+```sql
+-- Modificare în CTE account_allocations pentru a filtra doar conturile relevante
+WITH account_allocations AS (
+    SELECT 
+        tba.id AS tb_account_id,
+        tba.account_code,
+        tba.account_name,
+        COALESCE(SUM(am.allocation_pct), 0) AS total_allocation
+    FROM public.trial_balance_accounts tba
+    LEFT JOIN public.account_mappings am 
+        ON am.trial_balance_account_id = tba.id
+        AND am.valid_from <= ref_date
+        AND (am.valid_to IS NULL OR am.valid_to >= ref_date)
+    WHERE tba.import_id = _import_id
+      -- FILTRU CONTURI RELEVANTE: cel puțin o valoare nenulă
+      AND (
+        COALESCE(tba.closing_debit, 0) <> 0
+        OR COALESCE(tba.closing_credit, 0) <> 0
+        OR COALESCE(tba.debit_turnover, 0) <> 0
+        OR COALESCE(tba.credit_turnover, 0) <> 0
+      )
+    GROUP BY tba.id, tba.account_code, tba.account_name
+)
 ```
 
-### 2.3 Navigation Item Pattern
-```css
-/* Sidebar Nav Item */
-.nav-item {
-  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors;
-}
+### Alternativă Simplificată (dacă se preferă)
 
-.nav-item-default {
-  @apply text-slate-600 hover:bg-slate-50;
-}
+Dacă se dorește o regulă mai simplă (doar sold final):
 
-.nav-item-active {
-  @apply bg-indigo-50 text-indigo-600 font-medium;
-}
-```
-
-### 2.4 Density Variables
-```css
-:root {
-  --density-compact: 8px;
-  --density-comfortable: 16px;
-}
-
-/* Table density classes */
-.cell-compact {
-  @apply py-2 px-3;
-}
-
-.cell-comfortable {
-  @apply py-4 px-6;
-}
-```
-
-### 2.5 Premium Header Style
-```css
-.header-premium {
-  @apply bg-white border-b border-slate-200 sticky top-0 z-50;
-}
-
-.header-premium-inner {
-  @apply max-w-7xl mx-auto px-8 h-20 flex justify-between items-center;
-}
-```
-
-### 2.6 Card Borders (Accent Color Left Border)
-```css
-.card-accent-emerald {
-  @apply border-l-4 border-l-emerald-500;
-}
-
-.card-accent-rose {
-  @apply border-l-4 border-l-rose-500;
-}
-
-.card-accent-indigo {
-  @apply border-l-4 border-l-indigo-500;
-}
-
-.card-accent-amber {
-  @apply border-l-4 border-l-amber-500;
-}
+```sql
+AND (
+    COALESCE(tba.closing_debit, 0) <> 0
+    OR COALESCE(tba.closing_credit, 0) <> 0
+)
 ```
 
 ---
 
-## Faza 3: Actualizare Componente App
+## (3) Hardening Securitate: Verificare Acces în Funcție
 
-### 3.1 `src/components/app/KPICard.tsx`
-- Actualizare label cu stil `text-[10px] font-bold text-slate-400 uppercase tracking-widest`
-- Valori cu `text-2xl font-mono font-bold text-[#0F172A]`
+### Problemă Identificată
 
-### 3.2 `src/components/app/ChartCard.tsx`
-- Aplicare `rounded-[20px]` consistent
-- Header cu stil premium
+În v3.2, funcția `assert_mappings_complete_for_import` nu verifică dacă utilizatorul curent are acces la importul specificat. Acest lucru permite:
+- "Sondare" pentru a afla dacă un import există
+- Potențiale scurgeri de informații prin mesaje de eroare
 
-### 3.3 `src/components/app/StatCard.tsx`
-- Actualizare la pattern-ul StatCard din StyleGuide
-- Font `font-mono font-bold` pentru valori
-- Labels cu `text-[10px] uppercase tracking-widest`
+### Soluție pentru Plan Final v3.3
 
----
+Funcția verifică membership pe compania importului înainte de a procesa validarea.
 
-## Faza 4: Actualizare UI Components Base
+### SQL Complet: `assert_mappings_complete_for_import` (Versiune Finală)
 
-### 4.1 `src/components/ui/badge.tsx`
-Adăugare variante noi pentru stări:
-```tsx
-success: "border-transparent bg-emerald-500 text-white",
-warning: "border-transparent bg-amber-500 text-white", 
-info: "border-transparent bg-blue-500 text-white",
+```sql
+CREATE OR REPLACE FUNCTION public.assert_mappings_complete_for_import(_import_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    ref_date DATE;
+    _company_id UUID;
+    _user_id UUID;
+    incomplete_accounts TEXT;
+    incomplete_count INT;
+BEGIN
+    -- Obține user_id din context auth
+    _user_id := public.get_user_id_from_auth();
+
+    -- Obține company_id și period_end din import
+    SELECT tbi.company_id, tbi.period_end
+      INTO _company_id, ref_date
+    FROM public.trial_balance_imports tbi
+    WHERE tbi.id = _import_id;
+
+    -- Validare existență import
+    IF ref_date IS NULL OR _company_id IS NULL THEN
+        RAISE EXCEPTION 'Import invalid sau lipsă period_end/company_id (import_id=%)', _import_id;
+    END IF;
+
+    -- HARDENING: Verifică accesul userului la compania importului
+    IF NOT public.is_company_member(_user_id, _company_id)
+       AND NOT public.has_role(_user_id, 'admin')
+       AND NOT public.has_role(_user_id, 'super_admin') THEN
+        RAISE EXCEPTION 'Acces interzis la import (import_id=%)', _import_id;
+    END IF;
+
+    -- Găsește conturile RELEVANTE cu mapare incompletă la ref_date
+    WITH account_allocations AS (
+        SELECT 
+            tba.id AS tb_account_id,
+            tba.account_code,
+            tba.account_name,
+            COALESCE(SUM(am.allocation_pct), 0) AS total_allocation
+        FROM public.trial_balance_accounts tba
+        LEFT JOIN public.account_mappings am 
+            ON am.trial_balance_account_id = tba.id
+            AND am.valid_from <= ref_date
+            AND (am.valid_to IS NULL OR am.valid_to >= ref_date)
+        WHERE tba.import_id = _import_id
+          -- FILTRU: doar conturi relevante (cu activitate)
+          AND (
+            COALESCE(tba.closing_debit, 0) <> 0
+            OR COALESCE(tba.closing_credit, 0) <> 0
+            OR COALESCE(tba.debit_turnover, 0) <> 0
+            OR COALESCE(tba.credit_turnover, 0) <> 0
+          )
+        GROUP BY tba.id, tba.account_code, tba.account_name
+    )
+    SELECT 
+        COUNT(*),
+        STRING_AGG(
+            FORMAT('%s (%s): %.2f%%', account_code, account_name, total_allocation * 100),
+            ', '
+            ORDER BY account_code
+        )
+    INTO incomplete_count, incomplete_accounts
+    FROM account_allocations
+    WHERE total_allocation < 0.999999 OR total_allocation > 1.000001;
+    
+    IF incomplete_count > 0 THEN
+        RAISE EXCEPTION 'Mapare incompletă pentru % conturi relevante din importul % (ref_date: %). Conturi: %',
+            incomplete_count, _import_id, ref_date, LEFT(incomplete_accounts, 500);
+    END IF;
+    
+    RETURN TRUE;
+END;
+$$;
+
+-- Restricții EXECUTE
+REVOKE EXECUTE ON FUNCTION public.assert_mappings_complete_for_import(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.assert_mappings_complete_for_import(UUID) TO authenticated;
 ```
 
-### 4.2 `src/components/ui/table.tsx`
-Confirmare stiluri consistente:
-- Header cu `bg-slate-50`
-- Row hover cu `hover:bg-indigo-50/30`
-- Status indicators cu cercuri colorate (pattern din StyleGuide)
+### Notă Securitate
+
+| Aspect | Implementare |
+|--------|--------------|
+| SECURITY DEFINER | Funcția rulează cu privilegiile owner-ului |
+| SET search_path = public | Previne hijacking |
+| Verificare membership | Înainte de orice procesare |
+| Mesaj eroare generic | Nu expune detalii despre import la acces interzis |
+| EXECUTE restricționat | Doar `authenticated`, nu `PUBLIC` sau `anon` |
 
 ---
 
-## Faza 5: Actualizare Landing Components
+## Secțiune Actualizată: Reguli de Validare
 
-### 5.1 `src/components/HeroSection.tsx`
-- Butoane cu `rounded-[40px]` (deja aplicat)
-
-### 5.2 `src/components/PricingSection.tsx`
-- Badge "POPULAR" cu stil premium: `bg-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg`
-- Carduri cu `rounded-[20px]`
-
-### 5.3 `src/components/FeaturesSection.tsx`
-- Icon containers cu `group-hover` transitions
-- Pattern: `w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-3 group-hover:bg-indigo-500`
+| Regulă | Moment | Comportament | Autoritate |
+|--------|--------|--------------|------------|
+| Suma alocări ≤ 100% | INSERT/UPDATE mapping curent | RAISE EXCEPTION dacă > 1.0 | Trigger `validate_mapping_allocation` |
+| Suma alocări = 100% (conturi relevante) | INSERT financial_statement | RAISE EXCEPTION dacă ≠ 1.0 la ref_date | Funcție `assert_mappings_complete_for_import` |
+| Suma alocări = 100% la UPDATE | UPDATE financial_statement | RAISE EXCEPTION (FALLBACK) | Trigger opțional (doar dacă immutability nu e respectată) |
+| Non-overlap intervale | INSERT/UPDATE mapping | EXCLUDE constraint | Constraint GIST |
+| Detectare gaps | UPDATE (închidere mapping) | WARNING, fără blocare | Trigger `validate_mapping_continuity` |
+| Verificare acces | Apel RPC assert_mappings | RAISE EXCEPTION dacă nu e membru | În funcție |
 
 ---
 
-## Faza 6: Actualizare Pagini App
+## Flux de Lucru (Actualizat pentru v3.3)
 
-### 6.1 Dashboard, AnalizeFinanciare, IndicatoriCheie, etc.
-- Toate cardurile cu `rounded-[20px]`
-- Valori financiare cu `font-mono font-bold text-[#0F172A]`
-- Labels cu `text-[10px] font-bold text-slate-400 uppercase tracking-widest`
+```text
+1. Upload balanță → trial_balance_imports + trial_balance_accounts
 
-### 6.2 Tabele Financiare în toate paginile
-- Confirmare stiluri conform StyleGuide Section 6
-- Header cu `bg-slate-50`
-- Status indicators: cercuri colorate cu text matching
+2. Creare/Editare mapări curente (valid_to IS NULL)
+   └─→ Trigger verifică: suma ≤ 1.0 pe contul curent
+   └─→ NU verifică completitudine (poate fi < 1.0)
+   └─→ Permite creare treptată a mapărilor
 
----
+3. Închidere mapare veche (setare valid_to)
+   └─→ Trigger emite WARNING dacă nu există acoperire pentru ziua următoare
+   └─→ NU blochează - doar semnal pentru operatori
 
-## Sumar Fișiere de Modificat
+4. [OPȚIONAL] Verificare mapare completă
+   └─→ UI: Buton "Verifică maparea pentru import"
+   └─→ Apelează assert_mappings_complete_for_import(import_id)
+   └─→ Verifică acces + conturi RELEVANTE (nu toate)
+   └─→ Afișează succes sau listă conturi incomplete
 
-### Fișierul Principal:
-1. `src/pages/new_StyleGuide.tsx` - Înlocuire completă cu fișierul nou
+5. Generare situații financiare (INSERT)
+   └─→ Trigger BEFORE INSERT apelează assert_mappings_complete_for_import
+   └─→ Verifică acces utilizator
+   └─→ Verifică doar conturi RELEVANTE (sold/rulaj nenul)
+   └─→ RAISE EXCEPTION dacă mapare incompletă sau gaps la ref_date
+   └─→ Succes doar dacă toate conturile relevante au mapare 100%
 
-### CSS:
-2. `src/index.css` - Adăugare clase noi (label-micro, stat-mini, nav-item, density, card-accent)
-
-### Componente App:
-3. `src/components/app/KPICard.tsx` - Labels și valori cu stiluri noi
-4. `src/components/app/StatCard.tsx` - Pattern complet nou
-5. `src/components/app/ChartCard.tsx` - Actualizare stiluri
-
-### Componente UI:
-6. `src/components/ui/badge.tsx` - Variante noi (success, warning, info)
-
-### Landing:
-7. `src/components/FeaturesSection.tsx` - Group hover transitions
-8. `src/components/PricingSection.tsx` - Badge și card styles
-
----
-
-## Detalii Tehnice
-
-### Pattern Status Indicators (din StyleGuide Section 6)
-```tsx
-<div className={`flex items-center gap-1.5 text-xs font-bold ${
-  status === 'Plătit' ? 'text-emerald-600' : 
-  status === 'Restant' ? 'text-rose-600' : 'text-amber-600'
-}`}>
-  <div className={`w-1.5 h-1.5 rounded-full ${
-    status === 'Plătit' ? 'bg-emerald-500' : 
-    status === 'Restant' ? 'bg-rose-500' : 'bg-amber-500'
-  }`} />
-  {status}
-</div>
+6. [IMMUTABILITY] Modificare statement existent
+   └─→ DEFAULT: Nu se permite UPDATE pe câmpuri imutabile
+   └─→ Se creează versiune nouă (INSERT) și se marchează curentă
+   └─→ FALLBACK: Dacă UPDATE e permis, trigger validează maparea
 ```
 
-### Font Stack Actualizat
-```css
---font-serif: 'Georgia, serif'
---font-sans: 'system-ui, -apple-system, sans-serif'
---font-mono: 'JetBrains Mono, monospace'
-```
+---
 
-### Culori Exacte din StyleGuide
-- Primary Dark: `#0F172A` (text principal)
-- Accent Indigo: `#6366F1` (CTA-uri)
-- Success Emerald: `#34D399` (pozitiv)
-- Danger Rose: `#F43F5E` (negativ)
-- Warning Amber: `#F59E0B` (atenție)
-- Surface Canvas: `#F8FAFC` (fundal)
+## Note Importante (Actualizat pentru v3.3)
+
+1. **Financial statements sunt IMUTABILE** pentru câmpurile: `source_import_id`, `period_*`, `statement_type`, `company_id`. Modificări = versiune nouă.
+
+2. **Verificarea 100% se aplică doar pe CONTURI RELEVANTE** - cele cu sold sau rulaj nenul. Conturile zero/inactive sunt ignorate.
+
+3. **Funcția de validare verifică accesul** - utilizatorul trebuie să fie membru al companiei sau admin pentru a apela funcția.
+
+4. **Triggerul de alocare funcționează corect la UPDATE** - exclude rândul curent din sumă și adaugă noua valoare.
+
+5. **WARNING la închidere verifică ziua următoare** (`valid_to + 1`) - nu blochează, doar semnalează.
+
+6. **SECURITY DEFINER + verificare membership** - funcțiile au owner controlat și verifică accesul intern.
+
+7. **Triggerul UPDATE pe financial_statements este FALLBACK** - se activează doar dacă se decide să se permită UPDATE pe câmpuri imutabile.
 
 ---
 
-## Beneficii
+## Sumar Plan Final v3.3
 
-1. **StyleGuide Complet**: Documentație vizuală actualizată cu toate cele 7 secțiuni
-2. **Density System**: Suport pentru Compact vs Comfortable în tabele
-3. **UI States**: 4 stări complete (loading, error, empty, success)
-4. **Design Tokens Export**: `designTokens` exportabil pentru utilizare în componente
-5. **Consistență**: Toate componentele vor urma același design system v1.3
+| # | Aspect | Decizie |
+|---|--------|---------|
+| 1 | Immutabilitate FS | **Default**: imutabil; **Fallback**: trigger UPDATE |
+| 2 | Conturi pentru verificare | Doar **relevante** (sold/rulaj ≠ 0) |
+| 3 | Securitate funcție | Verificare **membership** + restricții **EXECUTE** |
+| 4 | Logica pragmatică | **CONFIRMATĂ** - neschimbată |
+
+---
+
+## SQL Complet pentru Actualizări v3.3
+
+```sql
+-- ============================================================================
+-- PLAN FINAL v3.3: PATCH-URI
+-- ============================================================================
+
+-- (3) Funcție actualizată cu hardening securitate + (2) filtru conturi relevante
+CREATE OR REPLACE FUNCTION public.assert_mappings_complete_for_import(_import_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    ref_date DATE;
+    _company_id UUID;
+    _user_id UUID;
+    incomplete_accounts TEXT;
+    incomplete_count INT;
+BEGIN
+    -- Obține user_id din context auth
+    _user_id := public.get_user_id_from_auth();
+
+    -- Obține company_id și period_end din import
+    SELECT tbi.company_id, tbi.period_end
+      INTO _company_id, ref_date
+    FROM public.trial_balance_imports tbi
+    WHERE tbi.id = _import_id;
+
+    -- Validare existență import
+    IF ref_date IS NULL OR _company_id IS NULL THEN
+        RAISE EXCEPTION 'Import invalid sau lipsă period_end/company_id (import_id=%)', _import_id;
+    END IF;
+
+    -- HARDENING: Verifică accesul userului la compania importului
+    IF NOT public.is_company_member(_user_id, _company_id)
+       AND NOT public.has_role(_user_id, 'admin')
+       AND NOT public.has_role(_user_id, 'super_admin') THEN
+        RAISE EXCEPTION 'Acces interzis la import (import_id=%)', _import_id;
+    END IF;
+
+    -- Găsește conturile RELEVANTE cu mapare incompletă la ref_date
+    WITH account_allocations AS (
+        SELECT 
+            tba.id AS tb_account_id,
+            tba.account_code,
+            tba.account_name,
+            COALESCE(SUM(am.allocation_pct), 0) AS total_allocation
+        FROM public.trial_balance_accounts tba
+        LEFT JOIN public.account_mappings am 
+            ON am.trial_balance_account_id = tba.id
+            AND am.valid_from <= ref_date
+            AND (am.valid_to IS NULL OR am.valid_to >= ref_date)
+        WHERE tba.import_id = _import_id
+          -- FILTRU: doar conturi relevante (cu activitate)
+          AND (
+            COALESCE(tba.closing_debit, 0) <> 0
+            OR COALESCE(tba.closing_credit, 0) <> 0
+            OR COALESCE(tba.debit_turnover, 0) <> 0
+            OR COALESCE(tba.credit_turnover, 0) <> 0
+          )
+        GROUP BY tba.id, tba.account_code, tba.account_name
+    )
+    SELECT 
+        COUNT(*),
+        STRING_AGG(
+            FORMAT('%s (%s): %.2f%%', account_code, account_name, total_allocation * 100),
+            ', '
+            ORDER BY account_code
+        )
+    INTO incomplete_count, incomplete_accounts
+    FROM account_allocations
+    WHERE total_allocation < 0.999999 OR total_allocation > 1.000001;
+    
+    IF incomplete_count > 0 THEN
+        RAISE EXCEPTION 'Mapare incompletă pentru % conturi relevante din importul % (ref_date: %). Conturi: %',
+            incomplete_count, _import_id, ref_date, LEFT(incomplete_accounts, 500);
+    END IF;
+    
+    RETURN TRUE;
+END;
+$$;
+
+-- Restricții EXECUTE pentru securitate
+REVOKE EXECUTE ON FUNCTION public.assert_mappings_complete_for_import(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.assert_mappings_complete_for_import(UUID) TO authenticated;
+
+-- ============================================================================
+-- (1) TRIGGER UPDATE pe financial_statements (FALLBACK - activează doar dacă 
+--     se decide să se permită UPDATE pe câmpuri imutabile)
+-- ============================================================================
+
+-- NOTĂ: Acest trigger este OPȚIONAL și se activează doar dacă proiectul 
+-- decide să permită UPDATE pe câmpurile imutabile în loc de versionare.
+-- DEFAULT recomandat: NU activa acest trigger, tratează statements ca imutabile.
+
+/*
+CREATE OR REPLACE FUNCTION public.block_incomplete_mapping_generation_on_update()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    -- Rulează doar dacă se schimbă câmpuri care afectează selecția mapărilor
+    IF (NEW.source_import_id IS DISTINCT FROM OLD.source_import_id)
+       OR (NEW.period_start IS DISTINCT FROM OLD.period_start)
+       OR (NEW.period_end IS DISTINCT FROM OLD.period_end)
+       OR (NEW.statement_type IS DISTINCT FROM OLD.statement_type)
+       OR (NEW.company_id IS DISTINCT FROM OLD.company_id) THEN
+
+        PERFORM public.assert_mappings_complete_for_import(NEW.source_import_id);
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_block_incomplete_mapping_generation_on_update
+ON public.financial_statements;
+
+CREATE TRIGGER trg_block_incomplete_mapping_generation_on_update
+BEFORE UPDATE ON public.financial_statements
+FOR EACH ROW
+EXECUTE FUNCTION public.block_incomplete_mapping_generation_on_update();
+*/
+```
+
