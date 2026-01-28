@@ -80,25 +80,31 @@ export const useCompany = () => {
   const createCompany = async (name: string, cui: string) => {
     if (!user) throw new Error('Not authenticated');
 
-    // Get user's internal ID
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('auth_user_id', user.id)
-      .single();
-
-    if (userError) throw userError;
-
-    // Use RPC function to create company and add member atomically
-    // This bypasses RLS SELECT restriction
+    /**
+     * v1.8: SECURITY PATCH - Elimină p_user_id
+     * Funcția create_company_with_member folosește get_user_id_from_auth() intern
+     * pentru a preveni impersonare și a simplifica API-ul.
+     */
     const { data: companyId, error: rpcError } = await supabase
       .rpc('create_company_with_member', { 
         p_name: name, 
-        p_cui: cui, 
-        p_user_id: userData.id 
+        p_cui: cui
+        // p_user_id eliminat - folosește get_user_id_from_auth() intern (v1.8)
       });
     
-    if (rpcError) throw rpcError;
+    /**
+     * v1.8: Handle error specific pentru duplicate CUI
+     * ERRCODE 23505 = unique_violation (CUI UNIQUE constraint)
+     */
+    if (rpcError) {
+      if (rpcError.code === '23505') {
+        throw new Error(
+          'O companie cu acest CUI există deja în sistem. ' +
+          'Dacă doriți acces, solicitați o invitație de la owner.'
+        );
+      }
+      throw rpcError;
+    }
     
     const companyData: Company = {
       id: companyId as string,

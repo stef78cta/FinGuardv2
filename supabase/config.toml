@@ -1,4 +1,14 @@
 project_id = "gqxopxbzslwrjgukqbha"
 
 [functions.parse-balanta]
-verify_jwt = false
+verify_jwt = true  # v1.8: SECURITY FIX - verify JWT tokens
+
+[functions]
+# v1.7: CORS whitelist (nu wildcard *)
+allowed_origins = [
+  "http://localhost:8080",
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "https://finguard.ro",
+  "https://www.finguard.ro"
+]
