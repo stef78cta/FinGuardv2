@@ -177,15 +177,21 @@ export const useTrialBalances = (companyId: string | null) => {
 
     // Upload file to storage
     // v1.9: QUICK FIX - Revert la 'balante' (bucket existent în Supabase)
+    console.log('[uploadBalance] Uploading to bucket "balante", path:', filePath);
     const { error: uploadError } = await supabase.storage
       .from('balante')
       .upload(filePath, file);
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error('[uploadBalance] Upload error:', uploadError);
+      throw uploadError;
+    }
+    console.log('[uploadBalance] Upload successful');
 
     // Create import record
     // v1.9: FIX - Status inițial 'pending' (nu 'processing')
     // Funcția process_import_accounts așteaptă 'pending' pentru a putea face UPDATE
+    console.log('[uploadBalance] Creating import record...');
     const { data: importData, error: insertError } = await supabase
       .from('trial_balance_imports')
       .insert({
@@ -202,13 +208,16 @@ export const useTrialBalances = (companyId: string | null) => {
       .single();
 
     if (insertError) {
+      console.error('[uploadBalance] Insert error:', insertError);
       // Clean up uploaded file
       // v1.9: QUICK FIX - Revert la 'balante'
       await supabase.storage.from('balante').remove([filePath]);
       throw insertError;
     }
+    console.log('[uploadBalance] Import record created:', importData.id);
 
     // Call edge function to parse the file
+    console.log('[uploadBalance] Calling Edge Function parse-balanta...');
     const response = await fetch(
       `https://gqxopxbzslwrjgukqbha.supabase.co/functions/v1/parse-balanta`,
       {
@@ -224,10 +233,16 @@ export const useTrialBalances = (companyId: string | null) => {
       }
     );
 
+    console.log('[uploadBalance] Edge Function response status:', response.status);
+
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      console.error('[uploadBalance] Edge Function error:', errorData);
       throw new Error(errorData.error || 'Failed to process file');
     }
+    
+    const resultData = await response.json();
+    console.log('[uploadBalance] Edge Function success:', resultData);
 
     // Refresh imports list
     await fetchImports();
