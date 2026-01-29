@@ -1,25 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { 
-  Upload, 
-  FileSpreadsheet, 
-  Info, 
-  Calendar as CalendarIcon,
-  FileCheck,
-  X,
-  Download,
-  Eye,
-  Trash2,
-  ChevronDown,
-  FileX,
-  Building2,
-  Loader2,
-  AlertCircle,
-  AlertTriangle,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  RotateCcw
-} from 'lucide-react';
+import { Upload, FileSpreadsheet, Info, Calendar as CalendarIcon, FileCheck, X, Download, Eye, Trash2, ChevronDown, FileX, Building2, Loader2, AlertCircle, AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import { usePageUiState } from '@/hooks/usePageUiState';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
@@ -70,37 +50,42 @@ interface PageUiState {
   /** Index signature pentru compatibilitate cu Record<string, unknown> */
   [key: string]: unknown;
 }
-
 const IncarcareBalanta = () => {
-  const { user } = useAuth();
-  const { activeCompany } = useCompanyContext();
-  const { 
-    imports, 
+  const {
+    user
+  } = useAuth();
+  const {
+    activeCompany
+  } = useCompanyContext();
+  const {
+    imports,
     importsWithTotals,
-    loading: importsLoading, 
-    uploadBalance, 
-    deleteImport, 
+    loading: importsLoading,
+    uploadBalance,
+    deleteImport,
     getAccounts,
-    retryFailedImport 
+    retryFailedImport
   } = useTrialBalances(activeCompany?.id || null);
-  
+
   // Referință pentru containerul de scroll
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  
+
   /**
    * State UI persistent - se păstrează la schimbarea tab-ului.
    * Folosește usePageUiState pentru salvare automată în sessionStorage.
    */
-  const { state: uiState, updateState: updateUiState } = usePageUiState<PageUiState>(
-    'incarcare-balanta',
-    {
-      detailedSpecsOpen: false,
-      lastViewedImportId: null,
-      accountsDialogPage: 0,
-    },
-    { scrollContainerRef, restoreScroll: true }
-  );
-  
+  const {
+    state: uiState,
+    updateState: updateUiState
+  } = usePageUiState<PageUiState>('incarcare-balanta', {
+    detailedSpecsOpen: false,
+    lastViewedImportId: null,
+    accountsDialogPage: 0
+  }, {
+    scrollContainerRef,
+    restoreScroll: true
+  });
+
   // State-uri pentru formularul de upload (nu persistăm - se resetează intenționat)
   const [referenceDate, setReferenceDate] = useState<Date>();
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -111,13 +96,15 @@ const IncarcareBalanta = () => {
   const [dateError, setDateError] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedImportId, setSelectedImportId] = useState<string | null>(null);
-  
+
   // Wrapper pentru detailedSpecsOpen - folosește state-ul persistent
   const detailedSpecsOpen = uiState.detailedSpecsOpen;
   const setDetailedSpecsOpen = useCallback((open: boolean) => {
-    updateUiState({ detailedSpecsOpen: open });
+    updateUiState({
+      detailedSpecsOpen: open
+    });
   }, [updateUiState]);
-  
+
   // View accounts dialog cu paginare
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewingAccounts, setViewingAccounts] = useState<BalanceAccount[]>([]);
@@ -131,120 +118,100 @@ const IncarcareBalanta = () => {
    * Evită N+1 queries prin folosirea datelor pre-calculate.
    */
   const importTotals = useMemo(() => {
-    const totals: Record<string, { totalDebit: number; totalCredit: number; accountsCount: number }> = {};
-    
+    const totals: Record<string, {
+      totalDebit: number;
+      totalCredit: number;
+      accountsCount: number;
+    }> = {};
+
     // Folosim datele optimizate din RPC dacă sunt disponibile
     if (importsWithTotals && importsWithTotals.length > 0) {
-      importsWithTotals.forEach((imp) => {
+      importsWithTotals.forEach(imp => {
         totals[imp.id] = {
           totalDebit: imp.total_closing_debit || 0,
           totalCredit: imp.total_closing_credit || 0,
-          accountsCount: imp.accounts_count || 0,
+          accountsCount: imp.accounts_count || 0
         };
       });
     }
-    
     return totals;
   }, [importsWithTotals]);
-
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
   };
-
   const handleDragLeave = () => {
     setIsDragging(false);
   };
-
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
     const files = e.dataTransfer.files;
     if (files.length > 0) {
       handleFileSelect(files[0]);
     }
   };
-
   const handleFileSelect = (file: File) => {
-    const validTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel'
-    ];
-
+    const validTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
     if (!validTypes.includes(file.type)) {
       toast.error('Format fișier neacceptat. Vă rugăm să încărcați un fișier Excel (.xlsx, .xls)');
       return;
     }
-
     if (file.size > 10 * 1024 * 1024) {
       toast.error('Fișierul depășește dimensiunea maximă de 10MB');
       return;
     }
-
     setUploadedFile(file);
     setUploadStatus('success');
     toast.success('Fișier selectat cu succes!');
   };
-
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       handleFileSelect(files[0]);
     }
   };
-
   const handleRemoveFile = () => {
     setUploadedFile(null);
     setUploadStatus('idle');
     setUploadProgress(0);
   };
-
   const handleUpload = async () => {
     if (!referenceDate) {
       setDateError(true);
       toast.error('Data de referință este obligatorie');
       return;
     }
-
     if (!uploadedFile) {
       toast.error('Vă rugăm să selectați un fișier');
       return;
     }
-
     if (!user) {
       toast.error('Trebuie să fiți autentificat');
       return;
     }
 
     // Get user's internal ID
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('auth_user_id', user.id)
-      .single();
-
+    const {
+      data: userData,
+      error: userError
+    } = await supabase.from('users').select('id').eq('auth_user_id', user.id).single();
     if (userError || !userData) {
       toast.error('Eroare la încărcare. Vă rugăm să încercați din nou.');
       return;
     }
-
     setDateError(false);
     setUploadStatus('uploading');
     setUploadProgress(10);
-    
     try {
       // Calculate period start (first day of month)
       const periodStart = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
-      
       setUploadProgress(30);
-      
       await uploadBalance(uploadedFile, periodStart, referenceDate, userData.id);
-      
       setUploadProgress(100);
       setUploadStatus('success');
       toast.success('Balanța a fost încărcată și procesată cu succes!');
-      
+
       // Reset form
       setTimeout(() => {
         setUploadedFile(null);
@@ -252,19 +219,16 @@ const IncarcareBalanta = () => {
         setUploadProgress(0);
         setReferenceDate(undefined);
       }, 1500);
-      
     } catch (error) {
       console.error('Upload error:', error);
       setUploadStatus('error');
       toast.error(error instanceof Error ? error.message : 'Eroare la încărcare');
     }
   };
-
   const handleDelete = (id: string) => {
     setSelectedImportId(id);
     setDeleteDialogOpen(true);
   };
-
   const confirmDelete = async () => {
     if (selectedImportId) {
       try {
@@ -306,14 +270,13 @@ const IncarcareBalanta = () => {
     setViewDialogOpen(true);
     setAccountsPage(0);
     setSelectedImportId(importId);
-    
     try {
-      const accounts = await getAccounts(importId, { 
-        limit: ACCOUNTS_PER_PAGE, 
-        offset: 0 
+      const accounts = await getAccounts(importId, {
+        limit: ACCOUNTS_PER_PAGE,
+        offset: 0
       });
       setViewingAccounts(accounts);
-      
+
       // Obținem numărul total de conturi din totals (dacă există)
       const totals = importTotals[importId];
       setTotalAccountsCount(totals?.accountsCount || accounts.length);
@@ -330,12 +293,9 @@ const IncarcareBalanta = () => {
    */
   const handleNextAccountsPage = async () => {
     if (!selectedImportId) return;
-    
     const nextPage = accountsPage + 1;
     const offset = nextPage * ACCOUNTS_PER_PAGE;
-    
     if (offset >= totalAccountsCount) return;
-    
     setLoadingAccounts(true);
     try {
       const accounts = await getAccounts(selectedImportId, {
@@ -356,10 +316,8 @@ const IncarcareBalanta = () => {
    */
   const handlePrevAccountsPage = async () => {
     if (!selectedImportId || accountsPage === 0) return;
-    
     const prevPage = accountsPage - 1;
     const offset = prevPage * ACCOUNTS_PER_PAGE;
-    
     setLoadingAccounts(true);
     try {
       const accounts = await getAccounts(selectedImportId, {
@@ -374,18 +332,16 @@ const IncarcareBalanta = () => {
       setLoadingAccounts(false);
     }
   };
-
   const handleDownload = async (imp: TrialBalanceImport) => {
     if (!imp.source_file_url) {
       toast.error('Fișierul nu este disponibil');
       return;
     }
-
     try {
-      const { data, error } = await supabase.storage
-        .from('balante')
-        .download(imp.source_file_url);
-
+      const {
+        data,
+        error
+      } = await supabase.storage.from('balante').download(imp.source_file_url);
       if (error) throw error;
 
       // Create download link
@@ -401,7 +357,6 @@ const IncarcareBalanta = () => {
       toast.error('Eroare la descărcare');
     }
   };
-
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('ro-RO', {
       style: 'currency',
@@ -429,9 +384,7 @@ const IncarcareBalanta = () => {
         return <Badge variant="secondary">Draft</Badge>;
     }
   };
-
-  return (
-    <div className="container-app" ref={scrollContainerRef}>
+  return <div className="container-app" ref={scrollContainerRef}>
       {/* Page Header with Active Company */}
       <div className="page-header">
         <h1 className="page-title">Încărcare Balanță</h1>
@@ -441,15 +394,7 @@ const IncarcareBalanta = () => {
       </div>
 
       {/* Active Company Banner */}
-      <div className="mb-6 p-4 bg-primary/5 border border-primary/20 rounded-lg flex items-center gap-3">
-        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary font-semibold">
-          {activeCompany?.name.substring(0, 2).toUpperCase()}
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">Încărci balanță pentru:</p>
-          <p className="font-semibold text-foreground">{activeCompany?.name}</p>
-        </div>
-      </div>
+      
 
       {/* Main Container */}
       <Card className="overflow-hidden">
@@ -488,37 +433,22 @@ const IncarcareBalanta = () => {
             </Label>
             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
-                <Button
-                  id="reference-date"
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !referenceDate && "text-muted-foreground",
-                    dateError && "border-destructive"
-                  )}
-                >
+                <Button id="reference-date" variant="outline" className={cn("w-full justify-start text-left font-normal", !referenceDate && "text-muted-foreground", dateError && "border-destructive")}>
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {referenceDate ? format(referenceDate, "dd.MM.yyyy", { locale: ro }) : "Selectează data"}
+                  {referenceDate ? format(referenceDate, "dd.MM.yyyy", {
+                  locale: ro
+                }) : "Selectează data"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={referenceDate}
-                  onSelect={(date) => {
-                    setReferenceDate(date);
-                    setDateError(false);
-                    setCalendarOpen(false);
-                  }}
-                  initialFocus
-                  locale={ro}
-                  className="pointer-events-auto"
-                />
+                <Calendar mode="single" selected={referenceDate} onSelect={date => {
+                setReferenceDate(date);
+                setDateError(false);
+                setCalendarOpen(false);
+              }} initialFocus locale={ro} className="pointer-events-auto" />
               </PopoverContent>
             </Popover>
-            {dateError && (
-              <p className="text-xs text-destructive mt-1">Data de referință este obligatorie</p>
-            )}
+            {dateError && <p className="text-xs text-destructive mt-1">Data de referință este obligatorie</p>}
             <p className="text-xs text-muted-foreground mt-1">
               Data până la care este validă balanța contabilă
             </p>
@@ -534,10 +464,7 @@ const IncarcareBalanta = () => {
                 <h3 className="font-semibold text-foreground">
                   Specificații Tehnice și Format Acceptat
                 </h3>
-                <ChevronDown className={cn(
-                  "w-5 h-5 text-muted-foreground transition-transform",
-                  detailedSpecsOpen && "rotate-180"
-                )} />
+                <ChevronDown className={cn("w-5 h-5 text-muted-foreground transition-transform", detailedSpecsOpen && "rotate-180")} />
               </CollapsibleTrigger>
               
               <CollapsibleContent>
@@ -642,43 +569,22 @@ const IncarcareBalanta = () => {
 
         {/* Upload Zone */}
         <div className="p-6 border-b">
-          <div
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={cn(
-              "border-2 border-dashed rounded-xl p-8 transition-all",
-              isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25",
-              uploadedFile && "border-primary"
-            )}
-          >
-            {!uploadedFile ? (
-              <div className="text-center">
-                <Upload className={cn(
-                  "w-12 h-12 mx-auto mb-4",
-                  isDragging ? "text-primary" : "text-muted-foreground"
-                )} />
+          <div onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} className={cn("border-2 border-dashed rounded-xl p-8 transition-all", isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25", uploadedFile && "border-primary")}>
+            {!uploadedFile ? <div className="text-center">
+                <Upload className={cn("w-12 h-12 mx-auto mb-4", isDragging ? "text-primary" : "text-muted-foreground")} />
                 <p className="text-sm font-medium text-foreground mb-1">
                   Trageți fișierul Excel aici sau click pentru a selecta
                 </p>
                 <p className="text-xs text-muted-foreground mb-4">
                   Acceptăm fișiere .xlsx și .xls (max 10MB)
                 </p>
-                <input
-                  type="file"
-                  id="file-upload"
-                  className="hidden"
-                  accept=".xlsx,.xls"
-                  onChange={handleFileInputChange}
-                />
+                <input type="file" id="file-upload" className="hidden" accept=".xlsx,.xls" onChange={handleFileInputChange} />
                 <Button asChild variant="outline">
                   <label htmlFor="file-upload" className="cursor-pointer">
                     Selectează fișier
                   </label>
                 </Button>
-              </div>
-            ) : (
-              <div>
+              </div> : <div>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <FileCheck className="w-8 h-8 text-primary" />
@@ -689,41 +595,25 @@ const IncarcareBalanta = () => {
                       </p>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleRemoveFile}
-                    disabled={uploadStatus === 'uploading'}
-                  >
+                  <Button variant="ghost" size="icon" onClick={handleRemoveFile} disabled={uploadStatus === 'uploading'}>
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
                 
-                {uploadStatus === 'uploading' && (
-                  <div className="mb-4">
+                {uploadStatus === 'uploading' && <div className="mb-4">
                     <Progress value={uploadProgress} className="mb-2" />
                     <p className="text-xs text-muted-foreground text-center">
                       Se procesează... {uploadProgress}%
                     </p>
-                  </div>
-                )}
+                  </div>}
                 
-                <Button 
-                  onClick={handleUpload} 
-                  className="w-full"
-                  disabled={uploadStatus === 'uploading'}
-                >
-                  {uploadStatus === 'uploading' ? (
-                    <>
+                <Button onClick={handleUpload} className="w-full" disabled={uploadStatus === 'uploading'}>
+                  {uploadStatus === 'uploading' ? <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Se procesează...
-                    </>
-                  ) : (
-                    'Încarcă balanța'
-                  )}
+                    </> : 'Încarcă balanța'}
                 </Button>
-              </div>
-            )}
+              </div>}
           </div>
         </div>
 
@@ -731,17 +621,12 @@ const IncarcareBalanta = () => {
         <div className="p-6 2xl:p-8 border-b">
           <h3 className="text-lg 2xl:text-xl font-semibold text-foreground mb-4">Balanțe Încărcate</h3>
           
-          {importsLoading ? (
-            <div className="flex items-center justify-center py-12">
+          {importsLoading ? <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          ) : imports.length === 0 ? (
-            <div className="text-center py-12">
+            </div> : imports.length === 0 ? <div className="text-center py-12">
               <FileX className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">Nu există balanțe încărcate</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
+            </div> : <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -756,10 +641,9 @@ const IncarcareBalanta = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {imports.map((imp) => {
-                    const totals = importTotals[imp.id];
-                    return (
-                      <TableRow key={imp.id}>
+                  {imports.map(imp => {
+                const totals = importTotals[imp.id];
+                return <TableRow key={imp.id}>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <FileSpreadsheet className="w-4 h-4 text-primary" />
@@ -767,10 +651,14 @@ const IncarcareBalanta = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {format(new Date(imp.period_end), "MMMM yyyy", { locale: ro })}
+                          {format(new Date(imp.period_end), "MMMM yyyy", {
+                      locale: ro
+                    })}
                         </TableCell>
                         <TableCell>
-                          {format(new Date(imp.created_at), "dd.MM.yyyy HH:mm", { locale: ro })}
+                          {format(new Date(imp.created_at), "dd.MM.yyyy HH:mm", {
+                      locale: ro
+                    })}
                         </TableCell>
                         <TableCell className="text-right">
                           {totals?.accountsCount || '-'}
@@ -785,15 +673,11 @@ const IncarcareBalanta = () => {
                           <div className="space-y-1">
                             <div className="flex items-center gap-1">
                               {getStatusBadge(imp.status)}
-                              {imp.error_message && (
-                                <AlertCircle className="w-4 h-4 text-destructive" />
-                              )}
+                              {imp.error_message && <AlertCircle className="w-4 h-4 text-destructive" />}
                             </div>
-                            {imp.error_message && (
-                              <p className="text-xs text-destructive max-w-[200px] break-words">
+                            {imp.error_message && <p className="text-xs text-destructive max-w-[200px] break-words">
                                 {imp.error_message}
-                              </p>
-                            )}
+                              </p>}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -801,12 +685,7 @@ const IncarcareBalanta = () => {
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="h-8 w-8"
-                                    onClick={() => handleDownload(imp)}
-                                  >
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDownload(imp)}>
                                     <Download className="w-4 h-4" />
                                   </Button>
                                 </TooltipTrigger>
@@ -817,13 +696,7 @@ const IncarcareBalanta = () => {
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="h-8 w-8"
-                                    onClick={() => handleViewAccounts(imp.id)}
-                                    disabled={imp.status !== 'completed'}
-                                  >
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleViewAccounts(imp.id)} disabled={imp.status !== 'completed'}>
                                     <Eye className="w-4 h-4" />
                                   </Button>
                                 </TooltipTrigger>
@@ -832,33 +705,21 @@ const IncarcareBalanta = () => {
                             </TooltipProvider>
                             
                             {/* v1.9.2: Buton Retry pentru imports cu status 'error' */}
-                            {imp.status === 'error' && (
-                              <TooltipProvider>
+                            {imp.status === 'error' && <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="icon" 
-                                      className="h-8 w-8 text-blue-600 hover:text-blue-700"
-                                      onClick={() => handleRetry(imp.id)}
-                                    >
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700" onClick={() => handleRetry(imp.id)}>
                                       <RotateCcw className="w-4 h-4" />
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent>Reîncearcă procesarea</TooltipContent>
                                 </Tooltip>
-                              </TooltipProvider>
-                            )}
+                              </TooltipProvider>}
                             
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="h-8 w-8 text-destructive hover:text-destructive"
-                                    onClick={() => handleDelete(imp.id)}
-                                  >
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(imp.id)}>
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
                                 </TooltipTrigger>
@@ -867,13 +728,11 @@ const IncarcareBalanta = () => {
                             </TooltipProvider>
                           </div>
                         </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                      </TableRow>;
+              })}
                 </TableBody>
               </Table>
-            </div>
-          )}
+            </div>}
         </div>
 
       </Card>
@@ -897,34 +756,27 @@ const IncarcareBalanta = () => {
       </AlertDialog>
 
       {/* View Accounts Dialog cu Paginare - Optimizat pentru vizibilitate completă coloane */}
-      <Dialog open={viewDialogOpen} onOpenChange={(open) => {
-        setViewDialogOpen(open);
-        if (!open) {
-          setAccountsPage(0);
-          setViewingAccounts([]);
-          setTotalAccountsCount(0);
-        }
-      }}>
+      <Dialog open={viewDialogOpen} onOpenChange={open => {
+      setViewDialogOpen(open);
+      if (!open) {
+        setAccountsPage(0);
+        setViewingAccounts([]);
+        setTotalAccountsCount(0);
+      }
+    }}>
         <DialogContent className="w-[95vw] max-w-[1400px] max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>Conturi Balanță</DialogTitle>
             <DialogDescription>
-              {totalAccountsCount > 0 ? (
-                <>
+              {totalAccountsCount > 0 ? <>
                   Afișez {accountsPage * ACCOUNTS_PER_PAGE + 1} - {Math.min((accountsPage + 1) * ACCOUNTS_PER_PAGE, totalAccountsCount)} din {totalAccountsCount} conturi
-                </>
-              ) : (
-                'Lista conturilor din balanța selectată'
-              )}
+                </> : 'Lista conturilor din balanța selectată'}
             </DialogDescription>
           </DialogHeader>
           
-          {loadingAccounts ? (
-            <div className="flex items-center justify-center py-12">
+          {loadingAccounts ? <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          ) : (
-            <>
+            </div> : <>
               {/* Container cu scroll orizontal explicit pentru tabel */}
               <div className="flex-1 overflow-hidden border rounded-md">
                 <div className="overflow-x-auto overflow-y-auto max-h-[calc(85vh-180px)]">
@@ -942,8 +794,7 @@ const IncarcareBalanta = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {viewingAccounts.map((account) => (
-                        <TableRow key={account.id}>
+                      {viewingAccounts.map(account => <TableRow key={account.id}>
                           <TableCell className="font-mono text-sm">{account.account_code}</TableCell>
                           <TableCell className="max-w-[250px] truncate" title={account.account_name}>
                             {account.account_name}
@@ -966,62 +817,40 @@ const IncarcareBalanta = () => {
                           <TableCell className="text-right font-mono text-sm whitespace-nowrap">
                             {formatCurrency(account.closing_credit)}
                           </TableCell>
-                        </TableRow>
-                      ))}
+                        </TableRow>)}
                     </TableBody>
                   </Table>
                 </div>
               </div>
               
               {/* Controale paginare */}
-              {totalAccountsCount > ACCOUNTS_PER_PAGE && (
-                <div className="flex items-center justify-between pt-4 border-t">
+              {totalAccountsCount > ACCOUNTS_PER_PAGE && <div className="flex items-center justify-between pt-4 border-t">
                   <p className="text-sm text-muted-foreground">
                     Pagina {accountsPage + 1} din {Math.ceil(totalAccountsCount / ACCOUNTS_PER_PAGE)}
                   </p>
                   <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handlePrevAccountsPage}
-                      disabled={accountsPage === 0 || loadingAccounts}
-                    >
+                    <Button variant="outline" size="sm" onClick={handlePrevAccountsPage} disabled={accountsPage === 0 || loadingAccounts}>
                       <ChevronLeft className="w-4 h-4 mr-1" />
                       Anterior
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleNextAccountsPage}
-                      disabled={(accountsPage + 1) * ACCOUNTS_PER_PAGE >= totalAccountsCount || loadingAccounts}
-                    >
+                    <Button variant="outline" size="sm" onClick={handleNextAccountsPage} disabled={(accountsPage + 1) * ACCOUNTS_PER_PAGE >= totalAccountsCount || loadingAccounts}>
                       Următor
                       <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </div>
-                </div>
-              )}
-            </>
-          )}
+                </div>}
+            </>}
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 };
 
 /**
  * Componentă exportată cu Error Boundary pentru gestionarea erorilor.
  */
-const IncarcareBalantaWithErrorBoundary = () => (
-  <ErrorBoundary 
-    errorTitle="Eroare la încărcarea paginii"
-    retryButtonText="Reîncearcă"
-    onError={(error) => {
-      console.error('[IncarcareBalanta] Caught error:', error);
-    }}
-  >
+const IncarcareBalantaWithErrorBoundary = () => <ErrorBoundary errorTitle="Eroare la încărcarea paginii" retryButtonText="Reîncearcă" onError={error => {
+  console.error('[IncarcareBalanta] Caught error:', error);
+}}>
     <IncarcareBalanta />
-  </ErrorBoundary>
-);
-
+  </ErrorBoundary>;
 export default IncarcareBalantaWithErrorBoundary;
