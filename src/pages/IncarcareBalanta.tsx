@@ -449,107 +449,163 @@ const IncarcareBalanta = () => {
           </div>
         </div>
 
-        {/* Specificații Tehnice - Design original din imagine */}
+        {/* Specificații Tehnice - Help Callout Style */}
         <div className="p-5 border-b">
           <Collapsible open={detailedSpecsOpen} onOpenChange={setDetailedSpecsOpen}>
-            <div className="bg-white border border-border rounded-lg">
-              {/* Header Collapsible */}
-              <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
-                <h3 className="font-semibold text-foreground">
-                  Specificații Tehnice și Format Acceptat
-                </h3>
-                <ChevronDown className={cn("w-5 h-5 text-muted-foreground transition-transform", detailedSpecsOpen && "rotate-180")} />
+            <div className={cn(
+              "bg-[var(--newa-alert-info-bg)]",
+              "border border-[var(--newa-semantic-info)]/30",
+              "border-l-4 border-l-[var(--newa-semantic-info)]",
+              "rounded-[var(--newa-radius-md)]",
+              "overflow-hidden"
+            )}>
+              {/* Header Collapsible cu Icon + Subtitlu */}
+              <CollapsibleTrigger className={cn(
+                "w-full flex items-start gap-3 p-4",
+                "hover:bg-[var(--newa-semantic-info)]/10",
+                "focus-visible:outline-none focus-visible:ring-2",
+                "focus-visible:ring-[var(--newa-focus-ring-color)]",
+                "focus-visible:ring-offset-2",
+                "transition-colors"
+              )}>
+                {/* Icon Info */}
+                <Info className="w-5 h-5 text-[var(--newa-semantic-info)] flex-shrink-0 mt-0.5" />
+                
+                {/* Text Group */}
+                <div className="flex-1 text-left">
+                  <h3 className="font-bold text-foreground">
+                    Specificații tehnice și format acceptat
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Vezi structura fișierului, coloanele obligatorii și regulile de validare.
+                  </p>
+                </div>
+                
+                {/* Chevron */}
+                <ChevronDown className={cn(
+                  "w-5 h-5 text-[var(--newa-semantic-info)] flex-shrink-0 mt-0.5",
+                  "transition-transform duration-200",
+                  detailedSpecsOpen && "rotate-180"
+                )} />
               </CollapsibleTrigger>
               
               <CollapsibleContent>
-                <div className="px-4 pb-4 space-y-6">
-                  {/* Structura Excel obligatorie */}
+                <div className="p-5 pt-0 space-y-6">
+                  {/* Formate Acceptate */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Formate acceptate:
+                    </span>
+                    <Badge variant="secondary" className="font-mono">.xlsx</Badge>
+                    <Badge variant="secondary" className="font-mono">.xls</Badge>
+                    <span className="text-sm text-muted-foreground">Max 10MB</span>
+                  </div>
+
+                  {/* Coloane Obligatorii - Grid */}
                   <div>
-                    <h4 className="font-semibold text-foreground mb-3">Structura Excel obligatorie:</h4>
-                    <ul className="space-y-1.5 text-sm text-foreground">
-                      <li className="flex items-center gap-2">
-                        <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-xs border border-border">Coloană A</code>
-                        <span>: Cont (text) - ex: 1012, 4111</span>
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                      Coloane obligatorii (A-H)
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
+                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">A</code>
+                        <span className="text-sm ml-1.5">Cont</span>
+                      </div>
+                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
+                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">B</code>
+                        <span className="text-sm ml-1.5">Denumire</span>
+                      </div>
+                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
+                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">C</code>
+                        <span className="text-sm ml-1.5">SI Debit</span>
+                      </div>
+                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
+                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">D</code>
+                        <span className="text-sm ml-1.5">SI Credit</span>
+                      </div>
+                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
+                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">E</code>
+                        <span className="text-sm ml-1.5">Rulaj D</span>
+                      </div>
+                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
+                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">F</code>
+                        <span className="text-sm ml-1.5">Rulaj C</span>
+                      </div>
+                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
+                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">G</code>
+                        <span className="text-sm ml-1.5">SF Debit</span>
+                      </div>
+                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
+                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">H</code>
+                        <span className="text-sm ml-1.5">SF Credit</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Reguli Cheie */}
+                  <div>
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                      Reguli cheie
+                    </h4>
+                    <ul className="space-y-2">
+                      <li className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
+                        <span>Prima linie = header (ignorată la procesare)</span>
                       </li>
-                      <li className="flex items-center gap-2">
-                        <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-xs border border-border">Coloană B</code>
-                        <span>: Denumire (text) - ex: "Conturi curente la bănci"</span>
+                      <li className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
+                        <span>Numere: format românesc (virgulă) sau internațional (punct)</span>
                       </li>
-                      <li className="flex items-center gap-2">
-                        <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-xs border border-border">Coloană C</code>
-                        <span>: Sold Inițial Debit (număr)</span>
+                      <li className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
+                        <span>Conturi: minim 3 cifre, maxim 6 cifre</span>
                       </li>
-                      <li className="flex items-center gap-2">
-                        <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-xs border border-border">Coloană D</code>
-                        <span>: Sold Inițial Credit (număr)</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-xs border border-border">Coloană E</code>
-                        <span>: Rulaj Debit (număr)</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-xs border border-border">Coloană F</code>
-                        <span>: Rulaj Credit (număr)</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-xs border border-border">Coloană G</code>
-                        <span>: Sold Final Debit (număr)</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-xs border border-border">Coloană H</code>
-                        <span>: Sold Final Credit (număr)</span>
+                      <li className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
+                        <span>Linii goale: ignorate automat</span>
                       </li>
                     </ul>
                   </div>
 
-                  {/* Cerințe format */}
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-3">Cerințe format:</h4>
-                    <ul className="space-y-1 text-sm text-foreground list-disc list-inside">
-                      <li>Prima linie: Header (ignorat la procesare)</li>
-                      <li>Linii goale: Ignorate automat</li>
-                      <li>Numere: Format românesc (virgulă) SAU internațional (punct)</li>
-                      <li>Conturi: Minim 3 cifre, maxim 6 cifre</li>
-                    </ul>
-                  </div>
-
-                  {/* Exemplu structură - tabel */}
-                  <div className="bg-muted/30 rounded-lg p-4 border border-border">
-                    <h4 className="font-semibold text-foreground mb-3 text-sm">Exemplu structură:</h4>
+                  {/* Exemplu - Tabel compact */}
+                  <div className="bg-white/80 rounded-lg p-4 border border-[var(--newa-semantic-info)]/20">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                      Exemplu structură
+                    </h4>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm border-collapse">
                         <thead>
-                          <tr className="border-b border-border">
-                            <th className="text-left p-2 font-mono font-semibold text-foreground">Cont</th>
-                            <th className="text-left p-2 font-mono font-semibold text-foreground">Denumire</th>
-                            <th className="text-right p-2 font-mono font-semibold text-foreground">SI Debit</th>
-                            <th className="text-right p-2 font-mono font-semibold text-foreground">SI Credit</th>
-                            <th className="text-right p-2 font-mono font-semibold text-foreground">Rulaj D</th>
-                            <th className="text-right p-2 font-mono font-semibold text-foreground">Rulaj C</th>
-                            <th className="text-right p-2 font-mono font-semibold text-foreground">SF Debit</th>
-                            <th className="text-right p-2 font-mono font-semibold text-foreground">SF Credit</th>
+                          <tr className="border-b border-[var(--newa-semantic-info)]/20">
+                            <th className="text-left p-2 font-mono text-xs font-semibold text-muted-foreground">Cont</th>
+                            <th className="text-left p-2 font-mono text-xs font-semibold text-muted-foreground">Denumire</th>
+                            <th className="text-right p-2 font-mono text-xs font-semibold text-muted-foreground">SI D</th>
+                            <th className="text-right p-2 font-mono text-xs font-semibold text-muted-foreground">SI C</th>
+                            <th className="text-right p-2 font-mono text-xs font-semibold text-muted-foreground">Rul D</th>
+                            <th className="text-right p-2 font-mono text-xs font-semibold text-muted-foreground">Rul C</th>
+                            <th className="text-right p-2 font-mono text-xs font-semibold text-muted-foreground">SF D</th>
+                            <th className="text-right p-2 font-mono text-xs font-semibold text-muted-foreground">SF C</th>
                           </tr>
                         </thead>
                         <tbody className="text-muted-foreground">
-                          <tr className="border-b border-border/50">
-                            <td className="p-2 font-mono">1012</td>
-                            <td className="p-2">Conturi la bănci</td>
-                            <td className="text-right p-2 font-mono">50000.00</td>
-                            <td className="text-right p-2 font-mono">0.00</td>
-                            <td className="text-right p-2 font-mono">25000.00</td>
-                            <td className="text-right p-2 font-mono">15000</td>
-                            <td className="text-right p-2 font-mono">60000.00</td>
-                            <td className="text-right p-2 font-mono">0.00</td>
+                          <tr className="border-b border-[var(--newa-semantic-info)]/10">
+                            <td className="p-2 font-mono text-xs">1012</td>
+                            <td className="p-2 text-xs">Conturi la bănci</td>
+                            <td className="text-right p-2 font-mono text-xs">50000</td>
+                            <td className="text-right p-2 font-mono text-xs">0</td>
+                            <td className="text-right p-2 font-mono text-xs">25000</td>
+                            <td className="text-right p-2 font-mono text-xs">15000</td>
+                            <td className="text-right p-2 font-mono text-xs">60000</td>
+                            <td className="text-right p-2 font-mono text-xs">0</td>
                           </tr>
                           <tr>
-                            <td className="p-2 font-mono">4111</td>
-                            <td className="p-2">Venituri din vânzări</td>
-                            <td className="text-right p-2 font-mono">0.00</td>
-                            <td className="text-right p-2 font-mono">100000.00</td>
-                            <td className="text-right p-2 font-mono">0.00</td>
-                            <td className="text-right p-2 font-mono">50000.00</td>
-                            <td className="text-right p-2 font-mono">0.00</td>
-                            <td className="text-right p-2 font-mono">150000.00</td>
+                            <td className="p-2 font-mono text-xs">4111</td>
+                            <td className="p-2 text-xs">Venituri vânzări</td>
+                            <td className="text-right p-2 font-mono text-xs">0</td>
+                            <td className="text-right p-2 font-mono text-xs">100000</td>
+                            <td className="text-right p-2 font-mono text-xs">0</td>
+                            <td className="text-right p-2 font-mono text-xs">50000</td>
+                            <td className="text-right p-2 font-mono text-xs">0</td>
+                            <td className="text-right p-2 font-mono text-xs">150000</td>
                           </tr>
                         </tbody>
                       </table>
