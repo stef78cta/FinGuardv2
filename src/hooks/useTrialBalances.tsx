@@ -219,27 +219,68 @@ export const useTrialBalances = (companyId: string | null) => {
     }
     console.log('[uploadBalance] Import record created:', importData.id);
 
-    // v1.9.3: Procesare Excel direct în browser (fără Edge Function)
+    // v2.0: Procesare Excel cu VALIDĂRI BLOCKING
     console.log('[uploadBalance] Parsing Excel file client-side...');
     
     const parseResult = await parseExcelFile(file);
     
-    if (!parseResult.success) {
-      console.error('[uploadBalance] Parse error:', parseResult.error);
+    // v2.0: VERIFICARE BLOCKING ERRORS (ok === false)
+    if (!parseResult.ok) {
+      console.error('[uploadBalance] BLOCKING ERRORS detected:', parseResult.blockingErrors);
+      console.error('[uploadBalance] Row errors:', parseResult.rowErrors);
       
-      // Update status to error
+      // Construiește mesaj detaliat pentru UI
+      const errorMessages: string[] = [];
+      
+      parseResult.blockingErrors.forEach(err => {
+        errorMessages.push(`❌ ${err.message}`);
+        
+        // Adaugă detalii pentru erori specifice
+        if (err.code === 'BALANCE_CONTROL_TOTAL_MISMATCH' && err.details) {
+          const details = err.details as { closing_debit: number; closing_credit: number; difference: number };
+          errorMessages.push(`  • Sold final Debit: ${details.closing_debit.toFixed(2)} RON`);
+          errorMessages.push(`  • Sold final Credit: ${details.closing_credit.toFixed(2)} RON`);
+          errorMessages.push(`  • Diferență: ${details.difference.toFixed(2)} RON`);
+        }
+        
+        if (err.code === 'BALANCE_INVALID_ROWS_DETECTED' && err.details) {
+          const details = err.details as { invalidRowsCount: number; firstErrors: Array<{ rowIndex: number; message: string }> };
+          errorMessages.push(`  • Total rânduri invalide: ${details.invalidRowsCount}`);
+          errorMessages.push(`  • Exemple erori:`);
+          details.firstErrors.forEach(rowErr => {
+            errorMessages.push(`    - ${rowErr.message}`);
+          });
+        }
+      });
+      
+      const errorMessage = errorMessages.join('\n');
+      
+      // Update status to error cu detalii complete
       await supabase
         .from('trial_balance_imports')
         .update({ 
           status: 'error', 
-          error_message: parseResult.error 
+          error_message: errorMessage,
+          internal_error_detail: JSON.stringify({
+            blockingErrors: parseResult.blockingErrors,
+            rowErrors: parseResult.rowErrors.slice(0, 10), // Primele 10 erori
+            metrics: parseResult.metrics,
+          }),
+          internal_error_code: parseResult.blockingErrors[0]?.code || 'VALIDATION_FAILED',
         })
         .eq('id', importData.id);
       
-      throw new Error(parseResult.error || 'Failed to parse file');
+      // Aruncă eroare cu mesaj formatat pentru UI
+      throw new Error(errorMessage);
     }
     
-    console.log('[uploadBalance] Parsed', parseResult.accountsCount, 'accounts');
+    console.log('[uploadBalance] Validare OK - Parsed', parseResult.accountsCount, 'accounts');
+    console.log('[uploadBalance] Metrics:', parseResult.metrics);
+    
+    // Log warnings (dacă există)
+    if (parseResult.warnings.length > 0) {
+      console.warn('[uploadBalance] Warnings:', parseResult.warnings);
+    }
     
     // Insert accounts into database
     console.log('[uploadBalance] Inserting accounts into database...');

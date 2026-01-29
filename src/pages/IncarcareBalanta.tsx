@@ -254,9 +254,29 @@ const IncarcareBalanta = () => {
       }, 1500);
       
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('[handleUpload] Upload error:', error);
       setUploadStatus('error');
-      toast.error(error instanceof Error ? error.message : 'Eroare la încărcare');
+      
+      // v2.0: Afișare îmbunătățită pentru erori de validare blocking
+      const errorMessage = error instanceof Error ? error.message : 'Eroare la încărcare';
+      
+      // Verifică dacă e eroare de validare (conține ❌)
+      if (errorMessage.includes('❌')) {
+        // Eroare de validare blocking - afișează cu formatare
+        const errorLines = errorMessage.split('\n');
+        const mainError = errorLines[0];
+        
+        // Toast principal cu prima linie
+        toast.error(mainError, {
+          duration: 8000, // 8 secunde pentru a putea citi
+        });
+        
+        // Log detalii în consolă pentru debugging
+        console.error('[handleUpload] Validation errors:', errorLines);
+      } else {
+        // Eroare generică
+        toast.error(errorMessage);
+      }
     }
   };
 
