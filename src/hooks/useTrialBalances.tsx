@@ -175,8 +175,9 @@ export const useTrialBalances = (companyId: string | null) => {
     const filePath = `${companyId}/${timestamp}_${file.name}`;
 
     // Upload file to storage
+    // v1.4.1: FIX - Bucket name standardizat la 'trial-balances' (sync cu Edge Function)
     const { error: uploadError } = await supabase.storage
-      .from('balante')
+      .from('trial-balances')
       .upload(filePath, file);
 
     if (uploadError) throw uploadError;
@@ -199,7 +200,8 @@ export const useTrialBalances = (companyId: string | null) => {
 
     if (insertError) {
       // Clean up uploaded file
-      await supabase.storage.from('balante').remove([filePath]);
+      // v1.4.1: FIX - Bucket name standardizat la 'trial-balances'
+      await supabase.storage.from('trial-balances').remove([filePath]);
       throw insertError;
     }
 
@@ -260,8 +262,9 @@ export const useTrialBalances = (companyId: string | null) => {
       
       if (importToDelete?.source_file_url) {
         // Delete file from storage
+        // v1.4.1: FIX - Bucket name standardizat la 'trial-balances'
         await supabase.storage
-          .from('balante')
+          .from('trial-balances')
           .remove([importToDelete.source_file_url]);
       }
 
