@@ -1,111 +1,169 @@
 
 
-# Plan: Mărire Dialog "Conturi Balanță" + Rezolvare Erori Build
+# Plan: Transformare Accordion "Specificații Tehnice" în Help Callout
 
-## Rezumat
+## Obiectiv
 
-Acest plan rezolvă 3 probleme:
-1. Lățirea dialogului pentru vizualizarea completă a coloanelor balanței
-2. Eroare TypeScript la `useCompany.tsx` (tip RPC incompatibil)
-3. Eroare TypeScript la `useTrialBalances.tsx` (funcție RPC lipsă din tipuri)
+Transformarea secțiunii accordion "Specificații Tehnice și Format Acceptat" într-un element de help vizibil și diferențiat, folosind design tokens NEWA existente (semantic info colors).
 
 ---
 
-## 1. Mărire Dialog "Conturi Balanță"
+## Modificări Propuse
 
-### Problemă Identificată
-Dialogul actual are `max-w-[95vw] lg:max-w-6xl xl:max-w-7xl`, dar tabelul cu 8 coloane de date financiare nu se încadrează complet, iar coloana "SF Credit" este tăiată.
+### Fișier: `src/pages/IncarcareBalanta.tsx`
 
-### Soluție
+**Secțiunea afectată:** Liniile 452-562
 
-| Proprietate | Valoare Actuală | Valoare Nouă |
-|-------------|----------------|--------------|
-| `max-w` desktop | `xl:max-w-7xl` | `w-[95vw] max-w-[1400px]` |
-| `min-w` tabel | `min-w-[900px]` | `min-w-[1200px]` |
-| Scroll orizontal | implicit | scroll explicit vizibil |
+### Vizual Nou - Help Callout
 
-### Modificări Fișier: `src/pages/IncarcareBalanta.tsx`
+| Element | Stil Actual | Stil Nou |
+|---------|-------------|----------|
+| Container | `bg-white border border-border` | `bg-[var(--newa-alert-info-bg)] border border-[var(--newa-semantic-info)]/30 border-l-4 border-l-[var(--newa-semantic-info)]` |
+| Header hover | `hover:bg-muted/30` | `hover:bg-[var(--newa-semantic-info)]/10` |
+| Titlu | `font-semibold` simplu | `font-bold` + icon `Info` în stânga |
+| Subtitlu | Nu există | Text descriptiv sub titlu |
+| Chevron | Standard | Cu animație și culoare accent |
+| Conținut | `px-4 pb-4` | `p-5 space-y-6` (padding generos) |
 
-**Linia 869** - Mărire dialog:
+---
+
+## Structură Nouă Header
+
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│ ░░│  ℹ  Specificații tehnice și format acceptat           ▼        │
+│ ░░│      Vezi structura fișierului, coloanele obligatorii          │
+│ ░░│      și regulile de validare.                                  │
+└─────────────────────────────────────────────────────────────────────┘
+   ^                                                       ^
+   │                                                       │
+   Bara accent info (border-l-4)                     Chevron animat
+```
+
+---
+
+## Detalii Tehnice
+
+### 1. Container Exterior (Help Callout Style)
+
 ```tsx
-// DE LA:
-<DialogContent className="max-w-[95vw] lg:max-w-6xl xl:max-w-7xl max-h-[85vh] overflow-hidden flex flex-col">
-
-// LA:
-<DialogContent className="w-[95vw] max-w-[1400px] max-h-[85vh] overflow-hidden flex flex-col">
+<div className={cn(
+  "bg-[var(--newa-alert-info-bg)]",
+  "border border-[var(--newa-semantic-info)]/30",
+  "border-l-4 border-l-[var(--newa-semantic-info)]",
+  "rounded-[var(--newa-radius-md)]",
+  "overflow-hidden"
+)}>
 ```
 
-**Linia 892** - Mărire tabel și scroll vizibil:
+### 2. Header Trigger cu Icon + Subtitlu
+
 ```tsx
-// DE LA:
-<Table className="min-w-[900px]">
+<CollapsibleTrigger className={cn(
+  "w-full flex items-start gap-3 p-4",
+  "hover:bg-[var(--newa-semantic-info)]/10",
+  "focus-visible:outline-none focus-visible:ring-2",
+  "focus-visible:ring-[var(--newa-focus-ring-color)]",
+  "focus-visible:ring-offset-2",
+  "transition-colors"
+)}>
+  {/* Icon Info */}
+  <Info className="w-5 h-5 text-[var(--newa-semantic-info)] flex-shrink-0 mt-0.5" />
+  
+  {/* Text Group */}
+  <div className="flex-1 text-left">
+    <h3 className="font-bold text-foreground">
+      Specificații tehnice și format acceptat
+    </h3>
+    <p className="text-sm text-muted-foreground mt-1">
+      Vezi structura fișierului, coloanele obligatorii și regulile de validare.
+    </p>
+  </div>
+  
+  {/* Chevron */}
+  <ChevronDown className={cn(
+    "w-5 h-5 text-[var(--newa-semantic-info)] flex-shrink-0 mt-0.5",
+    "transition-transform duration-200",
+    detailedSpecsOpen && "rotate-180"
+  )} />
+</CollapsibleTrigger>
+```
 
-// LA:
-<Table className="min-w-[1200px]">
+### 3. Conținut Cu Padding Generos + Secțiuni Claire
+
+- Formaturi acceptate ca badge-uri
+- Coloane obligatorii în grid
+- Reguli cheie cu iconițe check
+- Exemplu într-un bloc separat
+
+### 4. Structură Conținut Reorganizată
+
+```text
+┌──────────────────────────────────────────────────────────────────┐
+│ FORMATE ACCEPTATE                                                │
+│ [.xlsx] [.xls]  Max 10MB                                        │
+├──────────────────────────────────────────────────────────────────┤
+│ COLOANE OBLIGATORII (A-H)                                        │
+│ ┌──────────┬──────────┬──────────┬──────────┐                   │
+│ │ A: Cont  │ B: Denumire│ C: SI D │ D: SI C │                   │
+│ │ E: Rul D │ F: Rul C  │ G: SF D │ H: SF C │                   │
+│ └──────────┴──────────┴──────────┴──────────┘                   │
+├──────────────────────────────────────────────────────────────────┤
+│ REGULI CHEIE                                                     │
+│ ✓ Prima linie = header (ignorată)                                │
+│ ✓ Numere: format românesc (,) sau internațional (.)              │
+│ ✓ Conturi: 3-6 cifre                                             │
+│ ✓ Linii goale: ignorate automat                                  │
+├──────────────────────────────────────────────────────────────────┤
+│ EXEMPLU                                                          │
+│ [tabel cu 2 rânduri]                                             │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Eroare Build: `useCompany.tsx` - RPC Type Mismatch
+## Design Tokens Utilizate
 
-### Problemă
-Codul (v1.8) a eliminat `p_user_id` din apelul `create_company_with_member`, dar tipul generat din Supabase încă îl cere.
-
-### Cauză
-Tipurile TypeScript (`src/integrations/supabase/types.ts`) nu au fost regenerate după modificarea funcției PostgreSQL.
-
-### Soluție
-Actualizare manuală a tipurilor în `src/integrations/supabase/types.ts`:
-
-**Linia 369-371** - Eliminare `p_user_id`:
-```typescript
-// DE LA:
-create_company_with_member: {
-  Args: { p_cui: string; p_name: string; p_user_id: string }
-  Returns: string
-}
-
-// LA:
-create_company_with_member: {
-  Args: { p_cui: string; p_name: string }
-  Returns: string
-}
-```
+| Token CSS | Valoare | Utilizare |
+|-----------|---------|-----------|
+| `--newa-alert-info-bg` | `#EFF6FF` | Fundal container |
+| `--newa-semantic-info` | `#3B82F6` | Accent stânga + icon + chevron |
+| `--newa-radius-md` | `10px` | Border radius container |
+| `--newa-focus-ring-color` | `#6366F1` | Focus ring accesibil |
+| `--newa-spacing-4` | `16px` | Padding intern |
+| `--newa-spacing-5` | `20px` | Padding conținut |
 
 ---
 
-## 3. Eroare Build: `useTrialBalances.tsx` - RPC Lipsă
+## Comportament
 
-### Problemă
-Funcția `cleanup_stale_imports` este apelată în cod dar nu există în definiția tipurilor.
-
-### Soluție
-Adăugare funcție în `src/integrations/supabase/types.ts`:
-
-**După linia 434** - Adăugare funcție:
-```typescript
-soft_delete_import: { Args: { _import_id: string }; Returns: boolean }
-cleanup_stale_imports: { Args: Record<PropertyKey, never>; Returns: { cleaned_count: number }[] }
-```
+| Aspect | Implementare |
+|--------|--------------|
+| Stare inițială | Collapsed (păstrat) |
+| Click zone | Întregul header (deja implementat) |
+| Animație | `transition-transform duration-200` pe chevron |
+| Hover | Background `info/10` pe header |
+| Focus | Ring `2px` offset `2px` indigo |
+| Mobile | Full-width, padding adaptat |
 
 ---
 
-## Ordine Implementare
+## Cod Complet Modificat
 
-1. **Actualizare tipuri Supabase** (`types.ts`)
-   - Eliminare `p_user_id` din `create_company_with_member`
-   - Adăugare `cleanup_stale_imports`
-
-2. **Mărire dialog** (`IncarcareBalanta.tsx`)
-   - Lățire DialogContent la `max-w-[1400px]`
-   - Mărire tabel la `min-w-[1200px]`
+Se modifică doar secțiunea din liniile **452-562** din `IncarcareBalanta.tsx`:
+- Se păstrează logica existentă (`detailedSpecsOpen`, `setDetailedSpecsOpen`)
+- Se schimbă doar stilurile și structura vizuală
+- Se adaugă subtitlul descriptiv
+- Se reorganizează conținutul pentru scanare ușoară
 
 ---
 
-## Rezultat Așteptat
+## Rezultat Vizual
 
-- Dialogul va afișa toate cele 8 coloane fără trunchiere
-- Scroll orizontal funcțional pentru ecrane mai mici
-- Build-ul va compila fără erori TypeScript
-- UX îmbunătățit pentru vizualizarea balanței de verificare
+- Fundal albastru deschis diferențiat de restul paginii (albe)
+- Bara accent info pe stânga pentru a atrage atenția
+- Icon help clar vizibil
+- Descriere scurtă sub titlu
+- Stări hover/focus evidente
+- Conținut organizat în secțiuni cu subtitluri
 
