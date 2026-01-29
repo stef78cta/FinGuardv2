@@ -634,7 +634,8 @@ export const useTrialBalances = (companyId: string | null) => {
    */
   const cleanupStaleImports = async (): Promise<number> => {
     try {
-      const { data, error: rpcError } = await supabase.rpc('cleanup_stale_imports');
+      // Type assertion: funcția există în DB dar tipurile nu sunt sincronizate
+      const { data, error: rpcError } = await supabase.rpc('cleanup_stale_imports' as 'soft_delete_import');
 
       if (rpcError) {
         throw rpcError;

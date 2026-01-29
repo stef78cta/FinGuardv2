@@ -85,12 +85,13 @@ export const useCompany = () => {
      * Funcția create_company_with_member folosește get_user_id_from_auth() intern
      * pentru a preveni impersonare și a simplifica API-ul.
      */
+    // Type assertion necesar: funcția PostgreSQL a fost actualizată să nu mai ceară p_user_id
+    // dar tipurile generate nu sunt sincronizate. Funcția folosește get_user_id_from_auth() intern.
     const { data: companyId, error: rpcError } = await supabase
-      .rpc('create_company_with_member', { 
+      .rpc('create_company_with_member' as 'create_company_with_member', { 
         p_name: name, 
         p_cui: cui
-        // p_user_id eliminat - folosește get_user_id_from_auth() intern (v1.8)
-      });
+      } as { p_cui: string; p_name: string; p_user_id: string });
     
     /**
      * v1.8: Handle error specific pentru duplicate CUI

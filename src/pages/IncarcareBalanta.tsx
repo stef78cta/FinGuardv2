@@ -866,7 +866,7 @@ const IncarcareBalanta = () => {
           setTotalAccountsCount(0);
         }
       }}>
-        <DialogContent className="max-w-[95vw] lg:max-w-6xl xl:max-w-7xl max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogContent className="w-[95vw] max-w-[1400px] max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>Conturi Balanță</DialogTitle>
             <DialogDescription>
@@ -889,7 +889,7 @@ const IncarcareBalanta = () => {
               {/* Container cu scroll orizontal explicit pentru tabel */}
               <div className="flex-1 overflow-hidden border rounded-md">
                 <div className="overflow-x-auto overflow-y-auto max-h-[calc(85vh-180px)]">
-                  <Table className="min-w-[900px]">
+                  <Table className="min-w-[1200px]">
                     <TableHeader className="sticky top-0 bg-background z-10">
                       <TableRow>
                         <TableHead className="w-[80px] min-w-[80px]">Cont</TableHead>
