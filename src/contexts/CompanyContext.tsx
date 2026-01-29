@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -42,17 +42,41 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  /**
+   * ⚠️ FIX TAB SWITCH: Track dacă am făcut deja fetch initial pentru acest user.
+   * Previne setarea loading = true la refetch-uri, care ar demonta arborele React.
+   */
+  const initialFetchDoneRef = useRef(false);
+  const lastUserIdRef = useRef<string | null>(null);
 
   const fetchCompanies = useCallback(async () => {
     if (!user) {
       setCompanies([]);
       setActiveCompany(null);
       setLoading(false);
+      initialFetchDoneRef.current = false;
+      lastUserIdRef.current = null;
       return;
     }
 
+    // Verifică dacă user-ul s-a schimbat cu adevărat
+    const userChanged = lastUserIdRef.current !== user.id;
+    lastUserIdRef.current = user.id;
+
     try {
-      setLoading(true);
+      /**
+       * ⚠️ FIX TAB SWITCH: Nu seta loading = true dacă:
+       * 1. Am făcut deja fetch initial pentru acest user
+       * 2. Deja avem companii încărcate
+       * 
+       * Asta previne demontarea arborelui React când CompanyGuard verifică loading.
+       * Pattern: "stale-while-revalidate" - afișăm datele vechi în timp ce refetch-ul rulează.
+       */
+      const shouldShowLoading = !initialFetchDoneRef.current || userChanged;
+      if (shouldShowLoading) {
+        setLoading(true);
+      }
       setError(null);
 
       // Get user's internal ID
@@ -120,8 +144,10 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
       setError(err instanceof Error ? err.message : 'Eroare la încărcarea companiilor');
     } finally {
       setLoading(false);
+      // Marchează că am făcut fetch initial pentru acest user
+      initialFetchDoneRef.current = true;
     }
-  }, [user]);
+  }, [user?.id]); // ⚠️ FIX: Depinde doar de user.id, nu de întregul obiect user
 
   useEffect(() => {
     fetchCompanies();

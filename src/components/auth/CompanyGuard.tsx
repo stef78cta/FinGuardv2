@@ -39,8 +39,20 @@ export const CompanyGuard = ({ children }: CompanyGuardProps) => {
     }
   };
 
-  // Loading state
-  if (loading) {
+  /**
+   * ⚠️ FIX TAB SWITCH: Afișăm loading screen DOAR dacă:
+   * 1. loading = true ȘI
+   * 2. NU avem deja companii încărcate ȘI
+   * 3. NU avem deja o companie activă
+   * 
+   * Asta previne demontarea arborelui React când se face refetch în background
+   * (de ex. la revenirea în tab când Supabase emite evenimente de auth).
+   * 
+   * Pattern: "stale-while-revalidate" - afișăm datele vechi în timp ce se reîncarcă.
+   */
+  const shouldShowLoadingScreen = loading && companies.length === 0 && !activeCompany;
+  
+  if (shouldShowLoadingScreen) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
