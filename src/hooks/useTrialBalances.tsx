@@ -87,72 +87,73 @@ export const useTrialBalances = (companyId: string | null) => {
   /**
    * Încarcă lista de importuri pentru companie.
    * Exclude automat înregistrările șterse (soft delete).
+   * ⚠️ FIX: Mutat în useEffect pentru a elimina callback-ul volatile din dependențe.
    */
-  const fetchImports = useCallback(async () => {
-    if (!companyId) {
-      setImports([]);
-      setImportsWithTotals([]);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      
-      // Încercăm să folosim funcția optimizată care include totalurile
-      const { data: dataWithTotals, error: rpcError } = await supabase.rpc('get_company_imports_with_totals', {
-        _company_id: companyId
-      });
-
-      const dataArray = dataWithTotals as unknown as Array<Record<string, unknown>> | null;
-      if (!rpcError && dataArray) {
-        // Funcția RPC disponibilă - folosim datele optimizate
-        const mappedData = dataArray.map((row: Record<string, unknown>) => ({
-          id: row.import_id as string,
-          company_id: companyId,
-          source_file_name: row.source_file_name as string,
-          source_file_url: row.source_file_url as string | null,
-          period_start: row.period_start as string,
-          period_end: row.period_end as string,
-          status: row.status as TrialBalanceImport['status'],
-          error_message: row.error_message as string | null,
-          file_size_bytes: null,
-          created_at: row.created_at as string,
-          processed_at: row.processed_at as string | null,
-          total_closing_debit: Number(row.total_closing_debit) || 0,
-          total_closing_credit: Number(row.total_closing_credit) || 0,
-          accounts_count: Number(row.accounts_count) || 0,
-        })) as TrialBalanceImportWithTotals[];
-
-        setImportsWithTotals(mappedData);
-        setImports(mappedData);
-        console.log('[useTrialBalances] Loaded', mappedData.length, 'imports with totals via RPC');
-      } else {
-        // Fallback la query simplu (fără totals optimize)
-        console.warn('[useTrialBalances] RPC not available, using fallback query');
-        const { data, error: fetchError } = await supabase
-          .from('trial_balance_imports')
-          .select('*')
-          .eq('company_id', companyId)
-          .is('deleted_at', null)
-          .order('created_at', { ascending: false });
-
-        if (fetchError) throw fetchError;
-
-        setImports(data as TrialBalanceImport[]);
-        setImportsWithTotals([]);
-      }
-    } catch (err) {
-      console.error('[useTrialBalances] Error fetching imports:', err);
-      setError(err instanceof Error ? err.message : 'Error loading imports');
-    } finally {
-      setLoading(false);
-    }
-  }, [companyId]);
-
   useEffect(() => {
+    const fetchImports = async () => {
+      if (!companyId) {
+        setImports([]);
+        setImportsWithTotals([]);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        
+        // Încercăm să folosim funcția optimizată care include totalurile
+        const { data: dataWithTotals, error: rpcError } = await supabase.rpc('get_company_imports_with_totals', {
+          _company_id: companyId
+        });
+
+        const dataArray = dataWithTotals as unknown as Array<Record<string, unknown>> | null;
+        if (!rpcError && dataArray) {
+          // Funcția RPC disponibilă - folosim datele optimizate
+          const mappedData = dataArray.map((row: Record<string, unknown>) => ({
+            id: row.import_id as string,
+            company_id: companyId,
+            source_file_name: row.source_file_name as string,
+            source_file_url: row.source_file_url as string | null,
+            period_start: row.period_start as string,
+            period_end: row.period_end as string,
+            status: row.status as TrialBalanceImport['status'],
+            error_message: row.error_message as string | null,
+            file_size_bytes: null,
+            created_at: row.created_at as string,
+            processed_at: row.processed_at as string | null,
+            total_closing_debit: Number(row.total_closing_debit) || 0,
+            total_closing_credit: Number(row.total_closing_credit) || 0,
+            accounts_count: Number(row.accounts_count) || 0,
+          })) as TrialBalanceImportWithTotals[];
+
+          setImportsWithTotals(mappedData);
+          setImports(mappedData);
+          console.log('[useTrialBalances] Loaded', mappedData.length, 'imports with totals via RPC');
+        } else {
+          // Fallback la query simplu (fără totals optimize)
+          console.warn('[useTrialBalances] RPC not available, using fallback query');
+          const { data, error: fetchError } = await supabase
+            .from('trial_balance_imports')
+            .select('*')
+            .eq('company_id', companyId)
+            .is('deleted_at', null)
+            .order('created_at', { ascending: false });
+
+          if (fetchError) throw fetchError;
+
+          setImports(data as TrialBalanceImport[]);
+          setImportsWithTotals([]);
+        }
+      } catch (err) {
+        console.error('[useTrialBalances] Error fetching imports:', err);
+        setError(err instanceof Error ? err.message : 'Error loading imports');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchImports();
-  }, [fetchImports]);
+  }, [companyId]); // ← Doar companyId în dependențe, nu callback-ul
 
   /**
    * Încarcă o balanță în sistem.

@@ -72,42 +72,46 @@ export const useBalante = () => {
    * Încarcă lista de balanțe pentru compania activă.
    * Folosește query filtrat pe status 'completed' și deleted_at IS NULL.
    */
-  const fetchBalances = useCallback(async () => {
-    if (!activeCompany?.id) {
-      setBalances([]);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const { data, error: fetchError } = await supabase
-        .from('trial_balance_imports')
-        .select('*')
-        .eq('company_id', activeCompany.id)
-        .eq('status', 'completed')
-        .is('deleted_at', null)
-        .order('period_end', { ascending: false });
-
-      if (fetchError) throw fetchError;
-
-      console.log('[useBalante] Fetched balances:', data?.length || 0, 'for company:', activeCompany.id);
-      setBalances(data as BalanceImport[]);
-    } catch (err) {
-      console.error('[useBalante] Error fetching balances:', err);
-      setError(err instanceof Error ? err.message : 'Eroare la încărcarea balanțelor');
-    } finally {
-      setLoading(false);
-    }
-  }, [activeCompany?.id]);
-
+  /**
+   * Încarcă balanțele pentru compania activă.
+   * ⚠️ FIX: Mutat în useEffect pentru a elimina callback-ul volatile din dependențe.
+   */
   useEffect(() => {
+    const fetchBalances = async () => {
+      if (!activeCompany?.id) {
+        setBalances([]);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const { data, error: fetchError } = await supabase
+          .from('trial_balance_imports')
+          .select('*')
+          .eq('company_id', activeCompany.id)
+          .eq('status', 'completed')
+          .is('deleted_at', null)
+          .order('period_end', { ascending: false });
+
+        if (fetchError) throw fetchError;
+
+        console.log('[useBalante] Fetched balances:', data?.length || 0, 'for company:', activeCompany.id);
+        setBalances(data as BalanceImport[]);
+      } catch (err) {
+        console.error('[useBalante] Error fetching balances:', err);
+        setError(err instanceof Error ? err.message : 'Eroare la încărcarea balanțelor');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (!companyLoading) {
       fetchBalances();
     }
-  }, [fetchBalances, companyLoading]);
+  }, [activeCompany?.id, companyLoading]); // ← Doar primitive în dependențe, nu callback-ul
 
   /**
    * Obține conturile pentru un import specific cu paginare opțională.

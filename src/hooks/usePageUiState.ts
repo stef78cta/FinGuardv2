@@ -119,13 +119,19 @@ export function usePageUiState<T extends Record<string, unknown>>(
   const wasRestoredRef = useRef(false);
   const scrollPositionRef = useRef<number>(0);
   
+  // ⚠️ CRITICAL FIX: Folosim ref pentru a accesa state-ul curent fără a include-o în dependențe
+  const stateRef = useRef<T>(initialState);
+  
   // Inițializează state-ul din storage sau folosește initialState
   const [state, setStateInternal] = useState<T>(() => {
     const stored = loadFromStorage<T>(storageKey);
     if (stored) {
       wasRestoredRef.current = true;
-      return { ...initialState, ...stored };
+      const restoredState = { ...initialState, ...stored };
+      stateRef.current = restoredState;
+      return restoredState;
     }
+    stateRef.current = initialState;
     return initialState;
   });
   
@@ -145,22 +151,25 @@ export function usePageUiState<T extends Record<string, unknown>>(
   
   /**
    * Salvează imediat (fără debounce).
+   * ⚠️ CRITICAL FIX: Folosește stateRef pentru a evita dependența de state.
    */
   const saveNow = useCallback(() => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    saveToStorage(storageKey, state);
-  }, [storageKey, state]);
+    saveToStorage(storageKey, stateRef.current);
+  }, [storageKey]); // ← Eliminat 'state' din dependențe
   
   /**
    * Wrapper pentru setState care declanșează și salvarea.
+   * ⚠️ CRITICAL FIX: Actualizează și ref-ul pentru a menține sincronizarea.
    */
   const setState: React.Dispatch<React.SetStateAction<T>> = useCallback((action) => {
     setStateInternal((prev) => {
       const newState = typeof action === 'function' 
         ? (action as (prev: T) => T)(prev) 
         : action;
+      stateRef.current = newState; // ← Actualizează ref-ul
       debouncedSave(newState);
       return newState;
     });
@@ -168,10 +177,12 @@ export function usePageUiState<T extends Record<string, unknown>>(
   
   /**
    * Actualizează parțial state-ul (merge shallow).
+   * ⚠️ CRITICAL FIX: Actualizează și ref-ul pentru a menține sincronizarea.
    */
   const updateState = useCallback((partial: Partial<T>) => {
     setStateInternal((prev) => {
       const newState = { ...prev, ...partial };
+      stateRef.current = newState; // ← Actualizează ref-ul
       debouncedSave(newState);
       return newState;
     });
@@ -179,9 +190,11 @@ export function usePageUiState<T extends Record<string, unknown>>(
   
   /**
    * Resetează state-ul la valoarea inițială și șterge din storage.
+   * ⚠️ CRITICAL FIX: Actualizează și ref-ul pentru a menține sincronizarea.
    */
   const resetState = useCallback(() => {
     setStateInternal(initialState);
+    stateRef.current = initialState; // ← Actualizează ref-ul
     try {
       sessionStorage.removeItem(storageKey);
     } catch (error) {
@@ -221,6 +234,7 @@ export function usePageUiState<T extends Record<string, unknown>>(
   
   /**
    * Handler pentru visibilitychange - salvează când tab-ul devine hidden.
+   * ⚠️ CRITICAL FIX: Folosește stateRef pentru a evita reînregistrarea listener-ului la fiecare schimbare de state.
    */
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -230,8 +244,9 @@ export function usePageUiState<T extends Record<string, unknown>>(
         if (debounceTimerRef.current) {
           clearTimeout(debounceTimerRef.current);
         }
+        // Folosește stateRef.current pentru a accesa valoarea curentă fără dependență
         saveToStorage(storageKey, {
-          ...state,
+          ...stateRef.current,
           __scrollPosition: scrollPositionRef.current,
         });
       } else if (document.visibilityState === 'visible') {
@@ -249,7 +264,7 @@ export function usePageUiState<T extends Record<string, unknown>>(
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [storageKey, state, saveScrollPosition, restoreScrollPosition]);
+  }, [storageKey, saveScrollPosition, restoreScrollPosition]); // ← Eliminat 'state' din dependențe
   
   /**
    * La mount, restaurează scroll-ul dacă state-ul a fost restaurat.
@@ -267,34 +282,39 @@ export function usePageUiState<T extends Record<string, unknown>>(
   
   /**
    * Cleanup la unmount - salvează state-ul final.
+   * ⚠️ CRITICAL FIX: Folosește stateRef pentru a evita efecte secundare.
    */
   useEffect(() => {
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
-      // Salvează state-ul final la unmount
-      saveToStorage(storageKey, state);
+      // Salvează state-ul final la unmount folosind ref-ul
+      saveToStorage(storageKey, stateRef.current);
     };
-  }, [storageKey, state]);
+  }, [storageKey]); // ← Eliminat 'state' din dependențe
   
   /**
    * Când se schimbă compania/user-ul, reîncarcă state-ul pentru noua cheie.
+   * ⚠️ CRITICAL FIX: Folosește stateRef pentru salvarea state-ului vechi.
    */
   useEffect(() => {
     const newStorageKey = getStorageKey(routeKey, activeCompany?.id, user?.id);
     if (newStorageKey !== storageKey) {
-      // Salvează state-ul pentru cheia veche
-      saveToStorage(storageKey, state);
+      // Salvează state-ul pentru cheia veche folosind ref-ul
+      saveToStorage(storageKey, stateRef.current);
       // Încarcă state-ul pentru cheia nouă
       const stored = loadFromStorage<T>(newStorageKey);
       if (stored) {
-        setStateInternal({ ...initialState, ...stored });
+        const newState = { ...initialState, ...stored };
+        stateRef.current = newState;
+        setStateInternal(newState);
       } else {
+        stateRef.current = initialState;
         setStateInternal(initialState);
       }
     }
-  }, [activeCompany?.id, user?.id, routeKey]);
+  }, [activeCompany?.id, user?.id, routeKey, storageKey, initialState]); // ← Adăugat toate dependențele necesare
   
   return {
     state,
