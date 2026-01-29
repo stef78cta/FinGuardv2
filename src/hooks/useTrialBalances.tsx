@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { parseExcelFile } from '@/lib/excel-parser';
 
 /**
  * Reprezintă un import de balanță de verificare.
@@ -216,33 +217,84 @@ export const useTrialBalances = (companyId: string | null) => {
     }
     console.log('[uploadBalance] Import record created:', importData.id);
 
-    // Call edge function to parse the file
-    console.log('[uploadBalance] Calling Edge Function parse-balanta...');
-    const response = await fetch(
-      `https://gqxopxbzslwrjgukqbha.supabase.co/functions/v1/parse-balanta`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({
-          import_id: importData.id,
-          file_path: filePath,
-        }),
-      }
-    );
-
-    console.log('[uploadBalance] Edge Function response status:', response.status);
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      console.error('[uploadBalance] Edge Function error:', errorData);
-      throw new Error(errorData.error || 'Failed to process file');
+    // v1.9.3: Procesare Excel direct în browser (fără Edge Function)
+    console.log('[uploadBalance] Parsing Excel file client-side...');
+    
+    const parseResult = await parseExcelFile(file);
+    
+    if (!parseResult.success) {
+      console.error('[uploadBalance] Parse error:', parseResult.error);
+      
+      // Update status to error
+      await supabase
+        .from('trial_balance_imports')
+        .update({ 
+          status: 'error', 
+          error_message: parseResult.error 
+        })
+        .eq('id', importData.id);
+      
+      throw new Error(parseResult.error || 'Failed to parse file');
     }
     
-    const resultData = await response.json();
-    console.log('[uploadBalance] Edge Function success:', resultData);
+    console.log('[uploadBalance] Parsed', parseResult.accountsCount, 'accounts');
+    
+    // Insert accounts into database
+    console.log('[uploadBalance] Inserting accounts into database...');
+    
+    const accountsToInsert = parseResult.accounts.map(acc => ({
+      import_id: importData.id,
+      account_code: acc.account_code,
+      account_name: acc.account_name,
+      opening_debit: acc.opening_debit,
+      opening_credit: acc.opening_credit,
+      debit_turnover: acc.debit_turnover,
+      credit_turnover: acc.credit_turnover,
+      closing_debit: acc.closing_debit,
+      closing_credit: acc.closing_credit,
+    }));
+    
+    // Insert in batches of 500 to avoid payload limits
+    const BATCH_SIZE = 500;
+    for (let i = 0; i < accountsToInsert.length; i += BATCH_SIZE) {
+      const batch = accountsToInsert.slice(i, i + BATCH_SIZE);
+      const { error: insertAccountsError } = await supabase
+        .from('trial_balance_accounts')
+        .insert(batch);
+      
+      if (insertAccountsError) {
+        console.error('[uploadBalance] Insert accounts error:', insertAccountsError);
+        
+        // Update status to error
+        await supabase
+          .from('trial_balance_imports')
+          .update({ 
+            status: 'error', 
+            error_message: 'Eroare la salvarea conturilor în baza de date' 
+          })
+          .eq('id', importData.id);
+        
+        throw insertAccountsError;
+      }
+    }
+    
+    console.log('[uploadBalance] Accounts inserted successfully');
+    
+    // Update import status to completed
+    const { error: updateError } = await supabase
+      .from('trial_balance_imports')
+      .update({ 
+        status: 'completed',
+        processed_at: new Date().toISOString(),
+      })
+      .eq('id', importData.id);
+    
+    if (updateError) {
+      console.error('[uploadBalance] Update status error:', updateError);
+      throw updateError;
+    }
+    
+    console.log('[uploadBalance] Import completed successfully!');
 
     // Refresh imports list
     await fetchImports();
@@ -428,50 +480,102 @@ export const useTrialBalances = (companyId: string | null) => {
   }, [imports, importsWithTotals]);
 
   /**
-   * Reîncearcă procesarea unui import failed/error.
-   * Resetează statusul la 'pending' și permite reîncărcare.
-   * v1.9: Adăugat pentru mecanismul de cleanup stale imports
+   * Reîncearcă procesarea unui import cu eroare.
+   * v1.9.3: Descarcă fișierul din storage și reprocesează client-side.
    * 
    * @param importId - ID-ul importului de reîncercat
    */
   const retryFailedImport = async (importId: string) => {
     try {
-      // Apelează funcția RPC pentru retry
-      const { data, error: rpcError } = await supabase.rpc('retry_failed_import', {
-        p_import_id: importId,
-        p_user_id: (await supabase.auth.getUser()).data.user?.id
-      });
-
-      if (rpcError) {
-        throw rpcError;
-      }
-
-      // Reapelează Edge Function pentru procesare
       const importToRetry = imports.find(i => i.id === importId);
       if (!importToRetry) {
         throw new Error('Import not found');
       }
 
-      const response = await fetch(
-        `https://gqxopxbzslwrjgukqbha.supabase.co/functions/v1/parse-balanta`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({
-            import_id: importId,
-            file_path: importToRetry.source_file_url,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to retry processing');
+      if (!importToRetry.source_file_url) {
+        throw new Error('Source file not available');
       }
 
+      console.log('[retryFailedImport] Downloading file from storage...');
+      
+      // Download file from storage
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from('balante')
+        .download(importToRetry.source_file_url);
+
+      if (downloadError || !fileData) {
+        throw new Error('Could not download file: ' + downloadError?.message);
+      }
+
+      // Convert Blob to File
+      const file = new File([fileData], importToRetry.source_file_name, {
+        type: fileData.type,
+      });
+
+      console.log('[retryFailedImport] Parsing file...');
+      
+      // Parse Excel file
+      const parseResult = await parseExcelFile(file);
+      
+      if (!parseResult.success) {
+        await supabase
+          .from('trial_balance_imports')
+          .update({ 
+            status: 'error', 
+            error_message: parseResult.error 
+          })
+          .eq('id', importId);
+        
+        throw new Error(parseResult.error || 'Failed to parse file');
+      }
+
+      console.log('[retryFailedImport] Deleting old accounts...');
+      
+      // Delete old accounts
+      await supabase
+        .from('trial_balance_accounts')
+        .delete()
+        .eq('import_id', importId);
+
+      console.log('[retryFailedImport] Inserting new accounts...');
+      
+      // Insert new accounts in batches
+      const accountsToInsert = parseResult.accounts.map(acc => ({
+        import_id: importId,
+        account_code: acc.account_code,
+        account_name: acc.account_name,
+        opening_debit: acc.opening_debit,
+        opening_credit: acc.opening_credit,
+        debit_turnover: acc.debit_turnover,
+        credit_turnover: acc.credit_turnover,
+        closing_debit: acc.closing_debit,
+        closing_credit: acc.closing_credit,
+      }));
+      
+      const BATCH_SIZE = 500;
+      for (let i = 0; i < accountsToInsert.length; i += BATCH_SIZE) {
+        const batch = accountsToInsert.slice(i, i + BATCH_SIZE);
+        const { error: insertError } = await supabase
+          .from('trial_balance_accounts')
+          .insert(batch);
+        
+        if (insertError) {
+          throw insertError;
+        }
+      }
+
+      // Update status to completed
+      await supabase
+        .from('trial_balance_imports')
+        .update({ 
+          status: 'completed',
+          error_message: null,
+          processed_at: new Date().toISOString(),
+        })
+        .eq('id', importId);
+
+      console.log('[retryFailedImport] Success!');
+      
       // Refresh imports list
       await fetchImports();
 
