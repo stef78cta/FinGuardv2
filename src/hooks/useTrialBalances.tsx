@@ -242,20 +242,56 @@ export const useTrialBalances = (companyId: string | null) => {
     // Insert accounts into database
     console.log('[uploadBalance] Inserting accounts into database...');
     
-    const accountsToInsert = parseResult.accounts.map(acc => ({
-      import_id: importData.id,
-      account_code: acc.account_code,
-      account_name: acc.account_name,
-      opening_debit: acc.opening_debit,
-      opening_credit: acc.opening_credit,
-      debit_turnover: acc.debit_turnover,
-      credit_turnover: acc.credit_turnover,
-      closing_debit: acc.closing_debit,
-      closing_credit: acc.closing_credit,
-    }));
+    // v1.9.4: Normalizează valorile pentru a respecta constraints
+    // Constraint: NOT (opening_debit > 0 AND opening_credit > 0)
+    // Constraint: NOT (closing_debit > 0 AND closing_credit > 0)
+    // Soluție: Calculăm NET-ul (diferența) pentru fiecare pereche
+    const accountsToInsert = parseResult.accounts.map(acc => {
+      // Calculăm NET pentru opening (sold inițial)
+      let openingDebit = acc.opening_debit;
+      let openingCredit = acc.opening_credit;
+      if (openingDebit > 0 && openingCredit > 0) {
+        // Ambele au valori - păstrăm doar diferența
+        if (openingDebit > openingCredit) {
+          openingDebit = openingDebit - openingCredit;
+          openingCredit = 0;
+        } else {
+          openingCredit = openingCredit - openingDebit;
+          openingDebit = 0;
+        }
+      }
+      
+      // Calculăm NET pentru closing (sold final)
+      let closingDebit = acc.closing_debit;
+      let closingCredit = acc.closing_credit;
+      if (closingDebit > 0 && closingCredit > 0) {
+        // Ambele au valori - păstrăm doar diferența
+        if (closingDebit > closingCredit) {
+          closingDebit = closingDebit - closingCredit;
+          closingCredit = 0;
+        } else {
+          closingCredit = closingCredit - closingDebit;
+          closingDebit = 0;
+        }
+      }
+      
+      return {
+        import_id: importData.id,
+        account_code: acc.account_code,
+        account_name: acc.account_name,
+        opening_debit: openingDebit,
+        opening_credit: openingCredit,
+        debit_turnover: acc.debit_turnover,
+        credit_turnover: acc.credit_turnover,
+        closing_debit: closingDebit,
+        closing_credit: closingCredit,
+      };
+    });
     
-    // Insert in batches of 500 to avoid payload limits
-    const BATCH_SIZE = 500;
+    console.log('[uploadBalance] First account sample:', accountsToInsert[0]);
+    
+    // Insert in batches of 100 to avoid payload limits and get better error messages
+    const BATCH_SIZE = 100;
     for (let i = 0; i < accountsToInsert.length; i += BATCH_SIZE) {
       const batch = accountsToInsert.slice(i, i + BATCH_SIZE);
       const { error: insertAccountsError } = await supabase
@@ -263,19 +299,22 @@ export const useTrialBalances = (companyId: string | null) => {
         .insert(batch);
       
       if (insertAccountsError) {
-        console.error('[uploadBalance] Insert accounts error:', insertAccountsError);
+        console.error('[uploadBalance] Insert accounts error at batch', i / BATCH_SIZE + 1, ':', insertAccountsError);
+        console.error('[uploadBalance] Failed batch sample:', batch.slice(0, 3));
         
-        // Update status to error
+        // Update status to error with detailed message
         await supabase
           .from('trial_balance_imports')
           .update({ 
             status: 'error', 
-            error_message: 'Eroare la salvarea conturilor în baza de date' 
+            error_message: `Eroare la salvarea conturilor: ${insertAccountsError.message || 'Unknown error'}` 
           })
           .eq('id', importData.id);
         
-        throw insertAccountsError;
+        throw new Error(`Insert error: ${insertAccountsError.message}`);
       }
+      
+      console.log(`[uploadBalance] Inserted batch ${i / BATCH_SIZE + 1}/${Math.ceil(accountsToInsert.length / BATCH_SIZE)}`);
     }
     
     console.log('[uploadBalance] Accounts inserted successfully');
