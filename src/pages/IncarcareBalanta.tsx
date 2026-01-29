@@ -418,32 +418,6 @@ const IncarcareBalanta = () => {
 
       {/* Main Container */}
       <Card className="overflow-hidden">
-        {/* Header Section */}
-        <div className="bg-muted/30 p-5 border-b">
-          <div className="flex items-start gap-3">
-            <FileSpreadsheet className="w-6 h-6 text-primary mt-1" />
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-semibold text-foreground">
-                  Încărcare Balanță de Verificare
-                </h2>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="w-4 h-4 text-muted-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">Încărcați fișierul Excel cu balanța contabilă pentru analiza automată a datelor financiare</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                Încărcați fișierul Excel cu structura conturilor conform formatului specificat
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Date Picker Section */}
         <div className="p-5 2xl:p-8 border-b">
