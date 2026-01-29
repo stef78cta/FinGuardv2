@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -58,7 +59,30 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => (
+/**
+ * ============================================
+ * DIAGNOSTIC: App Mount Counter
+ * Ajută la identificarea remount-urilor.
+ * ============================================
+ */
+let appMountCounter = 0;
+
+const App = () => {
+  const mountRef = useRef(false);
+  
+  useEffect(() => {
+    appMountCounter++;
+    const currentMount = appMountCounter;
+    console.log(`%c[APP] App MOUNTED - count: ${currentMount}`, 'background: #00ff00; color: #000; padding: 4px; font-weight: bold;');
+    console.log(`[APP] Mount timestamp: ${new Date().toISOString()}`);
+    mountRef.current = true;
+    
+    return () => {
+      console.log(`%c[APP] App UNMOUNTED - was mount #${currentMount}`, 'background: #ff0000; color: #fff; padding: 4px; font-weight: bold;');
+    };
+  }, []);
+  
+  return (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <CompanyProvider>
