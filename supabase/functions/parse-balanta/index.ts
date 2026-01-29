@@ -480,9 +480,10 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // v1.7: Verifică file_size_bytes ÎNAINTE de download
+    // v1.9.2: FIX - Selectează source_file_url (nu file_name)
     const { data: importRecord, error: importError } = await supabaseAdmin
       .from("trial_balance_imports")
-      .select("file_name, file_size_bytes, company_id")
+      .select("source_file_url, file_size_bytes, company_id")
       .eq("id", import_id)
       .single();
 
@@ -496,10 +497,11 @@ const handler = async (req: Request): Promise<Response> => {
     // v1.7: CRITICĂ - Verificare size ÎNAINTE de download
     if (importRecord.file_size_bytes > MAX_FILE_SIZE_BYTES) {
       // Update import cu eroare
+      // v1.9.2: FIX - status 'error' (nu 'failed' - nu e în ENUM)
       await supabaseAdmin
         .from("trial_balance_imports")
         .update({ 
-          status: "failed", 
+          status: "error", 
           error_message: `Fișier prea mare (max ${MAX_FILE_SIZE_BYTES / 1024 / 1024}MB)`,
           internal_error_detail: `file_size_bytes: ${importRecord.file_size_bytes}`,
           internal_error_code: "FILE_TOO_LARGE"
@@ -513,18 +515,19 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Acum e safe să download (size e validat)
-    // v1.9: QUICK FIX - Revert la 'balante' (bucket existent)
+    // v1.9.2: FIX - Folosește source_file_url pentru download
     const { data: fileData, error: downloadError } = await supabaseAdmin.storage
       .from("balante")
-      .download(importRecord.file_name);
+      .download(importRecord.source_file_url);
 
     if (downloadError || !fileData) {
       console.error("Download error:", downloadError);
       
+      // v1.9.2: FIX - status 'error' (nu 'failed')
       await supabaseAdmin
         .from("trial_balance_imports")
         .update({ 
-          status: "failed", 
+          status: "error", 
           error_message: "Nu s-a putut descărca fișierul",
           internal_error_detail: downloadError?.message,
           internal_error_code: "DOWNLOAD_FAILED"
@@ -541,10 +544,11 @@ const handler = async (req: Request): Promise<Response> => {
     if (fileData.size > MAX_FILE_SIZE_BYTES) {
       console.warn(`File size mismatch: DB=${importRecord.file_size_bytes}, actual=${fileData.size}`);
       
+      // v1.9.2: FIX - status 'error' (nu 'failed')
       await supabaseAdmin
         .from("trial_balance_imports")
         .update({ 
-          status: "failed", 
+          status: "error", 
           error_message: "Fișier prea mare după download",
           internal_error_detail: `actual_size: ${fileData.size}`,
           internal_error_code: "FILE_SIZE_MISMATCH"
@@ -562,10 +566,11 @@ const handler = async (req: Request): Promise<Response> => {
     const parseResult = parseExcelFile(arrayBuffer);
 
     if (!parseResult.success) {
+      // v1.9.2: FIX - status 'error' (nu 'failed')
       await supabaseAdmin
         .from("trial_balance_imports")
         .update({ 
-          status: "failed", 
+          status: "error", 
           error_message: parseResult.error,
           internal_error_detail: parseResult.error,
           internal_error_code: "PARSE_FAILED"

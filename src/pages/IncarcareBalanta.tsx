@@ -373,21 +373,19 @@ const IncarcareBalanta = () => {
 
   /**
    * Returnează badge-ul corespunzător statusului importului.
-   * v1.9: Adăugate statusuri 'pending' și 'failed'
+   * v1.9.2: Status conform ENUM: 'draft', 'processing', 'validated', 'completed', 'error'
    */
   const getStatusBadge = (status: TrialBalanceImport['status']) => {
     switch (status) {
       case 'completed':
         return <Badge variant="default">Procesat</Badge>;
-      case 'pending':
-        return <Badge variant="secondary">În așteptare</Badge>;
       case 'processing':
         return <Badge variant="secondary">În procesare</Badge>;
       case 'validated':
         return <Badge variant="outline">Validat</Badge>;
       case 'error':
-      case 'failed':
         return <Badge variant="destructive">Eroare</Badge>;
+      case 'draft':
       default:
         return <Badge variant="secondary">Draft</Badge>;
     }
@@ -794,8 +792,8 @@ const IncarcareBalanta = () => {
                               </Tooltip>
                             </TooltipProvider>
                             
-                            {/* v1.9: Buton Retry pentru imports failed/error */}
-                            {(imp.status === 'failed' || imp.status === 'error') && (
+                            {/* v1.9.2: Buton Retry pentru imports cu status 'error' */}
+                            {imp.status === 'error' && (
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>

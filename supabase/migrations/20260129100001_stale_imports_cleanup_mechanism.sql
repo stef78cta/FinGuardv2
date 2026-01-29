@@ -41,10 +41,10 @@ BEGIN
     RETURN;
   END IF;
 
-  -- Marchează ca failed cu mesaj explicit
+  -- v1.9.2: Marchează ca 'error' (valoare validă din ENUM)
   UPDATE public.trial_balance_imports
   SET 
-    status = 'failed',
+    status = 'error',
     error_message = 'Processing timeout - Import blocat peste 10 minute. Încercați din nou.',
     internal_error_detail = 'Stale import detected by cleanup_stale_imports()',
     internal_error_code = 'PROCESSING_TIMEOUT',
@@ -102,15 +102,15 @@ BEGIN
     RAISE EXCEPTION 'Unauthorized: User does not belong to this company';
   END IF;
 
-  -- Permite retry doar pentru failed/error
-  IF v_current_status NOT IN ('failed', 'error') THEN
-    RAISE EXCEPTION 'Cannot retry import with status: % (doar failed/error)', v_current_status;
+  -- v1.9.2: Permite retry doar pentru 'error' (valoare din ENUM)
+  IF v_current_status != 'error' THEN
+    RAISE EXCEPTION 'Cannot retry import with status: % (doar error)', v_current_status;
   END IF;
 
-  -- Resetează la pending pentru reprocessare
+  -- v1.9.2: Resetează la 'processing' pentru reprocessare (valoare validă din ENUM)
   UPDATE public.trial_balance_imports
   SET 
-    status = 'pending',
+    status = 'processing',
     error_message = NULL,
     internal_error_detail = NULL,
     internal_error_code = NULL,

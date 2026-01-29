@@ -46,26 +46,21 @@ BEGIN
     RAISE EXCEPTION 'Import is already being processed by another request';
   END IF;
 
-  -- v1.9: Guard status - idempotență cu protecție îmbunătățită
-  IF v_current_status IN ('completed', 'failed') THEN
+  -- v1.9.2: Guard status - idempotență cu protecție îmbunătățită
+  -- ENUM valid: 'draft', 'processing', 'validated', 'completed', 'error'
+  IF v_current_status IN ('completed', 'error') THEN
     -- Permite rerun doar explicit (UI button "Retry")
     RAISE EXCEPTION 'Import already % (rerun not allowed)', v_current_status;
   END IF;
 
-  -- v1.9: FIX CRITICAL - Acceptă AMBELE statusuri ('pending' SAU 'processing')
-  -- Motivare: Frontend legacy creează cu 'processing', iar versiunile noi cu 'pending'
-  -- Marchează ca "processing" cu timestamp
+  -- v1.9.2: FIX - Acceptă 'processing' sau 'draft' (valori valid în ENUM)
+  -- ENUM existent: 'draft', 'processing', 'validated', 'completed', 'error'
+  -- Frontend creează cu 'processing', funcția doar actualizează timestamp
   UPDATE public.trial_balance_imports
-  SET status = 'processing',
-      processing_started_at = COALESCE(processing_started_at, NOW()),
+  SET processing_started_at = COALESCE(processing_started_at, NOW()),
       updated_at = NOW()
   WHERE id = p_import_id
-    AND status IN ('pending', 'processing');  -- v1.9: Acceptă AMBELE
-
-  -- Verifică că update-ul a avut efect
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Import status incompatibil: % (așteptam pending/processing)', v_current_status;
-  END IF;
+    AND status IN ('draft', 'processing');  -- v1.9.2: Valori valide din ENUM
 
   -- Șterge conturi vechi (dacă rerun)
   DELETE FROM public.trial_balance_accounts
@@ -99,9 +94,9 @@ BEGIN
   RETURN TRUE;
 
 EXCEPTION WHEN OTHERS THEN
-  -- Marchează ca "failed" + salvează eroare
+  -- v1.9.2: Marchează ca 'error' (valoare validă din ENUM)
   UPDATE public.trial_balance_imports
-  SET status = 'failed',
+  SET status = 'error',
       error_message = 'Processing failed. Please try again.',
       internal_error_detail = SQLERRM,
       internal_error_code = SQLSTATE,

@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * Reprezintă un import de balanță de verificare.
- * v1.9: Status extended cu 'pending' și 'failed'
+ * v1.9.2: Status conform ENUM DB: 'draft', 'processing', 'validated', 'completed', 'error'
  */
 export interface TrialBalanceImport {
   id: string;
@@ -13,7 +13,7 @@ export interface TrialBalanceImport {
   source_file_url: string | null;
   period_start: string;
   period_end: string;
-  status: 'draft' | 'pending' | 'processing' | 'validated' | 'completed' | 'error' | 'failed';
+  status: 'draft' | 'processing' | 'validated' | 'completed' | 'error';
   error_message: string | null;
   file_size_bytes: number | null;
   created_at: string;
@@ -189,8 +189,8 @@ export const useTrialBalances = (companyId: string | null) => {
     console.log('[uploadBalance] Upload successful');
 
     // Create import record
-    // v1.9: FIX - Status inițial 'pending' (nu 'processing')
-    // Funcția process_import_accounts așteaptă 'pending' pentru a putea face UPDATE
+    // v1.9.2: REVERT - Status inițial 'processing' (enum valid)
+    // ENUM existent: 'draft', 'processing', 'validated', 'completed', 'error'
     console.log('[uploadBalance] Creating import record...');
     const { data: importData, error: insertError } = await supabase
       .from('trial_balance_imports')
@@ -202,7 +202,7 @@ export const useTrialBalances = (companyId: string | null) => {
         period_end: periodEnd.toISOString().split('T')[0],
         file_size_bytes: file.size,
         uploaded_by: userId,
-        status: 'pending',
+        status: 'processing',
       })
       .select()
       .single();
