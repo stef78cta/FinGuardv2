@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { 
   Upload, 
   FileSpreadsheet, 
@@ -20,6 +20,7 @@ import {
   ChevronRight,
   RotateCcw
 } from 'lucide-react';
+import { usePageUiState } from '@/hooks/usePageUiState';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -55,6 +56,21 @@ const ACCOUNTS_PER_PAGE = 50;
  * - Paginare pentru lista de conturi
  * - Error Boundary pentru gestionarea erorilor
  */
+/**
+ * Interfața pentru state-ul UI persistent al paginii.
+ * Acest state se salvează în sessionStorage și se restaurează la revenirea în tab.
+ */
+interface PageUiState {
+  /** Secțiunea de specificații tehnice expandată/colapsată */
+  detailedSpecsOpen: boolean;
+  /** ID-ul importului vizualizat în dialog (pentru restaurare) */
+  lastViewedImportId: string | null;
+  /** Pagina curentă în dialog-ul de vizualizare conturi */
+  accountsDialogPage: number;
+  /** Index signature pentru compatibilitate cu Record<string, unknown> */
+  [key: string]: unknown;
+}
+
 const IncarcareBalanta = () => {
   const { user } = useAuth();
   const { activeCompany } = useCompanyContext();
@@ -68,6 +84,24 @@ const IncarcareBalanta = () => {
     retryFailedImport 
   } = useTrialBalances(activeCompany?.id || null);
   
+  // Referință pentru containerul de scroll
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  /**
+   * State UI persistent - se păstrează la schimbarea tab-ului.
+   * Folosește usePageUiState pentru salvare automată în sessionStorage.
+   */
+  const { state: uiState, updateState: updateUiState } = usePageUiState<PageUiState>(
+    'incarcare-balanta',
+    {
+      detailedSpecsOpen: false,
+      lastViewedImportId: null,
+      accountsDialogPage: 0,
+    },
+    { scrollContainerRef, restoreScroll: true }
+  );
+  
+  // State-uri pentru formularul de upload (nu persistăm - se resetează intenționat)
   const [referenceDate, setReferenceDate] = useState<Date>();
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -77,7 +111,12 @@ const IncarcareBalanta = () => {
   const [dateError, setDateError] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedImportId, setSelectedImportId] = useState<string | null>(null);
-  const [detailedSpecsOpen, setDetailedSpecsOpen] = useState(false);
+  
+  // Wrapper pentru detailedSpecsOpen - folosește state-ul persistent
+  const detailedSpecsOpen = uiState.detailedSpecsOpen;
+  const setDetailedSpecsOpen = useCallback((open: boolean) => {
+    updateUiState({ detailedSpecsOpen: open });
+  }, [updateUiState]);
   
   // View accounts dialog cu paginare
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -392,7 +431,7 @@ const IncarcareBalanta = () => {
   };
 
   return (
-    <div className="container-app">
+    <div className="container-app" ref={scrollContainerRef}>
       {/* Page Header with Active Company */}
       <div className="page-header">
         <h1 className="page-title">Încărcare Balanță</h1>

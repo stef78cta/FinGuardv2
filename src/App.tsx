@@ -27,7 +27,36 @@ import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
 import NewaStyleGuide from "./pages/newa_StyleGuide";
 
-const queryClient = new QueryClient();
+/**
+ * Configurație React Query optimizată pentru stabilitate UI.
+ * 
+ * - refetchOnWindowFocus: false - previne reset-ul UI la schimbarea tab-ului
+ * - staleTime: 2 minute - datele rămân "fresh" timp de 2 minute
+ * - gcTime: 5 minute - cache-ul se păstrează 5 minute după unmount
+ * 
+ * Aceste setări asigură că:
+ * 1. La revenirea în tab, UI-ul rămâne identic (fără refetch automat)
+ * 2. Datele nu sunt considerate "stale" imediat
+ * 3. Cache-ul persistă suficient pentru navigare între pagini
+ */
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Dezactivează refetch la focus - previne resetul UI la schimbarea tab-ului
+      refetchOnWindowFocus: false,
+      // Dezactivează refetch la reconectare la rețea
+      refetchOnReconnect: false,
+      // Datele rămân "fresh" 2 minute - evită refetch-uri inutile
+      staleTime: 2 * 60 * 1000,
+      // Cache-ul se păstrează 5 minute după unmount
+      gcTime: 5 * 60 * 1000,
+      // Păstrează datele anterioare în timpul refetch-ului
+      placeholderData: (previousData: unknown) => previousData,
+      // Retry conservator pentru erori
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
