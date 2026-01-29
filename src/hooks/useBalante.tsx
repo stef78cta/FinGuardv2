@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCompanyContext } from '@/contexts/CompanyContext';
 
@@ -67,51 +67,62 @@ export const useBalante = () => {
   const [balances, setBalances] = useState<BalanceImport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Ref pentru a permite refetch din exterior
+  const refetchTriggerRef = useRef(0);
 
   /**
-   * Încarcă lista de balanțe pentru compania activă.
-   * Folosește query filtrat pe status 'completed' și deleted_at IS NULL.
+   * Funcție internă pentru fetch balanțe.
    */
+  const doFetchBalances = useCallback(async (companyId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const { data, error: fetchError } = await supabase
+        .from('trial_balance_imports')
+        .select('*')
+        .eq('company_id', companyId)
+        .eq('status', 'completed')
+        .is('deleted_at', null)
+        .order('period_end', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      console.log('[useBalante] Fetched balances:', data?.length || 0, 'for company:', companyId);
+      setBalances(data as BalanceImport[]);
+    } catch (err) {
+      console.error('[useBalante] Error fetching balances:', err);
+      setError(err instanceof Error ? err.message : 'Eroare la încărcarea balanțelor');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   /**
    * Încarcă balanțele pentru compania activă.
-   * ⚠️ FIX: Mutat în useEffect pentru a elimina callback-ul volatile din dependențe.
    */
   useEffect(() => {
-    const fetchBalances = async () => {
-      if (!activeCompany?.id) {
-        setBalances([]);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const { data, error: fetchError } = await supabase
-          .from('trial_balance_imports')
-          .select('*')
-          .eq('company_id', activeCompany.id)
-          .eq('status', 'completed')
-          .is('deleted_at', null)
-          .order('period_end', { ascending: false });
-
-        if (fetchError) throw fetchError;
-
-        console.log('[useBalante] Fetched balances:', data?.length || 0, 'for company:', activeCompany.id);
-        setBalances(data as BalanceImport[]);
-      } catch (err) {
-        console.error('[useBalante] Error fetching balances:', err);
-        setError(err instanceof Error ? err.message : 'Eroare la încărcarea balanțelor');
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!activeCompany?.id) {
+      setBalances([]);
+      setLoading(false);
+      return;
+    }
 
     if (!companyLoading) {
-      fetchBalances();
+      doFetchBalances(activeCompany.id);
     }
-  }, [activeCompany?.id, companyLoading]); // ← Doar primitive în dependențe, nu callback-ul
+  }, [activeCompany?.id, companyLoading, refetchTriggerRef.current, doFetchBalances]);
+
+  /**
+   * Funcție pentru a forța un refetch al balanțelor.
+   */
+  const refetch = useCallback(() => {
+    refetchTriggerRef.current += 1;
+    if (activeCompany?.id && !companyLoading) {
+      doFetchBalances(activeCompany.id);
+    }
+  }, [activeCompany?.id, companyLoading, doFetchBalances]);
 
   /**
    * Obține conturile pentru un import specific cu paginare opțională.
@@ -383,7 +394,7 @@ export const useBalante = () => {
     getBalanceAccounts,
     getAllBalancesWithAccounts,
     getAccountsPaginated,
-    refetch: fetchBalances,
+    refetch,
     hasData: balances.length > 0,
     companyId: activeCompany?.id || null,
   };
