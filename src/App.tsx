@@ -137,6 +137,7 @@ const App = () => {
       </CompanyProvider>
     </AuthProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;
