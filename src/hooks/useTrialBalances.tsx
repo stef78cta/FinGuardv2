@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * Reprezintă un import de balanță de verificare.
+ * v1.9: Status extended cu 'pending' și 'failed'
  */
 export interface TrialBalanceImport {
   id: string;
@@ -12,7 +13,7 @@ export interface TrialBalanceImport {
   source_file_url: string | null;
   period_start: string;
   period_end: string;
-  status: 'draft' | 'processing' | 'validated' | 'completed' | 'error';
+  status: 'draft' | 'pending' | 'processing' | 'validated' | 'completed' | 'error' | 'failed';
   error_message: string | null;
   file_size_bytes: number | null;
   created_at: string;
@@ -183,6 +184,8 @@ export const useTrialBalances = (companyId: string | null) => {
     if (uploadError) throw uploadError;
 
     // Create import record
+    // v1.9: FIX - Status inițial 'pending' (nu 'processing')
+    // Funcția process_import_accounts așteaptă 'pending' pentru a putea face UPDATE
     const { data: importData, error: insertError } = await supabase
       .from('trial_balance_imports')
       .insert({
@@ -193,7 +196,7 @@ export const useTrialBalances = (companyId: string | null) => {
         period_end: periodEnd.toISOString().split('T')[0],
         file_size_bytes: file.size,
         uploaded_by: userId,
-        status: 'processing',
+        status: 'pending',
       })
       .select()
       .single();
@@ -409,6 +412,87 @@ export const useTrialBalances = (companyId: string | null) => {
     return totalsMap;
   }, [imports, importsWithTotals]);
 
+  /**
+   * Reîncearcă procesarea unui import failed/error.
+   * Resetează statusul la 'pending' și permite reîncărcare.
+   * v1.9: Adăugat pentru mecanismul de cleanup stale imports
+   * 
+   * @param importId - ID-ul importului de reîncercat
+   */
+  const retryFailedImport = async (importId: string) => {
+    try {
+      // Apelează funcția RPC pentru retry
+      const { data, error: rpcError } = await supabase.rpc('retry_failed_import', {
+        p_import_id: importId,
+        p_user_id: (await supabase.auth.getUser()).data.user?.id
+      });
+
+      if (rpcError) {
+        throw rpcError;
+      }
+
+      // Reapelează Edge Function pentru procesare
+      const importToRetry = imports.find(i => i.id === importId);
+      if (!importToRetry) {
+        throw new Error('Import not found');
+      }
+
+      const response = await fetch(
+        `https://gqxopxbzslwrjgukqbha.supabase.co/functions/v1/parse-balanta`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            import_id: importId,
+            file_path: importToRetry.source_file_url,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to retry processing');
+      }
+
+      // Refresh imports list
+      await fetchImports();
+
+      return true;
+    } catch (err) {
+      console.error('[useTrialBalances] Error retrying import:', err);
+      throw err;
+    }
+  };
+
+  /**
+   * Rulează cleanup pentru imports blocate (stale).
+   * Marchează automat imports blocate > 10 min ca 'failed'.
+   * v1.9: Funcție helper pentru maintenance
+   * 
+   * @returns Numărul de imports curățate
+   */
+  const cleanupStaleImports = async (): Promise<number> => {
+    try {
+      const { data, error: rpcError } = await supabase.rpc('cleanup_stale_imports');
+
+      if (rpcError) {
+        throw rpcError;
+      }
+
+      // Refresh imports list
+      await fetchImports();
+
+      const dataArray = data as unknown as Array<Record<string, unknown>> | null;
+      return dataArray?.[0]?.cleaned_count as number || 0;
+    } catch (err) {
+      console.error('[useTrialBalances] Error cleaning stale imports:', err);
+      throw err;
+    }
+  };
+
   return {
     imports,
     importsWithTotals,
@@ -419,6 +503,8 @@ export const useTrialBalances = (companyId: string | null) => {
     getAccounts,
     getAccountsTotals,
     getAllImportsTotals,
+    retryFailedImport,
+    cleanupStaleImports,
     refetch: fetchImports,
   };
 };

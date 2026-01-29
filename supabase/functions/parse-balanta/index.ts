@@ -578,11 +578,16 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // v1.5: SECURITY - process_import_accounts RPC (idempotență + ownership)
+    // v1.9: FIX MAPPING - Trimite TOATE coloanele (nu doar opening)
     const accountsJSON = JSON.stringify(parseResult.accounts.map(acc => ({
       code: acc.account_code,
       name: acc.account_name,
-      debit: acc.opening_debit, // Folosim opening pentru simplitate
-      credit: acc.opening_credit
+      opening_debit: acc.opening_debit,
+      opening_credit: acc.opening_credit,
+      debit_turnover: acc.debit_turnover,
+      credit_turnover: acc.credit_turnover,
+      closing_debit: acc.closing_debit,
+      closing_credit: acc.closing_credit
     })));
 
     const { data: processSuccess, error: processError } = await supabaseAdmin.rpc('process_import_accounts', {

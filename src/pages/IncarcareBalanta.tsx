@@ -17,7 +17,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  RotateCcw
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
@@ -63,7 +64,8 @@ const IncarcareBalanta = () => {
     loading: importsLoading, 
     uploadBalance, 
     deleteImport, 
-    getAccounts 
+    getAccounts,
+    retryFailedImport 
   } = useTrialBalances(activeCompany?.id || null);
   
   const [referenceDate, setReferenceDate] = useState<Date>();
@@ -238,6 +240,23 @@ const IncarcareBalanta = () => {
   };
 
   /**
+   * Reîncearcă procesarea unui import failed/error.
+   * v1.9: Handler pentru butonul de retry din UI
+   * 
+   * @param importId - ID-ul importului de reîncercat
+   */
+  const handleRetry = async (importId: string) => {
+    try {
+      toast.info('Reîncerc procesarea balanței...');
+      await retryFailedImport(importId);
+      toast.success('Balanța a fost reprocesată cu succes!');
+    } catch (error) {
+      console.error('[IncarcareBalanta] Error retrying import:', error);
+      toast.error(error instanceof Error ? error.message : 'Eroare la reprocesare');
+    }
+  };
+
+  /**
    * Deschide dialog-ul pentru vizualizarea conturilor unui import.
    * Folosește paginare pentru performanță optimă cu liste mari.
    * 
@@ -352,15 +371,22 @@ const IncarcareBalanta = () => {
     }).format(value);
   };
 
+  /**
+   * Returnează badge-ul corespunzător statusului importului.
+   * v1.9: Adăugate statusuri 'pending' și 'failed'
+   */
   const getStatusBadge = (status: TrialBalanceImport['status']) => {
     switch (status) {
       case 'completed':
         return <Badge variant="default">Procesat</Badge>;
+      case 'pending':
+        return <Badge variant="secondary">În așteptare</Badge>;
       case 'processing':
         return <Badge variant="secondary">În procesare</Badge>;
       case 'validated':
         return <Badge variant="outline">Validat</Badge>;
       case 'error':
+      case 'failed':
         return <Badge variant="destructive">Eroare</Badge>;
       default:
         return <Badge variant="secondary">Draft</Badge>;
@@ -767,6 +793,25 @@ const IncarcareBalanta = () => {
                                 <TooltipContent>Vizualizează conturi</TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
+                            
+                            {/* v1.9: Buton Retry pentru imports failed/error */}
+                            {(imp.status === 'failed' || imp.status === 'error') && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="h-8 w-8 text-blue-600 hover:text-blue-700"
+                                      onClick={() => handleRetry(imp.id)}
+                                    >
+                                      <RotateCcw className="w-4 h-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Reîncearcă procesarea</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
                             
                             <TooltipProvider>
                               <Tooltip>
