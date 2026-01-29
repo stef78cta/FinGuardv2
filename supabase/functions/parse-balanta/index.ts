@@ -513,8 +513,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Acum e safe să download (size e validat)
+    // v1.9: QUICK FIX - Revert la 'balante' (bucket existent)
     const { data: fileData, error: downloadError } = await supabaseAdmin.storage
-      .from("trial-balances")
+      .from("balante")
       .download(importRecord.file_name);
 
     if (downloadError || !fileData) {
