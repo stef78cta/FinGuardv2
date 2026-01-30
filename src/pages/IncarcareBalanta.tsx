@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
+import { AdvancedCalendar } from '@/components/ui/advanced-calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -435,11 +435,19 @@ const IncarcareBalanta = () => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={referenceDate} onSelect={date => {
-                setReferenceDate(date);
-                setDateError(false);
-                setCalendarOpen(false);
-              }} initialFocus locale={ro} className="pointer-events-auto" />
+                <AdvancedCalendar 
+                  selected={referenceDate} 
+                  onSelect={date => {
+                    setReferenceDate(date);
+                    setDateError(false);
+                    setCalendarOpen(false);
+                  }} 
+                  enableDrillDown 
+                  enableDecadeView 
+                  yearRange={{ from: 2000, to: 2050 }}
+                  locale={ro} 
+                  className="pointer-events-auto" 
+                />
               </PopoverContent>
             </Popover>
             {dateError && <p className="text-xs text-destructive mt-1">Data de referință este obligatorie</p>}
