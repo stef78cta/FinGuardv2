@@ -1,11 +1,30 @@
 import { Shield, Linkedin, Twitter, Facebook } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+interface FooterLink {
+  label: string;
+  href: string;
+  isExternal?: boolean;
+}
+
 const Footer = () => {
-  const footerLinks = {
-    produs: ['Caracteristici', 'Prețuri', 'Demo interactiv'],
-    resurse: ['Blog financiar', 'Cazuri de studiu', 'Ghid KPI-uri'],
-    companie: ['Despre noi', 'Cariere', 'Termeni & Condiții', 'Politică confidențialitate']
+  const footerLinks: Record<string, FooterLink[]> = {
+    produs: [
+      { label: 'Caracteristici', href: '/#features' },
+      { label: 'Prețuri', href: '/#pricing' },
+      { label: 'Demo interactiv', href: '/signup' },
+    ],
+    resurse: [
+      { label: 'Blog financiar', href: '/blog' },
+      { label: 'Cazuri de studiu', href: '/blog' },
+      { label: 'Ghid KPI-uri', href: '/blog' },
+    ],
+    companie: [
+      { label: 'Despre noi', href: '/despre' },
+      { label: 'Cariere', href: '/cariere' },
+      { label: 'Termeni & Condiții', href: '/termeni' },
+      { label: 'Politică confidențialitate', href: '/confidentialitate' },
+    ],
   };
   const socialLinks = [{
     name: 'LinkedIn',
@@ -50,11 +69,16 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-[var(--newa-text-inverse)] mb-6">Produs</h3>
             <ul className="space-y-4">
-              {footerLinks.produs.map(link => <li key={link}>
-                  <a href="#" className="text-[var(--newa-text-inverse)]/70 hover:text-[var(--newa-text-inverse)] transition-colors duration-200 newa-focus-ring rounded-[var(--newa-radius-sm)] px-1">
-                    {link}
-                  </a>
-                </li>)}
+              {footerLinks.produs.map(link => (
+                <li key={link.label}>
+                  <Link 
+                    to={link.href} 
+                    className="text-[var(--newa-text-inverse)]/70 hover:text-[var(--newa-text-inverse)] transition-colors duration-200 newa-focus-ring rounded-[var(--newa-radius-sm)] px-1"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -62,11 +86,16 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-[var(--newa-text-inverse)] mb-6">Resurse</h3>
             <ul className="space-y-4">
-              {footerLinks.resurse.map(link => <li key={link}>
-                  <a href="#" className="text-[var(--newa-text-inverse)]/70 hover:text-[var(--newa-text-inverse)] transition-colors duration-200 newa-focus-ring rounded-[var(--newa-radius-sm)] px-1">
-                    {link}
-                  </a>
-                </li>)}
+              {footerLinks.resurse.map(link => (
+                <li key={link.label}>
+                  <Link 
+                    to={link.href} 
+                    className="text-[var(--newa-text-inverse)]/70 hover:text-[var(--newa-text-inverse)] transition-colors duration-200 newa-focus-ring rounded-[var(--newa-radius-sm)] px-1"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -74,11 +103,16 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-[var(--newa-text-inverse)] mb-6">Companie</h3>
             <ul className="space-y-4">
-              {footerLinks.companie.map(link => <li key={link}>
-                  <a href="#" className="text-[var(--newa-text-inverse)]/70 hover:text-[var(--newa-text-inverse)] transition-colors duration-200 newa-focus-ring rounded-[var(--newa-radius-sm)] px-1">
-                    {link}
-                  </a>
-                </li>)}
+              {footerLinks.companie.map(link => (
+                <li key={link.label}>
+                  <Link 
+                    to={link.href} 
+                    className="text-[var(--newa-text-inverse)]/70 hover:text-[var(--newa-text-inverse)] transition-colors duration-200 newa-focus-ring rounded-[var(--newa-radius-sm)] px-1"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
