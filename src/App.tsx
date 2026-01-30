@@ -27,6 +27,12 @@ import PreviziuniBugetare from "./pages/PreviziuniBugetare";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
 import NewaStyleGuide from "./pages/newa_StyleGuide";
+import About from "./pages/About";
+import Careers from "./pages/Careers";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 
 /**
  * Configurație React Query optimizată pentru stabilitate UI.
@@ -97,6 +103,14 @@ const App = () => {
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/style-guide" element={<NewaStyleGuide />} />
               <Route path="/style-guide-v2" element={<NewaStyleGuide />} />
+              
+              {/* Public Marketing Pages */}
+              <Route path="/despre" element={<About />} />
+              <Route path="/cariere" element={<Careers />} />
+              <Route path="/termeni" element={<Terms />} />
+              <Route path="/confidentialitate" element={<Privacy />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
               
               {/* Protected App Routes - with Company Guard */}
               <Route path="/app" element={
