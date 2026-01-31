@@ -1,332 +1,251 @@
 
-# Plan: Crearea Paginilor Publice pentru FinGuard
+# Plan: Generare Fișiere Brand FinGuard
 
 ## Rezumat
 
-Implementarea a 5 pagini publice noi (Despre noi, Cariere, Termeni, Confidențialitate, Blog) cu conținut în română pentru domeniul financiar-contabil, reutilizând design system-ul NEWA existent și layout-ul de landing page.
+Generarea setului complet de fișiere de brand pentru FinGuard, incluzând ambele concepte de logo (Scutul din Procente și Orizontul Strategic) împreună cu sloganul: **"Control financiar. Finanțe analizate. Riscuri anticipate."**
 
 ---
 
-## Analiză Codebase
+## Conceptele de Logo Identificate
 
-### Router Existent
-- **React Router v6** în `src/App.tsx`
-- Rute publice: `/`, `/login`, `/signup`, `/forgot-password`, `/style-guide`
-- Paginile noi vor fi adăugate înainte de ruta catch-all `*`
+### Concept 1: "Scutul din Procente" (Icon + Text)
+- **Simbol**: Scut minimalist cu simbolul % integrat
+- **Culori**: 
+  - Indigo (#6366F1) - structura scutului
+  - Emerald (#34D399) - simbolul % (profitabilitate)
+- **Text**: "FinGuard" sub icon
 
-### Design System NEWA
-- Container: `container-custom` (max-width 1280px) și `container-narrow` (max-width 960px)
-- Secțiuni: `section-padding`, `section-padding-reduced`
-- Tipografie: `headline`, `subheadline`, `section-title`, `body-large`, `body`, `text-small`
-- Butoane: `btn-primary`, `btn-ghost`, `btn-hero`
-- Carduri: `card-feature`, `card-feature-highlight`
-- Componente: `Navigation`, `Footer`, `CookieConsent`
+### Concept 2: "Orizontul Strategic" (Wordmark)
+- **Tipografie**: Serif pentru "Fin", Sans-Serif pentru "Guard"
+- **Culori**:
+  - Emerald (#34D399) pentru "Fin"
+  - Indigo (Navy) (#1E3A5F) pentru "Guard"
+  - Rose (#F43F5E) pentru punctul de pe "i"
 
-### Pattern Pagină Landing
-```tsx
-<div className="min-h-screen bg-[var(--newa-surface-canvas)]">
-  <Navigation />
-  <main>
-    {/* Hero + Secțiuni */}
-  </main>
-  <Footer />
-</div>
+---
+
+## Structură Fișiere de Generat
+
+### Folder: `public/brand/`
+
+```text
+public/brand/
+├── vector/
+│   ├── logo-icon.svg                    # Icon scut singur
+│   ├── logo-icon-text.svg               # Icon + "FinGuard" sub
+│   ├── logo-wordmark.svg                # Wordmark (Orizontul Strategic)
+│   ├── logo-icon-horizontal.svg         # Icon + text pe o linie
+│   ├── logo-wordmark-slogan.svg         # Wordmark + slogan dedesubt
+│   ├── logo-icon-slogan.svg             # Icon + text + slogan
+│   └── slogan.svg                       # Doar sloganul
+│
+├── web/
+│   ├── favicon-16.png                   # Favicon 16x16
+│   ├── favicon-32.png                   # Favicon 32x32
+│   ├── favicon-48.png                   # Favicon 48x48
+│   ├── apple-touch-icon.png             # Apple Touch Icon 180x180
+│   ├── android-chrome-192.png           # Android Chrome 192x192
+│   ├── android-chrome-512.png           # Android Chrome 512x512
+│   ├── og-image.png                     # Open Graph 1200x630
+│   ├── logo-icon-128.png                # Icon 128x128
+│   ├── logo-icon-256.png                # Icon 256x256
+│   ├── logo-wordmark-light.png          # Wordmark pe fundal deschis
+│   └── logo-wordmark-dark.png           # Wordmark pe fundal închis
+│
+├── supplementary/
+│   ├── brand-colors.json                # Paleta de culori în format JSON
+│   └── BRAND_GUIDELINES.md              # Ghid de utilizare brand
+│
+└── site.webmanifest                     # Web app manifest
 ```
 
 ---
 
-## Fișiere de Creat
+## Detalii Tehnice
 
-| Nr | Fișier | Scop |
-|----|--------|------|
-| 1 | `src/components/marketing/PageShell.tsx` | Wrapper comun pentru paginile publice |
-| 2 | `src/pages/About.tsx` | Despre noi |
-| 3 | `src/pages/Careers.tsx` | Cariere |
-| 4 | `src/pages/Terms.tsx` | Termeni și Condiții |
-| 5 | `src/pages/Privacy.tsx` | Politica de Confidențialitate |
-| 6 | `src/pages/Blog.tsx` | Lista articole blog |
-| 7 | `src/pages/BlogPost.tsx` | Pagina articol individual |
-| 8 | `src/content/blogPosts.ts` | Date articole blog |
+### 1. Fișiere SVG (Vectoriale)
+
+Fiecare SVG va fi optimizat pentru web:
+- ViewBox standardizat
+- ID-uri unice pentru evitarea conflictelor
+- Culori ca variabile CSS sau HEX direct
+
+**Logo Icon (Scutul)**
+```xml
+<svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shield outline - Indigo -->
+  <path d="..." fill="#1E3A5F" />
+  <!-- Percent symbol - Emerald -->
+  <text fill="#34D399">%</text>
+</svg>
+```
+
+**Logo Wordmark (Orizontul Strategic)**
+```xml
+<svg viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- "Fin" - Serif, Emerald -->
+  <text font-family="Playfair Display" fill="#34D399">Fin</text>
+  <!-- "Guard" - Sans-serif, Navy -->
+  <text font-family="Inter" fill="#1E3A5F">Guard</text>
+  <!-- Dot on i - Rose -->
+  <circle fill="#F43F5E" />
+</svg>
+```
+
+**Slogan SVG**
+```xml
+<svg viewBox="0 0 400 20" xmlns="http://www.w3.org/2000/svg">
+  <text font-family="Inter" font-size="14" fill="#475569">
+    Control financiar. Finanțe analizate. Riscuri anticipate.
+  </text>
+</svg>
+```
 
 ---
 
-## Fișiere de Modificat
+### 2. Fișiere PNG (Raster/Web)
 
-| Fișier | Modificare |
-|--------|------------|
-| `src/App.tsx` | Adăugare rute noi |
-| `src/components/Footer.tsx` | Update link-uri reale |
+| Fișier | Dimensiune | Utilizare |
+|--------|------------|-----------|
+| favicon-16.png | 16×16 | Browser tab |
+| favicon-32.png | 32×32 | Browser tab retina |
+| favicon-48.png | 48×48 | Windows taskbar |
+| apple-touch-icon.png | 180×180 | iOS home screen |
+| android-chrome-192.png | 192×192 | Android PWA |
+| android-chrome-512.png | 512×512 | Android PWA splash |
+| og-image.png | 1200×630 | Social media sharing |
+| logo-icon-128.png | 128×128 | General use |
+| logo-icon-256.png | 256×256 | High-res displays |
 
 ---
 
-## Componente Detaliate
+### 3. Fișiere Suplimentare
 
-### 1. PageShell.tsx - Wrapper Comun
-
-```tsx
-interface PageShellProps {
-  title: string;           // Titlu pagină (pentru document.title)
-  heroTitle: string;       // Titlu hero
-  heroSubtitle?: string;   // Subtitlu hero
-  children: ReactNode;
-  narrow?: boolean;        // true = container-narrow
+**brand-colors.json**
+```json
+{
+  "brand": {
+    "indigo": "#6366F1",
+    "emerald": "#34D399",
+    "rose": "#F43F5E",
+    "navy": "#1E3A5F",
+    "primaryDark": "#0F172A"
+  },
+  "usage": {
+    "shieldOutline": "#1E3A5F",
+    "percentSymbol": "#34D399",
+    "wordmarkFin": "#34D399",
+    "wordmarkGuard": "#1E3A5F",
+    "accentDot": "#F43F5E"
+  },
+  "slogan": "Control financiar. Finanțe analizate. Riscuri anticipate."
 }
 ```
 
-**Structură:**
-- Navigation (import existent)
-- Hero simplu cu titlu/subtitlu centrat
-- Container pentru conținut (customizabil lățime)
-- Footer (import existent)
-- useEffect pentru document.title
+**BRAND_GUIDELINES.md**
+```markdown
+# FinGuard Brand Guidelines
 
----
+## Logo-uri
+- **Icon (Scutul din Procente)**: Pentru favicon, iconuri app
+- **Wordmark (Orizontul Strategic)**: Pentru header-uri, documente
 
-### 2. About.tsx - Despre Noi
+## Culori
+- Indigo/Navy: Structură, încredere
+- Emerald: Profitabilitate, creștere
+- Rose: Alertă, vigilență (punctul de pe "i")
 
-**Secțiuni:**
+## Slogan
+"Control financiar. Finanțe analizate. Riscuri anticipate."
 
-| Secțiune | Conținut |
-|----------|----------|
-| Hero | "Claritate financiară pentru decizii mai bune" |
-| Misiune | 2-3 paragrafe despre reducerea timpului de închidere |
-| Ce facem | Grid 4-6 puncte (import balanță, mapări, rapoarte) |
-| Pentru cine | CFO, controller, contabilitate, antreprenori |
-| Principii | 4 carduri: acuratețe, trasabilitate, securitate, simplitate |
-| Securitate | Paragraf scurt despre acces pe roluri |
-| Contact | Email placeholder |
+## Clear Space
+Minimum 20% din înălțimea logo-ului pe toate părțile
 
----
-
-### 3. Careers.tsx - Cariere
-
-**Secțiuni:**
-
-| Secțiune | Conținut |
-|----------|----------|
-| Hero | "Construim produse pentru finanțe" |
-| De ce la noi | 4-5 paragrafe despre produs și cultură |
-| Beneficii | Grid 4 carduri (flexibilitate, buget, echipă, impact) |
-| Roluri | 3 carduri expandabile (Full-Stack, Data Engineer, Designer) |
-| Proces | 3 pași vizuali (discuție, probă, ofertă) |
-| CTA | "Trimite CV" cu mailto |
-
----
-
-### 4. Terms.tsx - Termeni și Condiții
-
-**Structură documentație legală:**
-
-```text
-1. Definiții
-2. Descrierea serviciului
-3. Conturi și acces
-4. Abonamente și plăți
-5. Utilizare acceptabilă
-6. Proprietate intelectuală
-7. Confidențialitate (link către Privacy)
-8. Limitarea răspunderii
-9. Suspendare/încetare
-10. Modificări ale termenilor
-11. Legea aplicabilă (România)
-12. Contact
+## Dimensiuni Minime
+- Icon: 24px
+- Wordmark: 100px lățime
 ```
 
-**Disclaimer clar**: nu oferă consultanță financiară/juridică
-
----
-
-### 5. Privacy.tsx - Politică de Confidențialitate
-
-**Structură GDPR:**
-
-```text
-1. Cine suntem (operator + DPO placeholder)
-2. Date colectate
-3. Scopuri și temeiuri
-4. Stocare și perioade
-5. Împuterniciți/furnizori
-6. Transferuri SEE
-7. Securitate
-8. Drepturile persoanei vizate
-9. Cookies
-10. Actualizări și contact
-```
-
----
-
-### 6. Blog.tsx - Lista Articole
-
-**Funcționalități:**
-
-| Element | Implementare |
-|---------|--------------|
-| Căutare | Input controlat, filtrare client-side pe titlu |
-| Filtrare categorie | Select dropdown |
-| Grid articole | Carduri responsive 1/2/3 coloane |
-| Articol card | Titlu, excerpt, data, reading time, category badge |
-| Link | Navigate to `/blog/:slug` |
-
----
-
-### 7. BlogPost.tsx - Articol Individual
-
-**Structură:**
-
-| Element | Implementare |
-|---------|--------------|
-| Breadcrumb | Blog > Titlu articol |
-| Metadata | Data, reading time, category, tags |
-| Content | Render secțiuni din array |
-| Disclaimer | "Informații generale, nu consultanță" |
-| CTA | Buton "Înapoi la Blog" |
-| 404 | Mesaj când slug-ul nu există |
-
----
-
-### 8. blogPosts.ts - Date Articole
-
-**Structură articol:**
-
-```tsx
-interface BlogPost {
-  slug: string;
-  title: string;
-  excerpt: string;
-  date: string; // ISO
-  readingTime: string;
-  category: string;
-  tags: string[];
-  content: {
-    type: 'paragraph' | 'heading' | 'list' | 'example';
-    text?: string;
-    items?: string[];
-  }[];
+**site.webmanifest**
+```json
+{
+  "name": "FinGuard - Analiză Financiară",
+  "short_name": "FinGuard",
+  "icons": [
+    { "src": "/brand/web/android-chrome-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/brand/web/android-chrome-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#6366F1",
+  "background_color": "#F8FAFC",
+  "display": "standalone"
 }
 ```
 
-**6 Articole Propuse:**
-
-1. "Cum citești rapid o balanță de verificare: 7 controale care prind erori"
-2. "P&L vs Cash Flow: de ce profitul nu înseamnă bani în bancă"
-3. "Maparea planului de conturi la rapoarte de management"
-4. "Închiderea lunii: checklist scurt pentru control financiar"
-5. "Buget vs realizat: cum explici deviațiile fără să te pierzi în detalii"
-6. "Indicatori de lichiditate și îndatorare: interpretare pentru decizii"
-
 ---
 
-## Modificări Rute - App.tsx
+## Modificări în Fișierele Existente
 
-```tsx
-// Import noi
-import About from "./pages/About";
-import Careers from "./pages/Careers";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
+### index.html
 
-// Rute noi (după /style-guide-v2, înainte de /app)
-<Route path="/despre" element={<About />} />
-<Route path="/cariere" element={<Careers />} />
-<Route path="/termeni" element={<Terms />} />
-<Route path="/confidentialitate" element={<Privacy />} />
-<Route path="/blog" element={<Blog />} />
-<Route path="/blog/:slug" element={<BlogPost />} />
+Actualizare referințe favicon și manifest:
+
+```html
+<link rel="icon" type="image/png" sizes="32x32" href="/brand/web/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/brand/web/favicon-16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/brand/web/apple-touch-icon.png" />
+<link rel="manifest" href="/brand/site.webmanifest" />
+<meta name="theme-color" content="#6366F1" />
+
+<!-- Open Graph actualizat -->
+<meta property="og:image" content="https://finguard.ro/brand/web/og-image.png" />
 ```
 
 ---
 
-## Modificări Footer.tsx
+## Fișiere de Generat
 
-**Linkuri actuale** (placeholder `#`):
-
-```tsx
-const footerLinks = {
-  produs: ['Caracteristici', 'Prețuri', 'Demo interactiv'],
-  resurse: ['Blog financiar', 'Cazuri de studiu', 'Ghid KPI-uri'],
-  companie: ['Despre noi', 'Cariere', 'Termeni & Condiții', 'Politică confidențialitate']
-};
-```
-
-**Transformare în Link-uri reale:**
-
-| Text | Rută |
-|------|------|
-| Blog financiar | `/blog` |
-| Despre noi | `/despre` |
-| Cariere | `/cariere` |
-| Termeni & Condiții | `/termeni` |
-| Politică confidențialitate | `/confidentialitate` |
+| Nr | Fișier | Tip |
+|----|--------|-----|
+| 1 | `public/brand/vector/logo-icon.svg` | SVG |
+| 2 | `public/brand/vector/logo-icon-text.svg` | SVG |
+| 3 | `public/brand/vector/logo-wordmark.svg` | SVG |
+| 4 | `public/brand/vector/logo-icon-horizontal.svg` | SVG |
+| 5 | `public/brand/vector/logo-wordmark-slogan.svg` | SVG |
+| 6 | `public/brand/vector/logo-icon-slogan.svg` | SVG |
+| 7 | `public/brand/vector/slogan.svg` | SVG |
+| 8 | `public/brand/supplementary/brand-colors.json` | JSON |
+| 9 | `public/brand/supplementary/BRAND_GUIDELINES.md` | MD |
+| 10 | `public/brand/site.webmanifest` | JSON |
+| 11 | Update `index.html` | HTML |
 
 ---
 
-## Stiluri CSS
+## Notă Importantă pentru Fișierele PNG
 
-Nu sunt necesare clase noi. Se folosesc clasele existente NEWA:
-- `container-custom`, `container-narrow`
-- `section-padding`, `section-padding-reduced`
-- `section-title`, `subheadline`, `body-large`, `body`
-- `card-feature`, `newa-card`
-- `btn-primary`, `btn-ghost`
-- `newa-focus-ring`
+Fișierele PNG (raster) nu pot fi generate direct în cod - acestea necesită:
+1. **Generare din SVG** folosind un tool precum Inkscape, Figma, sau sharp (Node.js)
+2. **Export manual** din designerul original
 
----
-
-## Considerații Tehnice
-
-| Aspect | Implementare |
-|--------|--------------|
-| SEO title | `useEffect(() => { document.title = "..." }, [])` |
-| Scroll to top | `useEffect(() => { window.scrollTo(0, 0) }, [])` |
-| Responsive | Grid-uri cu `grid-cols-1 md:grid-cols-2 lg:grid-cols-3` |
-| Accessibility | `newa-focus-ring` pe toate elementele interactive |
-| Mobile nav | Navigation componentă existentă (deja responsive) |
+Voi crea toate fișierele SVG vectoriale complete, iar pentru PNG voi genera:
+- Un script de conversie (opțional)
+- Placeholder-uri cu instrucțiuni de generare
 
 ---
 
 ## Ordine Implementare
 
-1. **PageShell.tsx** - Wrapper comun
-2. **blogPosts.ts** - Date pentru blog
-3. **About.tsx** - Pagină simplă pentru testare pattern
-4. **Careers.tsx** - Include carduri și CTA
-5. **Terms.tsx** - Conținut legal structurat
-6. **Privacy.tsx** - Conținut GDPR
-7. **Blog.tsx** - Listă cu căutare/filtrare
-8. **BlogPost.tsx** - Articol cu routing dinamic
-9. **App.tsx** - Adăugare rute
-10. **Footer.tsx** - Update linkuri
+1. Creare structură folder `public/brand/`
+2. Generare SVG-uri vectoriale
+3. Creare fișiere suplimentare (JSON, MD, manifest)
+4. Actualizare `index.html`
+5. Documentare instrucțiuni pentru generare PNG
 
 ---
 
-## Criterii de Acceptare
+## Rezultat Final
 
-- Build fără erori TypeScript
-- Rutele funcționează și sunt navigabile din footer
-- Paginile arată consistent cu landing-ul (spacing, font, culori)
-- Blog: căutare și filtrare funcționale
-- Blog: pagina articol afișează conținut corect după slug
-- Blog: mesaj când slug-ul nu există
-- Toate paginile au document.title setat
-- Scroll to top la navigare
-
----
-
-## Estimare
-
-| Component | Linii cod (aprox) |
-|-----------|-------------------|
-| PageShell.tsx | 60 |
-| blogPosts.ts | 400 |
-| About.tsx | 200 |
-| Careers.tsx | 250 |
-| Terms.tsx | 300 |
-| Privacy.tsx | 280 |
-| Blog.tsx | 180 |
-| BlogPost.tsx | 150 |
-| App.tsx delta | 20 |
-| Footer.tsx delta | 40 |
-| **Total** | ~1880 linii |
-
+- Set complet de logo-uri vectoriale SVG, gata de utilizare
+- Fișiere de configurare brand (culori, manifest)
+- Ghid de utilizare brand în română
+- Integrare corectă în aplicație (favicon, meta tags)
