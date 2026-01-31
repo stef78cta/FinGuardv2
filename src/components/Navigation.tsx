@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, LayoutDashboard, LogOut } from 'lucide-react';
+import { Shield, Menu, X, LayoutDashboard, LogOut } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -64,12 +64,11 @@ const Navigation = () => {
       <div className="container-custom">
         <div className="flex items-center justify-between h-18">
           {/* Logo */}
-          <Link to="/" className="flex items-center newa-focus-ring rounded-[var(--newa-radius-md)]">
-            <img 
-              src="/brand/web/logo-wordmark.png" 
-              alt="FinGuard" 
-              className="h-10 w-auto"
-            />
+          <Link to="/" className="flex items-center space-x-3 newa-focus-ring rounded-[var(--newa-radius-md)]">
+            <div className="w-8 h-8 bg-[var(--newa-brand-primary-dark)] rounded-[var(--newa-radius-md)] flex items-center justify-center shadow-lg">
+              <Shield className="w-5 h-5 text-[var(--newa-text-inverse)]" />
+            </div>
+            <span className="text-xl font-bold text-[var(--newa-brand-primary-dark)]">FinGuard</span>
           </Link>
 
           {/* Desktop Navigation */}
