@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+  <title>FinGuard - Icon</title>
+  <desc>Scut minimalist cu simbolul procent - protecție financiară</desc>
+  
+  <!-- Shield shape - Navy/Indigo -->
+  <path 
+    d="M50 5 L90 20 L90 55 C90 80 70 100 50 115 C30 100 10 80 10 55 L10 20 Z" 
+    fill="#1E3A5F"
+    stroke="none"
+  />
+  
+  <!-- Inner shield highlight -->
+  <path 
+    d="M50 12 L83 25 L83 55 C83 75 66 92 50 105 C34 92 17 75 17 55 L17 25 Z" 
+    fill="#6366F1"
+    stroke="none"
+  />
+  
+  <!-- Percent symbol - Emerald -->
+  <g fill="#34D399">
+    <!-- Top circle -->
+    <circle cx="38" cy="45" r="8" />
+    <!-- Bottom circle -->
+    <circle cx="62" cy="75" r="8" />
+    <!-- Diagonal line -->
+    <rect x="46" y="38" width="8" height="45" rx="4" transform="rotate(-45 50 60)" />
+  </g>
+</svg>

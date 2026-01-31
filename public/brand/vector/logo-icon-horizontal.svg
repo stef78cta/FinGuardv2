@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg">
+  <title>FinGuard - Logo Orizontal</title>
+  <desc>Logo FinGuard cu icon și text pe aceeași linie</desc>
+  
+  <!-- Shield Icon (scaled) -->
+  <g transform="translate(5, 2) scale(0.55)">
+    <!-- Shield shape - Navy -->
+    <path 
+      d="M50 5 L90 20 L90 55 C90 80 70 100 50 115 C30 100 10 80 10 55 L10 20 Z" 
+      fill="#1E3A5F"
+    />
+    
+    <!-- Inner shield - Indigo -->
+    <path 
+      d="M50 12 L83 25 L83 55 C83 75 66 92 50 105 C34 92 17 75 17 55 L17 25 Z" 
+      fill="#6366F1"
+    />
+    
+    <!-- Percent symbol - Emerald -->
+    <g fill="#34D399">
+      <circle cx="38" cy="45" r="8" />
+      <circle cx="62" cy="75" r="8" />
+      <rect x="46" y="38" width="8" height="45" rx="4" transform="rotate(-45 50 60)" />
+    </g>
+  </g>
+  
+  <!-- Wordmark -->
+  <defs>
+    <style>
+      .fin-h { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-style: italic; }
+      .guard-h { font-family: Inter, system-ui, sans-serif; font-weight: 700; }
+    </style>
+  </defs>
+  
+  <text x="75" y="48" class="fin-h" font-size="36" fill="#34D399">Fin</text>
+  <text x="135" y="48" class="guard-h" font-size="36" fill="#1E3A5F">Guard</text>
+  <circle cx="100" cy="22" r="4" fill="#F43F5E" />
+</svg>

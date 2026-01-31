@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 380 24" xmlns="http://www.w3.org/2000/svg">
+  <title>FinGuard - Slogan</title>
+  <desc>Control financiar. Finanțe analizate. Riscuri anticipate.</desc>
+  
+  <text 
+    x="190" 
+    y="17" 
+    text-anchor="middle" 
+    font-family="Inter, system-ui, sans-serif" 
+    font-size="14" 
+    font-weight="400"
+    fill="#64748B"
+    letter-spacing="0.5"
+  >Control financiar. Finanțe analizate. Riscuri anticipate.</text>
+</svg>
