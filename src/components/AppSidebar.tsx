@@ -53,12 +53,13 @@ export function AppSidebar() {
     <Sidebar className="border-r border-border bg-card">
       <SidebarHeader className="h-14 px-4 flex items-center border-b border-border bg-gradient-to-r from-card to-primary/5">
         <NavLink to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center shadow-md">
-            <TrendingUp className="w-5 h-5 text-primary-foreground" />
-          </div>
+          <img 
+            src="/brand/web/logo-icon-text.png" 
+            alt="FinGuard" 
+            className="h-10 w-auto"
+          />
           {open && (
-            <div>
-              <h2 className="font-bold text-foreground text-sm tracking-tight">FinGuard</h2>
+            <div className="ml-1">
               <p className="text-xs text-muted-foreground">Analiză financiară AI</p>
             </div>
           )}
