@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg">
+  <title>FinGuard - Wordmark cu Slogan</title>
+  <desc>Logo FinGuard cu slogan: Control financiar. Finanțe analizate. Riscuri anticipate.</desc>
+  
+  <defs>
+    <style>
+      .fin-ws { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-style: italic; }
+      .guard-ws { font-family: Inter, system-ui, sans-serif; font-weight: 700; }
+      .slogan-ws { font-family: Inter, system-ui, sans-serif; font-weight: 400; }
+    </style>
+  </defs>
+  
+  <!-- Wordmark centered -->
+  <text x="200" y="38" text-anchor="middle">
+    <tspan class="fin-ws" font-size="36" fill="#34D399">Fin</tspan>
+    <tspan class="guard-ws" font-size="36" fill="#1E3A5F">Guard</tspan>
+  </text>
+  
+  <!-- Accent dot -->
+  <circle cx="175" cy="12" r="4" fill="#F43F5E" />
+  
+  <!-- Slogan -->
+  <text 
+    x="200" 
+    y="65" 
+    text-anchor="middle" 
+    class="slogan-ws" 
+    font-size="12" 
+    fill="#64748B"
+    letter-spacing="0.5"
+  >Control financiar. Finanțe analizate. Riscuri anticipate.</text>
+</svg>

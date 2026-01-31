@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 180 50" xmlns="http://www.w3.org/2000/svg">
+  <title>FinGuard - Wordmark</title>
+  <desc>Logo FinGuard - Orizontul Strategic cu tipografie duală</desc>
+  
+  <defs>
+    <style>
+      .fin-text { 
+        font-family: 'Playfair Display', Georgia, serif; 
+        font-weight: 700;
+        font-style: italic;
+      }
+      .guard-text { 
+        font-family: Inter, system-ui, sans-serif; 
+        font-weight: 700;
+      }
+    </style>
+  </defs>
+  
+  <!-- "Fin" - Serif, Emerald -->
+  <text 
+    x="5" 
+    y="38" 
+    class="fin-text" 
+    font-size="36" 
+    fill="#34D399"
+  >Fin</text>
+  
+  <!-- "Guard" - Sans-serif, Navy -->
+  <text 
+    x="65" 
+    y="38" 
+    class="guard-text" 
+    font-size="36" 
+    fill="#1E3A5F"
+  >Guard</text>
+  
+  <!-- Accent dot on "i" - Rose -->
+  <circle cx="30" cy="12" r="4" fill="#F43F5E" />
+</svg>

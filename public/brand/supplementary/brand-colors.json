@@ -1,0 +1,44 @@
+{
+  "version": "1.0.0",
+  "brand": {
+    "indigo": "#6366F1",
+    "emerald": "#34D399",
+    "rose": "#F43F5E",
+    "navy": "#1E3A5F",
+    "primaryDark": "#0F172A",
+    "slate": "#64748B"
+  },
+  "usage": {
+    "shieldOuter": "#1E3A5F",
+    "shieldInner": "#6366F1",
+    "percentSymbol": "#34D399",
+    "wordmarkFin": "#34D399",
+    "wordmarkGuard": "#1E3A5F",
+    "accentDot": "#F43F5E",
+    "slogan": "#64748B"
+  },
+  "slogan": "Control financiar. Finanțe analizate. Riscuri anticipate.",
+  "typography": {
+    "fin": {
+      "fontFamily": "Playfair Display, Georgia, serif",
+      "fontWeight": 700,
+      "fontStyle": "italic"
+    },
+    "guard": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontWeight": 700
+    },
+    "slogan": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontWeight": 400,
+      "letterSpacing": "0.5px"
+    }
+  },
+  "hsl": {
+    "indigo": "239 84% 67%",
+    "emerald": "160 64% 52%",
+    "rose": "350 89% 60%",
+    "navy": "210 52% 24%",
+    "slate": "215 16% 47%"
+  }
+}
