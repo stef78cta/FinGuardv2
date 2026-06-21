@@ -117,10 +117,10 @@ c:\_Software\SAAS\finguardv2\testing\
 - Opening: Debit=10000, Credit=9000, Diff=**1000** ❌
 
 **Așteptat:**
-- ❌ Eroare `OPENING_BALANCE_MISMATCH`
-- Mesaj: "Soldurile inițiale nu sunt echilibrate. Diferență: 1000.00 RON"
-- Details: `{ total_opening_debit: 10000, total_opening_credit: 9000, difference: 1000 }`
-- Upload blocat
+- ❌ Eroare blocking `BALANCE_CONTROL_OPENING_MISMATCH`
+- Mesaj: "Total Sold inițial Debit nu este egal cu Total Sold inițial Credit (diferență: 1000.00 RON)"
+- Details: `{ opening_debit: 10000, opening_credit: 9000, difference: 1000 }`
+- Upload blocat (înainte de Storage)
 
 ---
 
@@ -215,17 +215,11 @@ c:\_Software\SAAS\finguardv2\testing\
 2. Verifică dialog validare
 
 **Așteptat:**
-- ❌ Dialog modal: "Erori de Validare"
-- Erori (1):
-  - Badge roșu: "Eroare"
-  - Cod: `OPENING_BALANCE_MISMATCH`
-  - Mesaj: "Soldurile inițiale nu sunt echilibrate. Diferență: 1000.00 RON"
-  - Detalii expandabile: totaluri debit/credit + diferență
-- Totaluri afișate:
-  - Solduri Inițiale: Badge roșu "Diferență: 1,000.00 RON"
-- Buton "Confirmă Încărcarea": **DISABLED**
-- Buton "Corectează Erorile": activ
-- ❌ Upload NU este executat
+- ❌ Toast error (8s): mesaj blocking cu prefix `❌`
+- Cod: `BALANCE_CONTROL_OPENING_MISMATCH`
+- Mesaj: "Total Sold inițial Debit nu este egal cu Total Sold inițial Credit (diferență: 1000.00 RON)"
+- Detalii în consolă: Sold inițial Debit/Credit + Diferență
+- ❌ Upload NU este executat (blocat înainte de Storage)
 
 ---
 
@@ -301,7 +295,7 @@ export AGGREGATE_DUPLICATES=true
 ### Test V2: Echilibru Solduri Inițiale ✅
 
 **Input:** `balanta_dezechilibrata_opening.xlsx`  
-**Așteptat:** Eroare `OPENING_BALANCE_MISMATCH`  
+**Așteptat:** Eroare blocking `BALANCE_CONTROL_OPENING_MISMATCH`  
 **Status:** [ ]
 
 ---
@@ -309,7 +303,7 @@ export AGGREGATE_DUPLICATES=true
 ### Test V3: Echilibru Rulaje ✅
 
 **Input:** `balanta_dezechilibrata_turnover.xlsx`  
-**Așteptat:** Eroare `TURNOVER_MISMATCH`  
+**Așteptat:** Eroare blocking `BALANCE_CONTROL_TURNOVER_MISMATCH`  
 **Status:** [ ]
 
 ---
@@ -317,7 +311,34 @@ export AGGREGATE_DUPLICATES=true
 ### Test V4: Echilibru Solduri Finale ✅
 
 **Input:** `balanta_dezechilibrata_closing.xlsx`  
-**Așteptat:** Eroare `CLOSING_BALANCE_MISMATCH`  
+**Așteptat:** Eroare blocking `BALANCE_CONTROL_TOTAL_MISMATCH`  
+**Status:** [ ]
+
+---
+
+### Test V4b: Clasa 6 — sold final zero ✅
+
+**Input:** fișier cu cont 6xx și SF Debit/Credit ≠ 0  
+**Așteptat:** Eroare blocking `BALANCE_CONTROL_CLASS6_CLOSING_NOT_ZERO`  
+**Status:** [ ]
+
+---
+
+### Test V4c: Clasa 7 — sold final zero ✅
+
+**Input:** fișier cu cont 7xx și SF Debit/Credit ≠ 0  
+**Așteptat:** Eroare blocking `BALANCE_CONTROL_CLASS7_CLOSING_NOT_ZERO`  
+**Status:** [ ]
+
+---
+
+### Test V4d: Structură coloane (maximum A–H) ✅
+
+**Input:** fișier cu date în coloana I (a 9-a coloană)  
+**Așteptat:** Eroare blocking `EXCEL_INVALID_COLUMN_COUNT`  
+
+**Input alternativ:** rând cu celule goale în C–H  
+**Așteptat:** ✅ Acceptat; celulele goale = 0  
 **Status:** [ ]
 
 ---

@@ -778,6 +778,36 @@ export function validateBalance(
 }
 
 /**
+ * Agregă conturile duplicate (același account_code) sumând valorile numerice.
+ * Necesar înainte de INSERT datorită constrângerii UNIQUE (import_id, account_code).
+ *
+ * @param accounts - Conturi parsate din Excel (pot conține duplicate)
+ * @returns Listă deduplicată, cu totaluri sumate per cod cont
+ */
+export function aggregateDuplicateAccounts<T extends BalanceAccount>(accounts: T[]): T[] {
+  const map = new Map<string, T>();
+
+  for (const account of accounts) {
+    const existing = map.get(account.account_code);
+    if (existing) {
+      map.set(account.account_code, {
+        ...existing,
+        opening_debit: existing.opening_debit + account.opening_debit,
+        opening_credit: existing.opening_credit + account.opening_credit,
+        debit_turnover: existing.debit_turnover + account.debit_turnover,
+        credit_turnover: existing.credit_turnover + account.credit_turnover,
+        closing_debit: existing.closing_debit + account.closing_debit,
+        closing_credit: existing.closing_credit + account.closing_credit,
+      });
+    } else {
+      map.set(account.account_code, { ...account });
+    }
+  }
+
+  return Array.from(map.values());
+}
+
+/**
  * Helper pentru formatare mesaj eroare user-friendly.
  */
 export function formatValidationMessage(result: ValidationResult): string {

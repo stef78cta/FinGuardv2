@@ -60,27 +60,20 @@
 
 **Fișier**: `src/lib/excel-parser.ts`
 
-**Validare #1: Control Totals (BLOCKING)**
-```typescript
-// Calculează diferența absolută
-const controlDiff = Math.abs(totals.closing_debit - totals.closing_credit);
-const CONTROL_THRESHOLD = 0.01; // Prag: 1 ban (rotunjiri acceptate)
+**Validare #1: Control Totals (BLOCKING) — SI, Rulaje, SF**
 
-if (controlDiff > CONTROL_THRESHOLD) {
-  blockingErrors.push({
-    code: 'BALANCE_CONTROL_TOTAL_MISMATCH',
-    message: `Total Sold final Debit nu este egal cu Total Sold final Credit (diferență: ${controlDiff.toFixed(2)} RON)`,
-    details: {
-      closing_debit: totals.closing_debit,
-      closing_credit: totals.closing_credit,
-      difference: controlDiff,
-      threshold: CONTROL_THRESHOLD,
-    },
-  });
-}
-```
+Toate verificările folosesc `applyBalanceControlCheck()` cu prag `CONTROL_THRESHOLD = 0.01`.
 
-**Validare #2: Conturi Invalide/Lipsă (BLOCKING)**
+| Cod | Verificare |
+|---|---|
+| `BALANCE_CONTROL_OPENING_MISMATCH` | Total SI Debit = Total SI Credit |
+| `BALANCE_CONTROL_TURNOVER_MISMATCH` | Total Rulaj D = Total Rulaj C |
+| `BALANCE_CONTROL_TOTAL_MISMATCH` | Total SF Debit = Total SF Credit |
+| `BALANCE_CONTROL_CLASS6_CLOSING_NOT_ZERO` | Conturi 6xx: SF Debit = SF Credit = 0 |
+| `BALANCE_CONTROL_CLASS7_CLOSING_NOT_ZERO` | Conturi 7xx: SF Debit = SF Credit = 0 |
+| `EXCEL_INVALID_COLUMN_COUNT` | Maximum 8 coloane A–H; respinge date în coloana I+ (celule goale C–H = 0) |
+
+**Validare #3: Conturi Invalide/Lipsă (BLOCKING)**
 ```typescript
 // În buclă de parsare rânduri:
 if (!row[0]) {
@@ -156,10 +149,11 @@ if (!parseResult.ok) {
     errorMessages.push(`❌ ${err.message}`);
     
     // Adaugă detalii specifice pentru fiecare tip de eroare
-    if (err.code === 'BALANCE_CONTROL_TOTAL_MISMATCH' && err.details) {
-      const details = err.details as { closing_debit: number; closing_credit: number; difference: number };
-      errorMessages.push(`  • Sold final Debit: ${details.closing_debit.toFixed(2)} RON`);
-      errorMessages.push(`  • Sold final Credit: ${details.closing_credit.toFixed(2)} RON`);
+    const controlUi = CONTROL_MISMATCH_UI[err.code];
+    if (controlUi && err.details) {
+      const details = err.details as Record<string, number>;
+      errorMessages.push(`  • ${controlUi.debitLabel}: ${details[controlUi.debitKey].toFixed(2)} RON`);
+      errorMessages.push(`  • ${controlUi.creditLabel}: ${details[controlUi.creditKey].toFixed(2)} RON`);
       errorMessages.push(`  • Diferență: ${details.difference.toFixed(2)} RON`);
     }
     
@@ -408,7 +402,7 @@ expect(parseResult.warnings[0].code).toBe('BALANCE_CONTROL_ROUNDING_DIFF');
 ## ✅ **CHECKLIST COMPLETARE**
 
 - [x] **1. Reproducere**: Identificat fluxul de upload și parsing
-- [x] **2. Validări blocking**: Implementat control totals + conturi invalide
+- [x] **2. Validări blocking**: Control totals SI + Rulaje + SF + clasa 6/7 SF zero + 8 coloane + conturi invalide
 - [x] **3. Contract API**: Adăugat `ok`, `blockingErrors`, `rowErrors`, `warnings`, `metrics`
 - [x] **4. Hook verificare**: `uploadBalance()` verifică `ok === false` și aruncă eroare
 - [x] **5. No partial writes**: ZERO insert în DB dacă `ok === false`

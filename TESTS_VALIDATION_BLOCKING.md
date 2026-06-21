@@ -40,7 +40,7 @@ describe('parseExcelFile - Validări Blocking', () => {
       expect(result.metrics.totals.diff).toEqual(0);
     });
     
-    it('RESPINGE balanță cu control totals invalid (Debit != Credit, diff > 0.01)', async () => {
+    it('RESPINGE balanță cu sold final dezechilibrat (Debit != Credit, diff > 0.01)', async () => {
       // Arrange: Creează fișier mock cu Debit != Credit (diff = 0.50)
       const invalidFile = createMockExcelFile({
         accounts: [
@@ -62,7 +62,42 @@ describe('parseExcelFile - Validări Blocking', () => {
       expect(result.metrics.totals.diff).toBeGreaterThan(0.01);
     });
     
-    it('ACCEPTĂ balanță cu diferență minimă (rotunjiri, diff <= 0.01)', async () => {
+    it('RESPINGE balanță cu sold inițial dezechilibrat (diff > 0.01)', async () => {
+      const invalidFile = createMockExcelFile({
+        accounts: [
+          { code: '1012', name: 'Bănci', opening_d: 1000, opening_c: 0, debit_t: 500, credit_t: 500, closing_d: 1000, closing_c: 0 },
+          { code: '4111', name: 'Venituri', opening_d: 0, opening_c: 900, debit_t: 100, credit_t: 100, closing_d: 0, closing_c: 900 }, // SI diff 100
+        ],
+      });
+
+      const result = await parseExcelFile(invalidFile);
+
+      expect(result.ok).toBe(false);
+      expect(result.blockingErrors).toHaveLength(1);
+      expect(result.blockingErrors[0].code).toBe('BALANCE_CONTROL_OPENING_MISMATCH');
+      expect(result.blockingErrors[0].message).toContain('Total Sold inițial Debit nu este egal cu Total Sold inițial Credit');
+      expect(result.accounts).toHaveLength(0);
+    });
+
+    it('RESPINGE balanță cu rulaje dezechilibrate (diff > 0.01)', async () => {
+      const invalidFile = createMockExcelFile({
+        accounts: [
+          { code: '1012', name: 'Bănci', opening_d: 1000, opening_c: 0, debit_t: 500, credit_t: 400, closing_d: 1100, closing_c: 0 },
+          { code: '4111', name: 'Venituri', opening_d: 0, opening_c: 1000, debit_t: 100, credit_t: 100, closing_d: 0, closing_c: 1000 },
+        ],
+      });
+      // Rulaj: D=600, C=500 → diff 100
+
+      const result = await parseExcelFile(invalidFile);
+
+      expect(result.ok).toBe(false);
+      expect(result.blockingErrors).toHaveLength(1);
+      expect(result.blockingErrors[0].code).toBe('BALANCE_CONTROL_TURNOVER_MISMATCH');
+      expect(result.blockingErrors[0].message).toContain('Total Rulaj curent Debit nu este egal cu Total Rulaj curent Credit');
+      expect(result.accounts).toHaveLength(0);
+    });
+
+    it('ACCEPTĂ balanță cu diferență minimă la sold final (rotunjiri, diff <= 0.01)', async () => {
       // Arrange: Creează fișier mock cu Debit ≈ Credit (diff = 0.01)
       const roundingFile = createMockExcelFile({
         accounts: [
@@ -82,11 +117,69 @@ describe('parseExcelFile - Validări Blocking', () => {
       expect(result.blockingErrors).toHaveLength(0);
       expect(result.warnings).toHaveLength(1);
       expect(result.warnings[0].code).toBe('BALANCE_CONTROL_ROUNDING_DIFF');
-      expect(result.warnings[0].message).toContain('Diferență minimă de rotunjire detectată');
+      expect(result.warnings[0].message).toContain('Diferență minimă de rotunjire la sold final detectată');
       expect(result.accounts.length).toBeGreaterThan(0);
       expect(result.metrics.totals.diff).toBeLessThanOrEqual(0.01);
     });
     
+    it('ACCEPTĂ rând cu celule numerice goale (tratate ca zero)', async () => {
+      const fileWithBlanks = createMockExcelFile({
+        accounts: [
+          { code: '1012', name: 'Bănci', opening_d: 1000, opening_c: null, debit_t: null, credit_t: null, closing_d: 1000, closing_c: null },
+          { code: '4111', name: 'Venituri', opening_d: null, opening_c: 1000, debit_t: null, credit_t: null, closing_d: null, closing_c: 1000 },
+        ],
+      });
+
+      const result = await parseExcelFile(fileWithBlanks);
+
+      expect(result.ok).toBe(true);
+      expect(result.blockingErrors).toHaveLength(0);
+      expect(result.accounts[0].opening_credit).toEqual(0);
+      expect(result.accounts[0].debit_turnover).toEqual(0);
+    });
+
+    it('RESPINGE fișier cu date dincolo de coloana H (coloana I+)', async () => {
+      const invalidColumnsFile = createMockExcelFileWithExtraColumn(9);
+
+      const result = await parseExcelFile(invalidColumnsFile);
+
+      expect(result.ok).toBe(false);
+      expect(result.blockingErrors[0].code).toBe('EXCEL_INVALID_COLUMN_COUNT');
+      expect(result.blockingErrors[0].message).toContain('dincolo de coloana H');
+      expect(result.accounts).toHaveLength(0);
+    });
+
+    it('RESPINGE cont clasa 6 cu sold final nenul', async () => {
+      const invalidFile = createMockExcelFile({
+        accounts: [
+          { code: '1012', name: 'Bănci', opening_d: 1000, opening_c: 0, debit_t: 500, credit_t: 500, closing_d: 1000, closing_c: 0 },
+          { code: '6011', name: 'Cheltuieli', opening_d: 0, opening_c: 0, debit_t: 200, credit_t: 200, closing_d: 50, closing_c: 0 },
+          { code: '4111', name: 'Venituri', opening_d: 0, opening_c: 1000, debit_t: 0, credit_t: 0, closing_d: 0, closing_c: 1000 },
+        ],
+      });
+
+      const result = await parseExcelFile(invalidFile);
+
+      expect(result.ok).toBe(false);
+      expect(result.blockingErrors.some((e) => e.code === 'BALANCE_CONTROL_CLASS6_CLOSING_NOT_ZERO')).toBe(true);
+      expect(result.accounts).toHaveLength(0);
+    });
+
+    it('RESPINGE cont clasa 7 cu sold final nenul', async () => {
+      const invalidFile = createMockExcelFile({
+        accounts: [
+          { code: '1012', name: 'Bănci', opening_d: 1000, opening_c: 0, debit_t: 500, credit_t: 500, closing_d: 1000, closing_c: 0 },
+          { code: '7011', name: 'Venituri financiare', opening_d: 0, opening_c: 0, debit_t: 100, credit_t: 100, closing_d: 0, closing_c: 25 },
+          { code: '4111', name: 'Venituri', opening_d: 0, opening_c: 1000, debit_t: 0, credit_t: 0, closing_d: 0, closing_c: 1025 },
+        ],
+      });
+
+      const result = await parseExcelFile(invalidFile);
+
+      expect(result.ok).toBe(false);
+      expect(result.blockingErrors.some((e) => e.code === 'BALANCE_CONTROL_CLASS7_CLOSING_NOT_ZERO')).toBe(true);
+    });
+
   });
   
   describe('Cont Lipsă / Invalid Validation', () => {
@@ -490,7 +583,14 @@ jobs:
 | Test Case | ok | blockingErrors | rowErrors | accounts | DB Insert | Status |
 |-----------|----|--------------|-----------|---------|-----------| ------ |
 | Valid (Control OK, Conturi OK) | ✅ true | 0 | 0 | > 0 | ✅ Yes | completed |
-| Control Mismatch (diff > 0.01) | ❌ false | 1 (CONTROL) | 0 | 0 | ❌ No | error |
+| Control SF Mismatch (diff > 0.01) | ❌ false | 1 (TOTAL) | 0 | 0 | ❌ No | error |
+| Control SI Mismatch (diff > 0.01) | ❌ false | 1 (OPENING) | 0 | 0 | ❌ No | error |
+| Control Rulaj Mismatch (diff > 0.01) | ❌ false | 1 (TURNOVER) | 0 | 0 | ❌ No | error |
+| Coloane ≠ 8 | ❌ false | 1 (COLUMN_COUNT) | 0 | 0 | ❌ No | error |
+| Coloane I+ cu date | ❌ false | 1 (COLUMN_COUNT) | 0 | 0 | ❌ No | error |
+| Celule goale C–H | ✅ true | 0 | 0 | > 0 | ✅ Yes | completed (valori = 0) |
+| Clasa 6 SF nenul | ❌ false | 1 (CLASS6) | 1+ | 0 | ❌ No | error |
+| Clasa 7 SF nenul | ❌ false | 1 (CLASS7) | 1+ | 0 | ❌ No | error |
 | Cont Lipsă | ❌ false | 1 (INVALID_ROWS) | 1+ | 0 | ❌ No | error |
 | Cont Invalid Format | ❌ false | 1 (INVALID_ROWS) | 1+ | 0 | ❌ No | error |
 | AMBELE Erori | ❌ false | 2 | 1+ | 0 | ❌ No | error |

@@ -91,9 +91,12 @@ Am implementat **16 validări complete** conform standardelor OMFP 1802/2014:
 | # | Validare | Cod Eroare | Status |
 |---|----------|------------|--------|
 | 1 | Listă nu e goală | `EMPTY_BALANCE` | ✅ Implementat |
-| 2 | Echilibru solduri inițiale | `OPENING_BALANCE_MISMATCH` | ✅ Implementat |
-| 3 | Echilibru rulaje | `TURNOVER_MISMATCH` | ✅ Implementat |
-| 4 | Echilibru solduri finale | `CLOSING_BALANCE_MISMATCH` | ✅ Implementat |
+| 2 | Echilibru solduri inițiale | `BALANCE_CONTROL_OPENING_MISMATCH` | ✅ Implementat (`excel-parser.ts`) |
+| 3 | Echilibru rulaje | `BALANCE_CONTROL_TURNOVER_MISMATCH` | ✅ Implementat (`excel-parser.ts`) |
+| 4 | Echilibru solduri finale | `BALANCE_CONTROL_TOTAL_MISMATCH` | ✅ Implementat (`excel-parser.ts`) |
+| 4b | Clasa 6 — sold final zero | `BALANCE_CONTROL_CLASS6_CLOSING_NOT_ZERO` | ✅ Implementat (`excel-parser.ts`) |
+| 4c | Clasa 7 — sold final zero | `BALANCE_CONTROL_CLASS7_CLOSING_NOT_ZERO` | ✅ Implementat (`excel-parser.ts`) |
+| 4d | Maximum 8 coloane A–H; celule goale = 0 | `EXCEL_INVALID_COLUMN_COUNT` | ✅ Implementat (`excel-parser.ts`) |
 | 5 | Clase cont obligatorii (1-7) | `MISSING_ACCOUNT_CLASSES` | ✅ Implementat |
 | 6 | Format conturi (OMFP 1802) | `INVALID_ACCOUNT_FORMAT` | ✅ Implementat |
 | 7 | Valori numerice finite | `INVALID_NUMERIC_VALUES` | ✅ Implementat |
@@ -254,7 +257,7 @@ finguardv2/
 | 1012 | Bănci | 10000.00 | 0.00 | 5000.00 | 3000.00 | 12000.00 | 0.00 |
 | 4111 | Venituri | 0.00 | 9000.00 | 0.00 | 5000.00 | 0.00 | 14000.00 |
 
-**Așteptat:** ❌ Eroare `OPENING_BALANCE_MISMATCH`, diferență 1000 RON.
+**Așteptat:** ❌ Eroare blocking `BALANCE_CONTROL_OPENING_MISMATCH`, diferență 1000 RON.
 
 ---
 

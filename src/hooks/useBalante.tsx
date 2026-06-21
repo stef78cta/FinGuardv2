@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCompanyContext } from '@/contexts/CompanyContext';
+import { TRIAL_BALANCE_IMPORTS_FALLBACK } from '@/lib/storage/constants';
 
 /**
  * Reprezintă un import de balanță de verificare.
@@ -80,7 +81,7 @@ export const useBalante = () => {
       setError(null);
       
       const { data, error: fetchError } = await supabase
-        .from('trial_balance_imports')
+        .from(TRIAL_BALANCE_IMPORTS_FALLBACK)
         .select('*')
         .eq('company_id', companyId)
         .eq('status', 'completed')
@@ -226,7 +227,7 @@ export const useBalante = () => {
     if (!activeCompany?.id) return null;
 
     const { data: latestBalances, error: fetchError } = await supabase
-      .from('trial_balance_imports')
+      .from(TRIAL_BALANCE_IMPORTS_FALLBACK)
       .select('*')
       .eq('company_id', activeCompany.id)
       .eq('status', 'completed')
@@ -304,7 +305,7 @@ export const useBalante = () => {
     if (!activeCompany?.id) return [];
 
     const { data: allBalances, error: fetchError } = await supabase
-      .from('trial_balance_imports')
+      .from(TRIAL_BALANCE_IMPORTS_FALLBACK)
       .select('*')
       .eq('company_id', activeCompany.id)
       .eq('status', 'completed')

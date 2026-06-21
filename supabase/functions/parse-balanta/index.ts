@@ -50,6 +50,9 @@ const MIN_NUMERIC_VALUE = -999_999_999_999.99;
 /** Maximum allowed accounts in a single file */
 const MAX_ACCOUNTS = 10_000;
 
+/** Bucket Storage canonical pentru balanțe */
+const BALANCE_STORAGE_BUCKET = "balante";
+
 // =============================================================================
 // SECURITY: CORS Configuration (v1.7 - aligned with config.toml)
 // =============================================================================
@@ -95,6 +98,30 @@ interface ParsedAccount {
   credit_turnover: number;
   closing_debit: number;
   closing_credit: number;
+}
+
+/** Agregă conturi duplicate sumând valorile numerice (UNIQUE import_id + account_code). */
+function aggregateDuplicateAccounts(accounts: ParsedAccount[]): ParsedAccount[] {
+  const map = new Map<string, ParsedAccount>();
+
+  for (const account of accounts) {
+    const existing = map.get(account.account_code);
+    if (existing) {
+      map.set(account.account_code, {
+        ...existing,
+        opening_debit: existing.opening_debit + account.opening_debit,
+        opening_credit: existing.opening_credit + account.opening_credit,
+        debit_turnover: existing.debit_turnover + account.debit_turnover,
+        credit_turnover: existing.credit_turnover + account.credit_turnover,
+        closing_debit: existing.closing_debit + account.closing_debit,
+        closing_credit: existing.closing_credit + account.closing_credit,
+      });
+    } else {
+      map.set(account.account_code, { ...account });
+    }
+  }
+
+  return Array.from(map.values());
 }
 
 interface ParseResult {
@@ -517,7 +544,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Acum e safe să download (size e validat)
     // v1.9.2: FIX - Folosește source_file_url pentru download
     const { data: fileData, error: downloadError } = await supabaseAdmin.storage
-      .from("balante")
+      .from(BALANCE_STORAGE_BUCKET)
       .download(importRecord.source_file_url);
 
     if (downloadError || !fileData) {
@@ -583,9 +610,33 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Rezolvă public.users.id din auth.users.id (is_company_member folosește users.id)
+    const { data: publicUser, error: publicUserError } = await supabaseAdmin
+      .from("users")
+      .select("id")
+      .eq("auth_user_id", user.id)
+      .single();
+
+    if (publicUserError || !publicUser) {
+      await supabaseAdmin
+        .from("trial_balance_imports")
+        .update({
+          status: "error",
+          error_message: "Utilizator negăsit în baza de date",
+          internal_error_detail: publicUserError?.message,
+          internal_error_code: "USER_NOT_FOUND",
+        })
+        .eq("id", import_id);
+
+      return new Response(
+        JSON.stringify({ error: "User profile not found" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // v1.5: SECURITY - process_import_accounts RPC (idempotență + ownership)
-    // v1.9: FIX MAPPING - Trimite TOATE coloanele (nu doar opening)
-    const accountsJSON = JSON.stringify(parseResult.accounts.map(acc => ({
+    const accountsForInsert = aggregateDuplicateAccounts(parseResult.accounts);
+    const accountsPayload = accountsForInsert.map((acc) => ({
       code: acc.account_code,
       name: acc.account_name,
       opening_debit: acc.opening_debit,
@@ -593,14 +644,17 @@ const handler = async (req: Request): Promise<Response> => {
       debit_turnover: acc.debit_turnover,
       credit_turnover: acc.credit_turnover,
       closing_debit: acc.closing_debit,
-      closing_credit: acc.closing_credit
-    })));
+      closing_credit: acc.closing_credit,
+    }));
 
-    const { data: processSuccess, error: processError } = await supabaseAdmin.rpc('process_import_accounts', {
-      p_import_id: import_id,
-      p_accounts: accountsJSON,
-      p_requester_user_id: user.id // v1.5: defense-in-depth ownership
-    });
+    const { data: processSuccess, error: processError } = await supabaseAdmin.rpc(
+      "process_import_accounts",
+      {
+        p_import_id: import_id,
+        p_accounts: accountsPayload,
+        p_requester_user_id: publicUser.id,
+      }
+    );
 
     if (processError || !processSuccess) {
       // Error deja salvat în DB de funcție

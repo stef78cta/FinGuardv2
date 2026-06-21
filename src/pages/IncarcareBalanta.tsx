@@ -25,6 +25,7 @@ import { useCompanyContext } from '@/contexts/CompanyContext';
 import { useTrialBalances, TrialBalanceImport, TrialBalanceImportWithTotals } from '@/hooks/useTrialBalances';
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { BALANCE_STORAGE_BUCKET, extractSupabaseErrorMessage } from '@/lib/storage/constants';
 
 /** Numărul de conturi afișate per pagină în dialog-ul de vizualizare */
 const ACCOUNTS_PER_PAGE = 50;
@@ -197,7 +198,12 @@ const IncarcareBalanta = () => {
       error: userError
     } = await supabase.from('users').select('id').eq('auth_user_id', user.id).single();
     if (userError || !userData) {
-      toast.error('Eroare la încărcare. Vă rugăm să încercați din nou.');
+      console.error('[handleUpload] User lookup failed:', userError);
+      toast.error(
+        userError
+          ? `Eroare profil utilizator: ${extractSupabaseErrorMessage(userError)}`
+          : 'Eroare la încărcare. Vă rugăm să încercați din nou.'
+      );
       return;
     }
     setDateError(false);
@@ -207,7 +213,14 @@ const IncarcareBalanta = () => {
       // Calculate period start (first day of month)
       const periodStart = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
       setUploadProgress(30);
-      await uploadBalance(uploadedFile, periodStart, referenceDate, userData.id);
+      await uploadBalance(uploadedFile, periodStart, referenceDate, userData.id, {
+        onProgress: setUploadProgress,
+        onPhase: (phase) => {
+          if (phase === 'processing') {
+            toast.info('Procesare balanță pe server...');
+          }
+        },
+      });
       setUploadProgress(100);
       setUploadStatus('success');
       toast.success('Balanța a fost încărcată și procesată cu succes!');
@@ -224,7 +237,10 @@ const IncarcareBalanta = () => {
       setUploadStatus('error');
       
       // v2.0: Afișare îmbunătățită pentru erori de validare blocking
-      const errorMessage = error instanceof Error ? error.message : 'Eroare la încărcare';
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : extractSupabaseErrorMessage(error) || 'Eroare la încărcare';
       
       // Verifică dacă e eroare de validare (conține ❌)
       if (errorMessage.includes('❌')) {
@@ -269,9 +285,25 @@ const IncarcareBalanta = () => {
    * @param importId - ID-ul importului de reîncercat
    */
   const handleRetry = async (importId: string) => {
+    if (!user) {
+      toast.error('Trebuie să fiți autentificat');
+      return;
+    }
+
     try {
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('auth_user_id', user.id)
+        .single();
+
+      if (userError || !userData) {
+        toast.error('Eroare la identificarea utilizatorului');
+        return;
+      }
+
       toast.info('Reîncerc procesarea balanței...');
-      await retryFailedImport(importId);
+      await retryFailedImport(importId, userData.id);
       toast.success('Balanța a fost reprocesată cu succes!');
     } catch (error) {
       console.error('[IncarcareBalanta] Error retrying import:', error);
@@ -361,7 +393,7 @@ const IncarcareBalanta = () => {
       const {
         data,
         error
-      } = await supabase.storage.from('balante').download(imp.source_file_url);
+      } = await supabase.storage.from(BALANCE_STORAGE_BUCKET).download(imp.source_file_url);
       if (error) throw error;
 
       // Create download link
@@ -571,6 +603,22 @@ const IncarcareBalanta = () => {
                       <li className="flex items-center gap-2 text-sm">
                         <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
                         <span>Linii goale: ignorate automat</span>
+                      </li>
+                      <li className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
+                        <span>Echilibru obligatoriu: Sold inițial D = C, Rulaj D = C, Sold final D = C (toleranță 0,01 RON)</span>
+                      </li>
+                      <li className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
+                        <span>Celule goale în coloanele numerice (C–H): tratate automat ca 0</span>
+                      </li>
+                      <li className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
+                        <span>Maximum 8 coloane (A–H); date în coloana I sau mai departe resping upload-ul</span>
+                      </li>
+                      <li className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
+                        <span>Conturi clasa 6 și 7: sold final Debit și Credit trebuie să fie zero</span>
                       </li>
                     </ul>
                   </div>
