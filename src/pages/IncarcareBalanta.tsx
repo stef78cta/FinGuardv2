@@ -23,8 +23,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { BalanceAccount } from '@/hooks/useBalante';
 import { useCompanyContext } from '@/contexts/CompanyContext';
 import { useTrialBalances, TrialBalanceImport, TrialBalanceImportWithTotals } from '@/hooks/useTrialBalances';
+import { useBalanceUploadForm } from '@/hooks/useBalanceUploadForm';
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { BalanceUploadPreview } from '@/components/upload/BalanceUploadPreview';
 import { BALANCE_STORAGE_BUCKET, extractSupabaseErrorMessage } from '@/lib/storage/constants';
 
 /** Numărul de conturi afișate per pagină în dialog-ul de vizualizare */
@@ -87,14 +89,35 @@ const IncarcareBalanta = () => {
     restoreScroll: true
   });
 
-  // State-uri pentru formularul de upload (nu persistăm - se resetează intenționat)
-  const [referenceDate, setReferenceDate] = useState<Date>();
+  const {
+    fileInputRef,
+    referenceDate,
+    uploadedFile,
+    isDragging,
+    setIsDragging,
+    uploadProgress,
+    setUploadProgress,
+    uploadStatus,
+    dateError,
+    setDateError,
+    previewData,
+    validationErrors,
+    validationWarnings,
+    uploadErrorMessage,
+    totals,
+    duplicateAccounts,
+    accountsCount,
+    parsedData,
+    handleReferenceDateChange,
+    handleFileSelect,
+    handleRemoveFile,
+    beginUpload,
+    completeUpload,
+    failUpload,
+    resetAfterSuccessfulImport,
+  } = useBalanceUploadForm();
+
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
-  const [dateError, setDateError] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedImportId, setSelectedImportId] = useState<string | null>(null);
 
@@ -149,33 +172,14 @@ const IncarcareBalanta = () => {
     setIsDragging(false);
     const files = e.dataTransfer.files;
     if (files.length > 0) {
-      handleFileSelect(files[0]);
+      void handleFileSelect(files[0]);
     }
-  };
-  const handleFileSelect = (file: File) => {
-    const validTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
-    if (!validTypes.includes(file.type)) {
-      toast.error('Format fișier neacceptat. Vă rugăm să încărcați un fișier Excel (.xlsx, .xls)');
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Fișierul depășește dimensiunea maximă de 10MB');
-      return;
-    }
-    setUploadedFile(file);
-    setUploadStatus('success');
-    toast.success('Fișier selectat cu succes!');
   };
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      handleFileSelect(files[0]);
+      void handleFileSelect(files[0]);
     }
-  };
-  const handleRemoveFile = () => {
-    setUploadedFile(null);
-    setUploadStatus('idle');
-    setUploadProgress(0);
   };
   const handleUpload = async () => {
     if (!referenceDate) {
@@ -206,9 +210,12 @@ const IncarcareBalanta = () => {
       );
       return;
     }
-    setDateError(false);
-    setUploadStatus('uploading');
-    setUploadProgress(10);
+    if (parsedData && !parsedData.ok) {
+      toast.error('Corectați erorile din fișier înainte de import.');
+      return;
+    }
+
+    const uploadGeneration = beginUpload();
     try {
       // Calculate period start (first day of month)
       const periodStart = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
@@ -221,42 +228,32 @@ const IncarcareBalanta = () => {
           }
         },
       });
-      setUploadProgress(100);
-      setUploadStatus('success');
+      completeUpload(uploadGeneration);
       toast.success('Balanța a fost încărcată și procesată cu succes!');
 
-      // Reset form
       setTimeout(() => {
-        setUploadedFile(null);
-        setUploadStatus('idle');
-        setUploadProgress(0);
-        setReferenceDate(undefined);
+        resetAfterSuccessfulImport(uploadGeneration);
       }, 1500);
     } catch (error) {
       console.error('[handleUpload] Upload error:', error);
-      setUploadStatus('error');
-      
-      // v2.0: Afișare îmbunătățită pentru erori de validare blocking
+
       const errorMessage =
         error instanceof Error
           ? error.message
           : extractSupabaseErrorMessage(error) || 'Eroare la încărcare';
-      
-      // Verifică dacă e eroare de validare (conține ❌)
+
+      failUpload(uploadGeneration, errorMessage);
+
       if (errorMessage.includes('❌')) {
-        // Eroare de validare blocking - afișează cu formatare
         const errorLines = errorMessage.split('\n');
         const mainError = errorLines[0];
-        
-        // Toast principal cu prima linie
+
         toast.error(mainError, {
-          duration: 8000, // 8 secunde pentru a putea citi
+          duration: 8000,
         });
-        
-        // Log detalii în consolă pentru debugging
+
         console.error('[handleUpload] Validation errors:', errorLines);
       } else {
-        // Eroare generică
         toast.error(errorMessage);
       }
     }
@@ -470,8 +467,7 @@ const IncarcareBalanta = () => {
                 <AdvancedCalendar 
                   selected={referenceDate} 
                   onSelect={date => {
-                    setReferenceDate(date);
-                    setDateError(false);
+                    handleReferenceDateChange(date);
                     setCalendarOpen(false);
                   }} 
                   enableDrillDown 
@@ -702,7 +698,7 @@ const IncarcareBalanta = () => {
                 <p className="text-xs text-muted-foreground mb-4">
                   Acceptăm fișiere .xlsx și .xls (max 10MB)
                 </p>
-                <input type="file" id="file-upload" className="hidden" accept=".xlsx,.xls" onChange={handleFileInputChange} />
+                <input ref={fileInputRef} type="file" id="file-upload" className="hidden" accept=".xlsx,.xls" onChange={handleFileInputChange} />
                 <Button asChild variant="outline">
                   <label htmlFor="file-upload" className="cursor-pointer">
                     Selectează fișier
@@ -719,19 +715,46 @@ const IncarcareBalanta = () => {
                       </p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={handleRemoveFile} disabled={uploadStatus === 'uploading'}>
+                  <Button variant="ghost" size="icon" onClick={handleRemoveFile} disabled={uploadStatus === 'uploading' || uploadStatus === 'parsing'}>
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
                 
-                {uploadStatus === 'uploading' && <div className="mb-4">
+                {(uploadStatus === 'uploading' || uploadStatus === 'parsing') && <div className="mb-4">
                     <Progress value={uploadProgress} className="mb-2" />
                     <p className="text-xs text-muted-foreground text-center">
-                      Se procesează... {uploadProgress}%
+                      {uploadStatus === 'parsing'
+                        ? 'Se analizează fișierul...'
+                        : `Se procesează... ${uploadProgress}%`}
                     </p>
                   </div>}
+
+                {(uploadStatus === 'parsing' || uploadedFile) && (
+                  <div className="mb-4">
+                    <BalanceUploadPreview
+                      fileName={uploadedFile?.name ?? ''}
+                      accountsCount={accountsCount}
+                      previewData={previewData}
+                      totals={totals}
+                      validationErrors={validationErrors}
+                      validationWarnings={validationWarnings}
+                      duplicateAccounts={duplicateAccounts}
+                      uploadErrorMessage={uploadErrorMessage}
+                      isParsing={uploadStatus === 'parsing'}
+                    />
+                  </div>
+                )}
                 
-                <Button onClick={handleUpload} className="w-full" disabled={uploadStatus === 'uploading'}>
+                <Button
+                  onClick={handleUpload}
+                  className="w-full"
+                  disabled={
+                    uploadStatus === 'uploading' ||
+                    uploadStatus === 'parsing' ||
+                    uploadStatus === 'error' ||
+                    !parsedData?.ok
+                  }
+                >
                   {uploadStatus === 'uploading' ? <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Se procesează...
