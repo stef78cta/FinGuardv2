@@ -70,41 +70,44 @@ describe('parseExcelRows — format 10 coloane', () => {
     expect(result.blockingErrors.some((e) => e.code === 'EXCEL_INVALID_COLUMN_COUNT')).toBe(true);
   });
 
-  it('respinge rând unde total_sume_debitoare != SI_DEBIT + rulaj_d', () => {
+  it('acceptă balanță cu rulaj lunar și total sume cumulate (nu mai respinge rândurile)', () => {
+    // Regresie: rulajele sunt LUNARE, iar Total Sume sunt CUMULATE de la începutul anului.
+    // total_sume ≠ SI + rulaj curent, dar identitatea SF = total_deb − total_cred ține.
+    const rows = [
+      HEADER,
+      ['121', 'Profit și pierdere', 0, 7000, 3600, 5000, 34000, 37000, 0, 3000],
+      ['5121', 'Bancă', 7000, 0, 5000, 3600, 37000, 34000, 3000, 0],
+    ];
+
+    const result = parseExcelRows(rows);
+
+    expect(result.ok).toBe(true);
+    expect(result.accounts).toHaveLength(2);
+    expect(result.totals.opening_debit).toBe(7000);
+    expect(result.totals.opening_credit).toBe(7000);
+  });
+
+  it('respinge rând unde SF net != Total Sume Debit − Total Sume Credit', () => {
     const rows = [
       HEADER,
       ['101', 'Capital', 0, 1000, 0, 500, 0, 1500, 0, 1500],
-      ['5121', 'Bancă', 1000, 0, 500, 0, 1400, 0, 1500, 0],
+      ['5121', 'Bancă', 1000, 0, 500, 0, 1500, 0, 1400, 0],
     ];
 
     const result = parseExcelRows(rows);
 
     expect(result.ok).toBe(false);
     expect(
-      result.blockingErrors.some((e) => e.code === 'BALANCE_TOTAL_SUMS_MISMATCH_DETECTED'),
+      result.blockingErrors.some((e) => e.code === 'BALANCE_CLOSING_MISMATCH_DETECTED'),
     ).toBe(true);
-    expect(result.rowErrors.some((e) => e.code === 'BALANCE_ROW_TOTAL_DEBIT_SUM_MISMATCH')).toBe(true);
-    expect(result.accounts).toHaveLength(0);
+    expect(result.rowErrors.some((e) => e.code === 'BALANCE_ROW_CLOSING_MISMATCH')).toBe(true);
   });
 
-  it('respinge rând unde total_sume_creditoare != SI_CREDIT + rulaj_c', () => {
-    const rows = [
-      HEADER,
-      ['401', 'Furnizori', 0, 1000, 0, 300, 0, 1200, 0, 1300],
-      ['5121', 'Bancă', 1000, 0, 500, 0, 1500, 0, 1500, 0],
-    ];
-
-    const result = parseExcelRows(rows);
-
-    expect(result.ok).toBe(false);
-    expect(result.rowErrors.some((e) => e.code === 'BALANCE_ROW_TOTAL_CREDIT_SUM_MISMATCH')).toBe(true);
-  });
-
-  it('acceptă diferență de maximum 0.01 RON la total_sume', () => {
+  it('acceptă diferență de maximum 0.01 RON la identitatea soldului final', () => {
     const rows = [
       HEADER,
       ['101', 'Capital', 0, 1000, 0, 500, 0, 1500, 0, 1500],
-      ['5121', 'Bancă', 1000, 0, 500, 0, 1500.005, 0, 1500, 0],
+      ['5121', 'Bancă', 1000, 0, 500, 0, 1500, 0, 1500.005, 0],
     ];
 
     const result = parseExcelRows(rows);

@@ -376,22 +376,30 @@ function validateDualBalances(accounts: BalanceAccount[]): ValidationResult[] {
 }
 
 /**
- * v1.3.10: Ecuație contabilă per cont (WARNING)
- * 
- * Verifică: SI + Rulaj = SF (pentru fiecare cont)
- * Formula: (opening_debit - opening_credit) + (debit_turnover - credit_turnover) = (closing_debit - closing_credit)
+ * Ecuație contabilă per cont (WARNING).
+ *
+ * Când coloanele Total Sume sunt disponibile, se verifică identitatea robustă, adevărată
+ * indiferent dacă rulajul e lunar sau cumulat:
+ *   `(SF Debit − SF Credit) = (Total Sume Debitoare − Total Sume Creditoare)`.
+ *
+ * Pentru balanțele fără Total Sume (format vechi), se revine la `SI + Rulaj = SF`
+ * (valabil doar dacă SI și Rulaj acoperă aceeași perioadă).
  */
 function validateAccountEquation(accounts: BalanceAccount[]): ValidationResult[] {
   const results: ValidationResult[] = [];
   const mismatchAccounts: Array<{code: string; difference: number}> = [];
-  
+
   accounts.forEach(acc => {
-    const opening = acc.opening_debit - acc.opening_credit;
-    const turnover = acc.debit_turnover - acc.credit_turnover;
     const closing = acc.closing_debit - acc.closing_credit;
-    const calculated = opening + turnover;
+    const hasTotalSums =
+      acc.total_sume_debitoare !== undefined && acc.total_sume_creditoare !== undefined;
+
+    const calculated = hasTotalSums
+      ? (acc.total_sume_debitoare as number) - (acc.total_sume_creditoare as number)
+      : (acc.opening_debit - acc.opening_credit) + (acc.debit_turnover - acc.credit_turnover);
+
     const difference = calculated - closing;
-    
+
     if (!isWithinTolerance(difference)) {
       mismatchAccounts.push({
         code: acc.account_code,
@@ -399,12 +407,12 @@ function validateAccountEquation(accounts: BalanceAccount[]): ValidationResult[]
       });
     }
   });
-  
+
   if (mismatchAccounts.length > 0) {
     results.push({
       code: 'ACCOUNT_EQUATION_MISMATCH',
       severity: 'warning',
-      message: `${mismatchAccounts.length} cont(uri) cu ecuație contabilă nerespectată (SI + Rulaj ≠ SF).`,
+      message: `${mismatchAccounts.length} cont(uri) cu ecuație contabilă nerespectată (Sold final ≠ Total Sume Debitoare − Total Sume Creditoare).`,
       details: {
         count: mismatchAccounts.length,
         examples: mismatchAccounts.slice(0, 10),
@@ -412,7 +420,7 @@ function validateAccountEquation(accounts: BalanceAccount[]): ValidationResult[]
       affectedAccounts: mismatchAccounts.map(a => a.code),
     });
   }
-  
+
   return results;
 }
 

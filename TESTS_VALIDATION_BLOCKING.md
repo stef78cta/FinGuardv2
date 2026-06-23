@@ -13,7 +13,7 @@ Acest document descrie testele pentru validarea fluxului de upload balanță cu 
 - H = `total_sume_creditoare` (= SI C + Rulaj C)
 - I/J = SF Debit / SF Credit
 
-**Coduri noi:** `EXCEL_LEGACY_8_COLUMN_FORMAT`, `EXCEL_MISSING_REQUIRED_COLUMNS`, `BALANCE_ROW_TOTAL_DEBIT_SUM_MISMATCH`, `BALANCE_ROW_TOTAL_CREDIT_SUM_MISMATCH`, `BALANCE_TOTAL_SUMS_MISMATCH_DETECTED`
+**Coduri noi:** `EXCEL_LEGACY_8_COLUMN_FORMAT`, `EXCEL_MISSING_REQUIRED_COLUMNS`, `BALANCE_ROW_CLOSING_MISMATCH`, `BALANCE_CLOSING_MISMATCH_DETECTED`
 
 ---
 
@@ -181,22 +181,22 @@ describe('parseExcelFile - Validări Blocking', () => {
       expect(result.accounts).toHaveLength(0);
     });
 
-    it('RESPINGE rând cu total_sume_debitoare incorect', async () => {
-      // G=1400, dar SI_D(1000)+Rul_D(500)=1500
+    it('RESPINGE rând unde SF net ≠ Total Sume D − Total Sume C', async () => {
+      // SF Debit=1400, dar (Total Sume D − Total Sume C)=1500
       const invalidFile = createMockExcelFile({ /* ... */ });
 
       const result = await parseExcelFile(invalidFile);
 
       expect(result.ok).toBe(false);
-      expect(result.blockingErrors.some((e) => e.code === 'BALANCE_TOTAL_SUMS_MISMATCH_DETECTED')).toBe(true);
-      expect(result.rowErrors.some((e) => e.code === 'BALANCE_ROW_TOTAL_DEBIT_SUM_MISMATCH')).toBe(true);
+      expect(result.blockingErrors.some((e) => e.code === 'BALANCE_CLOSING_MISMATCH_DETECTED')).toBe(true);
+      expect(result.rowErrors.some((e) => e.code === 'BALANCE_ROW_CLOSING_MISMATCH')).toBe(true);
     });
 
-    it('RESPINGE rând cu total_sume_creditoare incorect', async () => {
-      const result = await parseExcelFile(invalidCreditTotalFile);
+    it('ACCEPTĂ balanță cu rulaj lunar și total sume cumulate', async () => {
+      // Total Sume ≠ SI + Rulaj curent, dar identitatea SF = Total D − Total C ține
+      const result = await parseExcelFile(monthlyTurnoverCumulativeTotalsFile);
 
-      expect(result.ok).toBe(false);
-      expect(result.rowErrors.some((e) => e.code === 'BALANCE_ROW_TOTAL_CREDIT_SUM_MISMATCH')).toBe(true);
+      expect(result.ok).toBe(true);
     });
 
     it('RESPINGE cont clasa 6 cu sold final nenul', async () => {

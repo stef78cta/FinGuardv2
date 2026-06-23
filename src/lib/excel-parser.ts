@@ -364,70 +364,59 @@ function validateColumnStructure(
   return true;
 }
 
-function validateRowTotalSums(
+/**
+ * Validează identitatea contabilă per rând: soldul final derivă din totalul de sume.
+ *
+ * Relația verificată: `(SF Debit − SF Credit) === (Total Sume Debitoare − Total Sume Creditoare)`.
+ *
+ * Această identitate este adevărată indiferent dacă rulajele furnizate sunt lunare sau
+ * cumulate de la începutul anului, spre deosebire de presupunerea anterioară
+ * `Total Sume = Sold inițial + Rulaj curent` (care eșua pe balanțele cu rulaj lunar și
+ * total sume cumulate). NU exclude rândul din totaluri — doar semnalează neconcordanța.
+ */
+function validateRowClosingFromTotals(
   account: ParsedAccount,
   rowIndex: number,
   rowErrors: RowError[],
 ): void {
-  const expectedDebitTotal = Math.round((account.opening_debit + account.debit_turnover) * 100) / 100;
-  const expectedCreditTotal = Math.round((account.opening_credit + account.credit_turnover) * 100) / 100;
+  const netFromTotals =
+    Math.round((account.total_sume_debitoare - account.total_sume_creditoare) * 100) / 100;
+  const netFromClosing =
+    Math.round((account.closing_debit - account.closing_credit) * 100) / 100;
+  const diff = Math.abs(netFromTotals - netFromClosing);
 
-  const debitDiff = Math.abs(account.total_sume_debitoare - expectedDebitTotal);
-  if (debitDiff > CONTROL_THRESHOLD) {
+  if (diff > CONTROL_THRESHOLD) {
     rowErrors.push({
       rowIndex,
-      code: 'BALANCE_ROW_TOTAL_DEBIT_SUM_MISMATCH',
+      code: 'BALANCE_ROW_CLOSING_MISMATCH',
       message:
-        `Rândul ${rowIndex}: total_sume_debitoare nu corespunde formulei SI_DEBIT + rulaj_d. Valoare fișier: ${formatRon(account.total_sume_debitoare)}; valoare calculată: ${formatRon(expectedDebitTotal)}; diferență: ${formatRon(debitDiff)}.`,
-      field: 'total_sume_debitoare',
+        `Rândul ${rowIndex}: soldul final net (SF Debit − SF Credit = ${formatRon(netFromClosing)}) nu corespunde cu Total Sume Debitoare − Total Sume Creditoare (${formatRon(netFromTotals)}); diferență: ${formatRon(diff)}.`,
+      field: 'closing_balance',
       details: {
         account_code: account.account_code,
-        field: 'total_sume_debitoare',
-        expectedValue: expectedDebitTotal,
-        actualValue: account.total_sume_debitoare,
-        difference: debitDiff,
-        formula: 'SI_DEBIT + rulaj_d',
-      },
-    });
-  }
-
-  const creditDiff = Math.abs(account.total_sume_creditoare - expectedCreditTotal);
-  if (creditDiff > CONTROL_THRESHOLD) {
-    rowErrors.push({
-      rowIndex,
-      code: 'BALANCE_ROW_TOTAL_CREDIT_SUM_MISMATCH',
-      message:
-        `Rândul ${rowIndex}: total_sume_creditoare nu corespunde formulei SI_CREDIT + rulaj_c. Valoare fișier: ${formatRon(account.total_sume_creditoare)}; valoare calculată: ${formatRon(expectedCreditTotal)}; diferență: ${formatRon(creditDiff)}.`,
-      field: 'total_sume_creditoare',
-      details: {
-        account_code: account.account_code,
-        field: 'total_sume_creditoare',
-        expectedValue: expectedCreditTotal,
-        actualValue: account.total_sume_creditoare,
-        difference: creditDiff,
-        formula: 'SI_CREDIT + rulaj_c',
+        field: 'closing_balance',
+        expectedValue: netFromTotals,
+        actualValue: netFromClosing,
+        difference: diff,
+        formula: 'total_sume_debitoare - total_sume_creditoare',
       },
     });
   }
 }
 
-function appendTotalSumBlockingErrors(
+function appendClosingMismatchBlockingErrors(
   rowErrors: RowError[],
   blockingErrors: BlockingError[],
 ): void {
-  const totalSumErrors = rowErrors.filter(
-    (e) =>
-      e.code === 'BALANCE_ROW_TOTAL_DEBIT_SUM_MISMATCH' ||
-      e.code === 'BALANCE_ROW_TOTAL_CREDIT_SUM_MISMATCH',
-  );
+  const closingErrors = rowErrors.filter((e) => e.code === 'BALANCE_ROW_CLOSING_MISMATCH');
 
-  if (totalSumErrors.length > 0) {
+  if (closingErrors.length > 0) {
     blockingErrors.push({
-      code: 'BALANCE_TOTAL_SUMS_MISMATCH_DETECTED',
-      message: `${totalSumErrors.length} rând(uri) cu total_sume_debitoare / total_sume_creditoare calculate incorect. Upload-ul a fost blocat.`,
+      code: 'BALANCE_CLOSING_MISMATCH_DETECTED',
+      message: `${closingErrors.length} rând(uri) unde soldul final nu corespunde cu (Total Sume Debitoare − Total Sume Creditoare). Upload-ul a fost blocat.`,
       details: {
-        violationsCount: totalSumErrors.length,
-        firstErrors: totalSumErrors.slice(0, 5),
+        violationsCount: closingErrors.length,
+        firstErrors: closingErrors.slice(0, 5),
       },
     });
   }
@@ -437,7 +426,7 @@ function appendAccountRowBlockingErrors(
   rowErrors: RowError[],
   blockingErrors: BlockingError[],
 ): void {
-  appendTotalSumBlockingErrors(rowErrors, blockingErrors);
+  appendClosingMismatchBlockingErrors(rowErrors, blockingErrors);
 
   const class6ClosingErrors = rowErrors.filter(
     (e) => e.code === 'BALANCE_ROW_CLASS6_CLOSING_NOT_ZERO',
@@ -471,8 +460,7 @@ function appendAccountRowBlockingErrors(
     (e) =>
       e.code !== 'BALANCE_ROW_CLASS6_CLOSING_NOT_ZERO' &&
       e.code !== 'BALANCE_ROW_CLASS7_CLOSING_NOT_ZERO' &&
-      e.code !== 'BALANCE_ROW_TOTAL_DEBIT_SUM_MISMATCH' &&
-      e.code !== 'BALANCE_ROW_TOTAL_CREDIT_SUM_MISMATCH',
+      e.code !== 'BALANCE_ROW_CLOSING_MISMATCH',
   );
   if (structuralRowErrors.length > 0) {
     blockingErrors.push({
@@ -518,11 +506,13 @@ function buildFailureResult(
  *
  * VALIDĂRI BLOCKING:
  * 1. Structură coloane: exact 10 coloane A–J; format vechi 8 coloane => REJECT; date în K+ => REJECT
- * 2. total_sume_debitoare = SI_DEBIT + rulaj_d (toleranță 0.01 RON)
- * 3. total_sume_creditoare = SI_CREDIT + rulaj_c (toleranță 0.01 RON)
- * 4. Control sold inițial / rulaje / sold final (Debit = Credit)
- * 5. Clasa 6/7: sold final zero
- * 6. Conturi invalide
+ * 2. Identitate per rând: (SF Debit − SF Credit) = (Total Sume Debitoare − Total Sume Creditoare)
+ * 3. Control sold inițial / rulaje / sold final (Debit = Credit)
+ * 4. Clasa 6/7: sold final zero
+ * 5. Conturi invalide / lipsă
+ *
+ * NOTĂ: validările contabile per rând NU mai exclud rândul din totaluri. Singurele rânduri
+ * excluse din totaluri sunt cele structural invalide (fără cod / cod invalid / denumire prea lungă).
  */
 export async function parseExcelFile(file: File): Promise<ParseResult> {
   const blockingErrors: BlockingError[] = [];
@@ -639,18 +629,9 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
         closing_credit: parseNumber(row[9]),
       };
 
-      validateRowTotalSums(account, i + 1, rowErrors);
-
-      const hasTotalSumError = rowErrors.some(
-        (e) =>
-          e.rowIndex === i + 1 &&
-          (e.code === 'BALANCE_ROW_TOTAL_DEBIT_SUM_MISMATCH' ||
-            e.code === 'BALANCE_ROW_TOTAL_CREDIT_SUM_MISMATCH'),
-      );
-      if (hasTotalSumError) {
-        rowsRejected++;
-        continue;
-      }
+      // Validări contabile per rând: semnalează neconcordanțe, dar NU exclud rândul
+      // din totaluri (evită dezechilibre fantomă la balanțele cu rulaj lunar).
+      validateRowClosingFromTotals(account, i + 1, rowErrors);
 
       if (accountCode.startsWith('6') && hasNonZeroClosingBalance(account)) {
         rowErrors.push({
@@ -659,8 +640,6 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
           message: `Rândul ${i + 1}: Cont ${accountCode} (clasa 6): sold final trebuie să fie zero (SF Debit: ${account.closing_debit.toFixed(2)}, SF Credit: ${account.closing_credit.toFixed(2)})`,
           field: 'closing_balance',
         });
-        rowsRejected++;
-        continue;
       }
 
       if (accountCode.startsWith('7') && hasNonZeroClosingBalance(account)) {
@@ -670,11 +649,16 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
           message: `Rândul ${i + 1}: Cont ${accountCode} (clasa 7): sold final trebuie să fie zero (SF Debit: ${account.closing_debit.toFixed(2)}, SF Credit: ${account.closing_credit.toFixed(2)})`,
           field: 'closing_balance',
         });
-        rowsRejected++;
-        continue;
       }
 
       accounts.push(account);
+
+      totals.opening_debit += account.opening_debit;
+      totals.opening_credit += account.opening_credit;
+      totals.debit_turnover += account.debit_turnover;
+      totals.credit_turnover += account.credit_turnover;
+      totals.closing_debit += account.closing_debit;
+      totals.closing_credit += account.closing_credit;
 
       if (accounts.length >= MAX_ACCOUNTS) {
         warnings.push({
@@ -683,13 +667,6 @@ export async function parseExcelFile(file: File): Promise<ParseResult> {
         });
         break;
       }
-
-      totals.opening_debit += account.opening_debit;
-      totals.opening_credit += account.opening_credit;
-      totals.debit_turnover += account.debit_turnover;
-      totals.credit_turnover += account.credit_turnover;
-      totals.closing_debit += account.closing_debit;
-      totals.closing_credit += account.closing_credit;
     }
 
     if (accounts.length === 0) {
@@ -899,17 +876,24 @@ export function parseExcelRows(rows: unknown[][]): ParseResult {
       closing_credit: parseNumber(row[9]),
     };
 
-    validateRowTotalSums(account, i + 1, rowErrors);
+    validateRowClosingFromTotals(account, i + 1, rowErrors);
 
-    const hasTotalSumError = rowErrors.some(
-      (e) =>
-        e.rowIndex === i + 1 &&
-        (e.code === 'BALANCE_ROW_TOTAL_DEBIT_SUM_MISMATCH' ||
-          e.code === 'BALANCE_ROW_TOTAL_CREDIT_SUM_MISMATCH'),
-    );
-    if (hasTotalSumError) {
-      rowsRejected++;
-      continue;
+    if (accountCode.startsWith('6') && hasNonZeroClosingBalance(account)) {
+      rowErrors.push({
+        rowIndex: i + 1,
+        code: 'BALANCE_ROW_CLASS6_CLOSING_NOT_ZERO',
+        message: `Rândul ${i + 1}: Cont ${accountCode} (clasa 6): sold final trebuie să fie zero (SF Debit: ${account.closing_debit.toFixed(2)}, SF Credit: ${account.closing_credit.toFixed(2)})`,
+        field: 'closing_balance',
+      });
+    }
+
+    if (accountCode.startsWith('7') && hasNonZeroClosingBalance(account)) {
+      rowErrors.push({
+        rowIndex: i + 1,
+        code: 'BALANCE_ROW_CLASS7_CLOSING_NOT_ZERO',
+        message: `Rândul ${i + 1}: Cont ${accountCode} (clasa 7): sold final trebuie să fie zero (SF Debit: ${account.closing_debit.toFixed(2)}, SF Credit: ${account.closing_credit.toFixed(2)})`,
+        field: 'closing_balance',
+      });
     }
 
     accounts.push(account);

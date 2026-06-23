@@ -97,7 +97,7 @@ Am implementat **16 validări complete** conform standardelor OMFP 1802/2014:
 | 4b | Clasa 6 — sold final zero | `BALANCE_CONTROL_CLASS6_CLOSING_NOT_ZERO` | ✅ Implementat (`excel-parser.ts`) |
 | 4c | Clasa 7 — sold final zero | `BALANCE_CONTROL_CLASS7_CLOSING_NOT_ZERO` | ✅ Implementat (`excel-parser.ts`) |
 | 4d | Structură exact 10 coloane A–J; respinge format vechi 8 col | `EXCEL_LEGACY_8_COLUMN_FORMAT`, `EXCEL_INVALID_COLUMN_COUNT` | ✅ Implementat (`excel-parser.ts` v2.1) |
-| 4e | Formule total_sume G/H | `BALANCE_ROW_TOTAL_*`, `BALANCE_TOTAL_SUMS_MISMATCH_DETECTED` | ✅ Implementat (`excel-parser.ts` v2.1) |
+| 4e | Identitate sold final per rând: (SF D − SF C) = (Total Sume D − Total Sume C) | `BALANCE_ROW_CLOSING_MISMATCH`, `BALANCE_CLOSING_MISMATCH_DETECTED` | ✅ Implementat (`excel-parser.ts` v2.3) — înlocuiește validarea `Total Sume = SI + Rulaj` |
 | 4f | Persistență DB total_sume | coloane `trial_balance_accounts` | ✅ Migrare `20260621100000` |
 | 5 | Clase cont obligatorii (1-7) | `MISSING_ACCOUNT_CLASSES` | ✅ Implementat |
 | 6 | Format conturi (OMFP 1802) | `INVALID_ACCOUNT_FORMAT` | ✅ Implementat |

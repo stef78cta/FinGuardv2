@@ -74,9 +74,8 @@ Toate verificările folosesc `applyBalanceControlCheck()` cu prag `CONTROL_THRES
 | `EXCEL_LEGACY_8_COLUMN_FORMAT` | Respinge format vechi A–H (8 coloane) |
 | `EXCEL_MISSING_REQUIRED_COLUMNS` | Lipsesc coloane I/J din structura foii |
 | `EXCEL_INVALID_COLUMN_COUNT` | Exact 10 coloane A–J; respinge date în coloana K+ (celule goale C–J = 0) |
-| `BALANCE_ROW_TOTAL_DEBIT_SUM_MISMATCH` | G ≠ SI Debit + Rulaj D (toleranță 0,01 RON) |
-| `BALANCE_ROW_TOTAL_CREDIT_SUM_MISMATCH` | H ≠ SI Credit + Rulaj C |
-| `BALANCE_TOTAL_SUMS_MISMATCH_DETECTED` | Agregat erori total_sume |
+| `BALANCE_ROW_CLOSING_MISMATCH` | (SF D − SF C) ≠ (Total Sume D − Total Sume C) (toleranță 0,01 RON) |
+| `BALANCE_CLOSING_MISMATCH_DETECTED` | Agregat erori identitate sold final |
 
 **Validare #3: Conturi Invalide/Lipsă (BLOCKING)**
 ```typescript
@@ -407,7 +406,7 @@ expect(parseResult.warnings[0].code).toBe('BALANCE_CONTROL_ROUNDING_DIFF');
 ## ✅ **CHECKLIST COMPLETARE**
 
 - [x] **1. Reproducere**: Identificat fluxul de upload și parsing
-- [x] **2. Validări blocking**: Control totals SI + Rulaje + SF + clasa 6/7 + **10 coloane A–J** + formule G/H + conturi invalide
+- [x] **2. Validări blocking**: Control totals SI + Rulaje + SF + clasa 6/7 + **10 coloane A–J** + identitate sold final (SF = Total Sume D − Total Sume C) + conturi invalide
 - [x] **3. Contract API**: Adăugat `ok`, `blockingErrors`, `rowErrors`, `warnings`, `metrics`
 - [x] **4. Hook verificare**: `uploadBalance()` verifică `ok === false` și aruncă eroare
 - [x] **5. No partial writes**: ZERO insert în DB dacă `ok === false`

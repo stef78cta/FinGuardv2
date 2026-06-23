@@ -176,17 +176,15 @@ c:\_Software\SAAS\finguardv2\testing\
 
 ### 5. balanta_ecuatie_incorecta.xlsx ⚠️
 
-**Descriere:** Ecuație contabilă nerespectată (SI + Rulaj ≠ SF).
+**Descriere:** Ecuație contabilă nerespectată (Sold final ≠ Total Sume D − Total Sume C).
 
 **Exemplu cont 1012:**
-- Opening: D=10000, C=0 → Net=10000
-- Turnover: D=5000, C=3000 → Net=+2000
-- Calculated Closing: 10000 + 2000 = **12000** Net Debit
+- Total Sume: D=12000, C=0 → Net=+12000
 - Actual Closing: D=11000, C=0 → Net=11000 ❌ (diferență -1000)
 
 **Așteptat:**
 - ⚠️ Warning `ACCOUNT_EQUATION_MISMATCH`
-- Mesaj: "1 cont(uri) cu ecuație contabilă nerespectată (SI + Rulaj ≠ SF)."
+- Mesaj: "1 cont(uri) cu ecuație contabilă nerespectată (Sold final ≠ Total Sume Debitoare − Total Sume Creditoare)."
 - Conturi afectate: `["1012"]`
 - Details: `{ code: "1012", difference: -1000 }`
 - Upload permis (warning, nu eroare)
@@ -357,25 +355,25 @@ export AGGREGATE_DUPLICATES=true
 
 ---
 
-### Test V4f: total_sume_debitoare incorect ❌
+### Test V4f: sold final ≠ Total Sume D − Total Sume C ❌
 
-**Input:** rând cu G ≠ SI D + Rulaj D (ex. G=1400, așteptat 1500)  
-**Așteptat:** `BALANCE_ROW_TOTAL_DEBIT_SUM_MISMATCH` + `BALANCE_TOTAL_SUMS_MISMATCH_DETECTED`  
+**Input:** rând cu (SF D − SF C) ≠ (Total Sume D − Total Sume C) (ex. SF D=1400, dar Total Sume D − Total Sume C=1500)  
+**Așteptat:** `BALANCE_ROW_CLOSING_MISMATCH` + `BALANCE_CLOSING_MISMATCH_DETECTED`  
 **Status:** [ ]
 
 ---
 
-### Test V4g: total_sume_creditoare incorect ❌
+### Test V4g: balanță cu rulaj lunar și total sume cumulate ✅
 
-**Input:** rând cu H ≠ SI C + Rulaj C (ex. H=1200, așteptat 1300)  
-**Așteptat:** `BALANCE_ROW_TOTAL_CREDIT_SUM_MISMATCH`  
-**Status:** [ ]
+**Input:** balanță unde Total Sume ≠ SI + Rulaj curent (rulaj lunar, total sume cumulat de la început de an)  
+**Așteptat:** Upload acceptat (rândurile NU mai sunt respinse pe nedrept; nu apare dezechilibru fantomă pe Sold inițial)  
+**Status:** [ ] (acoperit de `excel-parser.test.ts`)
 
 ---
 
-### Test V4h: Toleranță rotunjire total_sume (0,01 RON) ✅
+### Test V4h: Toleranță rotunjire identitate sold final (0,01 RON) ✅
 
-**Input:** G sau H cu diferență ≤ 0,01 față de formulă  
+**Input:** (SF D − SF C) cu diferență ≤ 0,01 față de (Total Sume D − Total Sume C)  
 **Așteptat:** Upload acceptat  
 **Status:** [ ] (acoperit și de `npm test` / `excel-parser.test.ts`)
 

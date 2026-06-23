@@ -461,41 +461,28 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
         closing_credit: parseNumber(row[9], i),
       };
 
-      const expectedDebitTotal = Math.round((account.opening_debit + account.debit_turnover) * 100) / 100;
-      const expectedCreditTotal = Math.round((account.opening_credit + account.credit_turnover) * 100) / 100;
+      // Identitate per rând: (SF Debit − SF Credit) = (Total Sume Debit − Total Sume Credit).
+      // Adevărată indiferent dacă rulajele sunt lunare sau cumulate. NU exclude rândul din totaluri.
+      const netFromTotals = Math.round((account.total_sume_debitoare - account.total_sume_creditoare) * 100) / 100;
+      const netFromClosing = Math.round((account.closing_debit - account.closing_credit) * 100) / 100;
 
-      if (Math.abs(account.total_sume_debitoare - expectedDebitTotal) > CONTROL_THRESHOLD) {
+      if (Math.abs(netFromTotals - netFromClosing) > CONTROL_THRESHOLD) {
         totalSumErrors.push(
-          `Rândul ${i + 1}, cont ${accountCode}: total_sume_debitoare incorect (așteptat ${expectedDebitTotal}, găsit ${account.total_sume_debitoare})`,
+          `Rândul ${i + 1}, cont ${accountCode}: sold final net (${netFromClosing}) ≠ Total Sume Debit − Total Sume Credit (${netFromTotals})`,
         );
-        continue;
-      }
-
-      if (Math.abs(account.total_sume_creditoare - expectedCreditTotal) > CONTROL_THRESHOLD) {
-        totalSumErrors.push(
-          `Rândul ${i + 1}, cont ${accountCode}: total_sume_creditoare incorect (așteptat ${expectedCreditTotal}, găsit ${account.total_sume_creditoare})`,
-        );
-        continue;
       }
 
       if (accountCode.startsWith("6") &&
         (Math.abs(account.closing_debit) > CONTROL_THRESHOLD || Math.abs(account.closing_credit) > CONTROL_THRESHOLD)) {
         totalSumErrors.push(`Rândul ${i + 1}, cont ${accountCode}: clasa 6 cu sold final nenul`);
-        continue;
       }
 
       if (accountCode.startsWith("7") &&
         (Math.abs(account.closing_debit) > CONTROL_THRESHOLD || Math.abs(account.closing_credit) > CONTROL_THRESHOLD)) {
         totalSumErrors.push(`Rândul ${i + 1}, cont ${accountCode}: clasa 7 cu sold final nenul`);
-        continue;
       }
 
       accounts.push(account);
-
-      if (accounts.length >= MAX_ACCOUNTS) {
-        console.warn(`Max accounts limit (${MAX_ACCOUNTS}) reached, truncating`);
-        break;
-      }
 
       totals.opening_debit += account.opening_debit;
       totals.opening_credit += account.opening_credit;
@@ -503,6 +490,11 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
       totals.credit_turnover += account.credit_turnover;
       totals.closing_debit += account.closing_debit;
       totals.closing_credit += account.closing_credit;
+
+      if (accounts.length >= MAX_ACCOUNTS) {
+        console.warn(`Max accounts limit (${MAX_ACCOUNTS}) reached, truncating`);
+        break;
+      }
     }
 
     if (totalSumErrors.length > 0) {
@@ -511,8 +503,8 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
         accounts: [],
         totals,
         accountsCount: 0,
-        error: `${totalSumErrors.length} rând(uri) cu total_sume_debitoare / total_sume_creditoare calculate incorect. ${totalSumErrors.slice(0, 3).join("; ")}`,
-        errorCode: "BALANCE_TOTAL_SUMS_MISMATCH_DETECTED",
+        error: `${totalSumErrors.length} rând(uri) cu neconcordanțe contabile. ${totalSumErrors.slice(0, 3).join("; ")}`,
+        errorCode: "BALANCE_CLOSING_MISMATCH_DETECTED",
       };
     }
 

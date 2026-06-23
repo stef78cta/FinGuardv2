@@ -136,7 +136,7 @@ export function formatBlockingValidationErrors(parseResult: ParseResult): string
       }
     }
 
-    if (err.code === 'BALANCE_TOTAL_SUMS_MISMATCH_DETECTED' && err.details) {
+    if (err.code === 'BALANCE_CLOSING_MISMATCH_DETECTED' && err.details) {
       const details = err.details as {
         violationsCount: number;
         firstErrors: Array<{

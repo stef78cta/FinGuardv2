@@ -626,7 +626,7 @@ const IncarcareBalanta = () => {
                       </li>
                       <li className="flex items-center gap-2 text-sm">
                         <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
-                        <span>Date dincolo de coloana J resping upload-ul; G = SI Debit + Rulaj D, H = SI Credit + Rulaj C</span>
+                        <span>Date dincolo de coloana J resping upload-ul; Total Sume (G/H) pot fi lunare sau cumulate — se verifică doar SF Debit − SF Credit = Total Sume D − Total Sume C</span>
                       </li>
                       <li className="flex items-center gap-2 text-sm">
                         <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
