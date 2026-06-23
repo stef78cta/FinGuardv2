@@ -387,7 +387,7 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
         accounts: [],
         totals: { opening_debit: 0, opening_credit: 0, debit_turnover: 0, credit_turnover: 0, closing_debit: 0, closing_credit: 0 },
         accountsCount: 0,
-        error: `Structura veche cu 8 coloane (A–H) nu mai este acceptată. Aplicația acceptă exclusiv balanțe cu 10 coloane (A–J): ${COLUMN_STRUCTURE_LABEL}.`,
+        error: 'Balanta de verificare trebuie sa contina exclusiv 10 coloane : Cont, Denumire, SI Debit, SI Credit, Rulaj Debitor , Rulaj Creditor , Total sume debitoare , Total sume creditoare, SF Debit , SF Credit',
         errorCode: "EXCEL_LEGACY_8_COLUMN_FORMAT",
       };
     }

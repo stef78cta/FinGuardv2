@@ -303,7 +303,7 @@ function validateColumnStructure(
     blockingErrors.push({
       code: 'EXCEL_LEGACY_8_COLUMN_FORMAT',
       message:
-        `Structura veche cu 8 coloane (A–H) nu mai este acceptată. Aplicația acceptă exclusiv balanțe cu 10 coloane (A–J): ${COLUMN_STRUCTURE_LABEL}.`,
+        'Balanta de verificare trebuie sa contina exclusiv 10 coloane : Cont, Denumire, SI Debit, SI Credit, Rulaj Debitor , Rulaj Creditor , Total sume debitoare , Total sume creditoare, SF Debit , SF Credit',
       details: {
         expected: EXPECTED_COLUMN_COUNT,
         detected: maxColIndex + 1,
