@@ -5495,14 +5495,17 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
 
 ## 13. Gestionare Scenarii Variabile (v1.3 - NOU)
 
-### 13.1. Balanțe cu Structuri Diferite
+> **⚠️ Actualizare iunie 2026:** Secțiunea de mai jos este **istorică**. Din v2.1, aplicația acceptă **exclusiv 10 coloane A–J** cu formule G/H. Formatele 4/6/8 coloane **nu sunt suportate**. Documentație curentă: `ce_verificari_se_fac_la_upload_baanta.md`.
 
-**Problemă:** Aplicația de referință menționează suport pentru 4, 6 sau 8 coloane.
+### 13.1. Balanțe cu Structuri Diferite (DEPRECATED)
 
-**Analiza proiectului actual:**
-- Schema DB `trial_balance_accounts` are **8 coloane fixe** (opening/turnover/closing × debit/credit)
-- Edge Function presupune **8 coloane** (A-H)
-- **NU suportă** variante simplificate
+**Problemă (v1.3):** Aplicația de referință menționa suport pentru 4, 6 sau 8 coloane.
+
+**Stare actuală (v2.1):**
+- Schema DB `trial_balance_accounts`: 6 valori numerice clasice + **`total_sume_debitoare`**, **`total_sume_creditoare`**
+- Parser client + Edge Function: **10 coloane A–J** obligatorii
+- Format vechi 8 coloane → `EXCEL_LEGACY_8_COLUMN_FORMAT`
+- **NU suportă** variante simplificate (4/6/8 coloane)
 
 **Scenarii posibile:**
 

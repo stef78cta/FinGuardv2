@@ -77,7 +77,7 @@ Sistemul de încărcare a balanței de verificare permite utilizatorilor să în
 
 **Specificații tehnice afișate:**
 - Secțiune colapsabilă "Specificații Tehnice și Format Acceptat"
-- Structură Excel obligatorie (8 coloane: A-H)
+- Structură Excel obligatorie (**10 coloane: A–J** — vezi §3.3)
 - Exemplu tabel cu date demonstrative
 
 #### Pas 4: Validare și Upload
@@ -139,7 +139,9 @@ const validTypes = [
 
 ### 3.3. Structură Excel Obligatorie
 
-**Configurare:** 8 coloane fixe (A-H), prima linie = header (ignorat)
+> **Actualizare iunie 2026 (v2.1):** Format obligatoriu **10 coloane A–J**. Formatul vechi cu 8 coloane (G/H = SF) **nu mai este acceptat**.
+
+**Configurare:** 10 coloane fixe (A–J), prima linie = header (ignorat)
 
 | Coloană | Nume Câmp | Tip Date | Validare | Exemplu |
 |---------|-----------|----------|----------|---------|
@@ -149,13 +151,18 @@ const validTypes = [
 | **D** | Sold Inițial Credit | Număr | Format RO/US | `0.00` |
 | **E** | Rulaj Debit | Număr | Format RO/US | `25000.00` |
 | **F** | Rulaj Credit | Număr | Format RO/US | `15000.00` |
-| **G** | Sold Final Debit | Număr | Format RO/US | `60000.00` |
-| **H** | Sold Final Credit | Număr | Format RO/US | `0.00` |
+| **G** | Total sume debitoare | Număr | **= C + E** (toleranță 0,01 RON) | `75000.00` |
+| **H** | Total sume creditoare | Număr | **= D + F** (toleranță 0,01 RON) | `15000.00` |
+| **I** | Sold Final Debit | Număr | Format RO/US | `60000.00` |
+| **J** | Sold Final Credit | Număr | Format RO/US | `0.00` |
 
 **Observații:**
 - Prima linie (header) este ignorată automat la procesare
 - Liniile goale sunt ignorate automat
-- Conturi duplicate sunt permise (folosite pentru subcategorii)
+- Celule goale în C–J → tratate ca 0
+- Date dincolo de coloana J resping upload-ul
+- Conturi duplicate sunt permise (agregate automat la salvare)
+- Câmpurile G/H sunt persistate în DB: `total_sume_debitoare`, `total_sume_creditoare`
 
 ### 3.4. Formate Numerice Suportate
 
@@ -1789,7 +1796,7 @@ Manual Intervention:
 
 1. **Selectare companie activă**
 2. **Selectare data de referință** (obligatoriu)
-3. **Fișier Excel** cu structura exactă (8 coloane A-H)
+3. **Fișier Excel** cu structura exactă (**10 coloane A–J** — vezi `ce_verificari_se_fac_la_upload_baanta.md`)
 4. **Format numere:** RO (1.234,56) SAU US (1,234.56)
 5. **Cod cont:** 3-6 cifre (ex: 1012, 4111)
 

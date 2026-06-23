@@ -41,6 +41,8 @@ export interface BalanceAccount {
   opening_credit: number;
   debit_turnover: number;
   credit_turnover: number;
+  total_sume_debitoare?: number;
+  total_sume_creditoare?: number;
   closing_debit: number;
   closing_credit: number;
 }
@@ -796,6 +798,10 @@ export function aggregateDuplicateAccounts<T extends BalanceAccount>(accounts: T
         opening_credit: existing.opening_credit + account.opening_credit,
         debit_turnover: existing.debit_turnover + account.debit_turnover,
         credit_turnover: existing.credit_turnover + account.credit_turnover,
+        total_sume_debitoare:
+          (existing.total_sume_debitoare ?? 0) + (account.total_sume_debitoare ?? 0),
+        total_sume_creditoare:
+          (existing.total_sume_creditoare ?? 0) + (account.total_sume_creditoare ?? 0),
         closing_debit: existing.closing_debit + account.closing_debit,
         closing_credit: existing.closing_credit + account.closing_credit,
       });

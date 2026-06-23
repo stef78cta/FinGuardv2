@@ -71,7 +71,12 @@ Toate verificările folosesc `applyBalanceControlCheck()` cu prag `CONTROL_THRES
 | `BALANCE_CONTROL_TOTAL_MISMATCH` | Total SF Debit = Total SF Credit |
 | `BALANCE_CONTROL_CLASS6_CLOSING_NOT_ZERO` | Conturi 6xx: SF Debit = SF Credit = 0 |
 | `BALANCE_CONTROL_CLASS7_CLOSING_NOT_ZERO` | Conturi 7xx: SF Debit = SF Credit = 0 |
-| `EXCEL_INVALID_COLUMN_COUNT` | Maximum 8 coloane A–H; respinge date în coloana I+ (celule goale C–H = 0) |
+| `EXCEL_LEGACY_8_COLUMN_FORMAT` | Respinge format vechi A–H (8 coloane) |
+| `EXCEL_MISSING_REQUIRED_COLUMNS` | Lipsesc coloane I/J din structura foii |
+| `EXCEL_INVALID_COLUMN_COUNT` | Exact 10 coloane A–J; respinge date în coloana K+ (celule goale C–J = 0) |
+| `BALANCE_ROW_TOTAL_DEBIT_SUM_MISMATCH` | G ≠ SI Debit + Rulaj D (toleranță 0,01 RON) |
+| `BALANCE_ROW_TOTAL_CREDIT_SUM_MISMATCH` | H ≠ SI Credit + Rulaj C |
+| `BALANCE_TOTAL_SUMS_MISMATCH_DETECTED` | Agregat erori total_sume |
 
 **Validare #3: Conturi Invalide/Lipsă (BLOCKING)**
 ```typescript
@@ -402,13 +407,14 @@ expect(parseResult.warnings[0].code).toBe('BALANCE_CONTROL_ROUNDING_DIFF');
 ## ✅ **CHECKLIST COMPLETARE**
 
 - [x] **1. Reproducere**: Identificat fluxul de upload și parsing
-- [x] **2. Validări blocking**: Control totals SI + Rulaje + SF + clasa 6/7 SF zero + 8 coloane + conturi invalide
+- [x] **2. Validări blocking**: Control totals SI + Rulaje + SF + clasa 6/7 + **10 coloane A–J** + formule G/H + conturi invalide
 - [x] **3. Contract API**: Adăugat `ok`, `blockingErrors`, `rowErrors`, `warnings`, `metrics`
 - [x] **4. Hook verificare**: `uploadBalance()` verifică `ok === false` și aruncă eroare
 - [x] **5. No partial writes**: ZERO insert în DB dacă `ok === false`
 - [x] **6. UI feedback**: Toast error cu mesaj detaliat (8s)
 - [x] **7. Audit trail**: `internal_error_detail`, `internal_error_code` în DB
-- [ ] **8. Teste automate**: TODO - adăugat checklist teste necesare
+- [x] **8. Teste automate**: `src/lib/excel-parser.test.ts` — `npm test` (13 teste Vitest)
+- [x] **9. Format 10 coloane v2.1**: DB `total_sume_*`, Edge Function aliniată, migrare `20260621100000`
 
 ---
 
@@ -420,8 +426,7 @@ expect(parseResult.warnings[0].code).toBe('BALANCE_CONTROL_ROUNDING_DIFF');
 - Verificare tranzacții DB (rollback dacă eroare)
 
 ### **2. Logging Server-Side (Edge Function)**
-- Dacă se dorește backup la Edge Function în viitor, sincronizare validări
-- Log la nivel de Edge Function cu `requestId` pentru debugging
+- ✅ v2.1: Edge Function `parse-balanta` aliniată cu validările client (10 coloane, formule G/H, control totals)
 
 ### **3. UI Dialog Erori (Enhancement)**
 - În loc de toast simplu, dialog modal cu structură:
@@ -438,7 +443,7 @@ expect(parseResult.warnings[0].code).toBe('BALANCE_CONTROL_ROUNDING_DIFF');
 
 ## 📞 **CONTACT / QUESTIONS**
 
-Implementare completă v2.0 (29 ianuarie 2026)
+Implementare v2.0 (29 ianuarie 2026) + format 10 coloane v2.1 (iunie 2026)
 
 Pentru întrebări sau clarificări:
 - Verifică console logs pentru detalii debugging

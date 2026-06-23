@@ -573,10 +573,18 @@ const IncarcareBalanta = () => {
                       </div>
                       <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
                         <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">G</code>
-                        <span className="text-sm ml-1.5">SF Debit</span>
+                        <span className="text-sm ml-1.5">Total sume debitoare</span>
                       </div>
                       <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
                         <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">H</code>
+                        <span className="text-sm ml-1.5">Total sume creditoare</span>
+                      </div>
+                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
+                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">I</code>
+                        <span className="text-sm ml-1.5">SF Debit</span>
+                      </div>
+                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
+                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">J</code>
                         <span className="text-sm ml-1.5">SF Credit</span>
                       </div>
                     </div>
@@ -610,11 +618,15 @@ const IncarcareBalanta = () => {
                       </li>
                       <li className="flex items-center gap-2 text-sm">
                         <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
-                        <span>Celule goale în coloanele numerice (C–H): tratate automat ca 0</span>
+                        <span>Celule goale în coloanele numerice (C–J): tratate automat ca 0</span>
                       </li>
                       <li className="flex items-center gap-2 text-sm">
                         <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
-                        <span>Maximum 8 coloane (A–H); date în coloana I sau mai departe resping upload-ul</span>
+                        <span>Structură obligatorie: exact 10 coloane (A–J); formatul vechi cu 8 coloane nu mai este acceptat</span>
+                      </li>
+                      <li className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
+                        <span>Date dincolo de coloana J resping upload-ul; G = SI Debit + Rulaj D, H = SI Credit + Rulaj C</span>
                       </li>
                       <li className="flex items-center gap-2 text-sm">
                         <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
@@ -638,6 +650,8 @@ const IncarcareBalanta = () => {
                             <th className="text-right p-2 font-mono text-xs font-semibold text-muted-foreground">SI C</th>
                             <th className="text-right p-2 font-mono text-xs font-semibold text-muted-foreground">Rul D</th>
                             <th className="text-right p-2 font-mono text-xs font-semibold text-muted-foreground">Rul C</th>
+                            <th className="text-right p-2 font-mono text-xs font-semibold text-muted-foreground">Tot D</th>
+                            <th className="text-right p-2 font-mono text-xs font-semibold text-muted-foreground">Tot C</th>
                             <th className="text-right p-2 font-mono text-xs font-semibold text-muted-foreground">SF D</th>
                             <th className="text-right p-2 font-mono text-xs font-semibold text-muted-foreground">SF C</th>
                           </tr>
@@ -650,6 +664,8 @@ const IncarcareBalanta = () => {
                             <td className="text-right p-2 font-mono text-xs">0</td>
                             <td className="text-right p-2 font-mono text-xs">25000</td>
                             <td className="text-right p-2 font-mono text-xs">15000</td>
+                            <td className="text-right p-2 font-mono text-xs">75000</td>
+                            <td className="text-right p-2 font-mono text-xs">15000</td>
                             <td className="text-right p-2 font-mono text-xs">60000</td>
                             <td className="text-right p-2 font-mono text-xs">0</td>
                           </tr>
@@ -658,6 +674,8 @@ const IncarcareBalanta = () => {
                             <td className="p-2 text-xs">Venituri vânzări</td>
                             <td className="text-right p-2 font-mono text-xs">0</td>
                             <td className="text-right p-2 font-mono text-xs">100000</td>
+                            <td className="text-right p-2 font-mono text-xs">0</td>
+                            <td className="text-right p-2 font-mono text-xs">50000</td>
                             <td className="text-right p-2 font-mono text-xs">0</td>
                             <td className="text-right p-2 font-mono text-xs">50000</td>
                             <td className="text-right p-2 font-mono text-xs">0</td>
@@ -886,7 +904,7 @@ const IncarcareBalanta = () => {
               {/* Container cu scroll orizontal explicit pentru tabel */}
               <div className="flex-1 overflow-hidden border rounded-md">
                 <div className="overflow-x-auto overflow-y-auto max-h-[calc(85vh-180px)]">
-                  <Table className="min-w-[1200px]">
+                  <Table className="min-w-[1500px]">
                     <TableHeader className="sticky top-0 bg-background z-10">
                       <TableRow>
                         <TableHead className="w-[80px] min-w-[80px]">Cont</TableHead>
@@ -895,6 +913,8 @@ const IncarcareBalanta = () => {
                         <TableHead className="text-right w-[120px] min-w-[120px] whitespace-nowrap">SI Credit</TableHead>
                         <TableHead className="text-right w-[130px] min-w-[130px] whitespace-nowrap">Rulaj D</TableHead>
                         <TableHead className="text-right w-[130px] min-w-[130px] whitespace-nowrap">Rulaj C</TableHead>
+                        <TableHead className="text-right w-[130px] min-w-[130px] whitespace-nowrap">Tot. Debit</TableHead>
+                        <TableHead className="text-right w-[130px] min-w-[130px] whitespace-nowrap">Tot. Credit</TableHead>
                         <TableHead className="text-right w-[120px] min-w-[120px] whitespace-nowrap">SF Debit</TableHead>
                         <TableHead className="text-right w-[120px] min-w-[120px] whitespace-nowrap">SF Credit</TableHead>
                       </TableRow>
@@ -916,6 +936,12 @@ const IncarcareBalanta = () => {
                           </TableCell>
                           <TableCell className="text-right font-mono text-sm whitespace-nowrap">
                             {formatCurrency(account.credit_turnover)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-sm whitespace-nowrap">
+                            {formatCurrency(account.total_sume_debitoare ?? 0)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-sm whitespace-nowrap">
+                            {formatCurrency(account.total_sume_creditoare ?? 0)}
                           </TableCell>
                           <TableCell className="text-right font-mono text-sm whitespace-nowrap">
                             {formatCurrency(account.closing_debit)}

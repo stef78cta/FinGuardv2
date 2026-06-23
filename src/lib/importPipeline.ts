@@ -112,7 +112,12 @@ export function formatBlockingValidationErrors(parseResult: ParseResult): string
       });
     }
 
-    if (err.code === 'EXCEL_INVALID_COLUMN_COUNT' && err.details) {
+    if (
+      (err.code === 'EXCEL_INVALID_COLUMN_COUNT' ||
+        err.code === 'EXCEL_LEGACY_8_COLUMN_FORMAT' ||
+        err.code === 'EXCEL_MISSING_REQUIRED_COLUMNS') &&
+      err.details
+    ) {
       const details = err.details as {
         expected?: number;
         detected?: number;
@@ -129,6 +134,45 @@ export function formatBlockingValidationErrors(parseResult: ParseResult): string
           errorMessages.push(`    - ${rowErr.message}`);
         });
       }
+    }
+
+    if (err.code === 'BALANCE_TOTAL_SUMS_MISMATCH_DETECTED' && err.details) {
+      const details = err.details as {
+        violationsCount: number;
+        firstErrors: Array<{
+          rowIndex: number;
+          message: string;
+          details?: {
+            account_code?: string;
+            field?: string;
+            expectedValue?: number;
+            actualValue?: number;
+            difference?: number;
+            formula?: string;
+          };
+        }>;
+      };
+      errorMessages.push(`  • Total rânduri afectate: ${details.violationsCount}`);
+      errorMessages.push('  • Exemple:');
+      details.firstErrors.forEach((rowErr) => {
+        const d = rowErr.details;
+        if (d?.account_code && d.field) {
+          errorMessages.push(
+            `    - Rândul ${rowErr.rowIndex}, cont ${d.account_code}: ${d.field} trebuie să fie ${d.formula}`,
+          );
+          if (d.actualValue !== undefined) {
+            errorMessages.push(`      Valoare fișier: ${d.actualValue.toFixed(2)} RON`);
+          }
+          if (d.expectedValue !== undefined) {
+            errorMessages.push(`      Valoare calculată: ${d.expectedValue.toFixed(2)} RON`);
+          }
+          if (d.difference !== undefined) {
+            errorMessages.push(`      Diferență: ${d.difference.toFixed(2)} RON`);
+          }
+        } else {
+          errorMessages.push(`    - ${rowErr.message}`);
+        }
+      });
     }
   });
 
@@ -266,6 +310,8 @@ export async function processAccountsClientSide(
     opening_credit: acc.opening_credit,
     debit_turnover: acc.debit_turnover,
     credit_turnover: acc.credit_turnover,
+    total_sume_debitoare: acc.total_sume_debitoare,
+    total_sume_creditoare: acc.total_sume_creditoare,
     closing_debit: acc.closing_debit,
     closing_credit: acc.closing_credit,
   }));

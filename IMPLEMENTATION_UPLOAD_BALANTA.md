@@ -96,7 +96,9 @@ Am implementat **16 validări complete** conform standardelor OMFP 1802/2014:
 | 4 | Echilibru solduri finale | `BALANCE_CONTROL_TOTAL_MISMATCH` | ✅ Implementat (`excel-parser.ts`) |
 | 4b | Clasa 6 — sold final zero | `BALANCE_CONTROL_CLASS6_CLOSING_NOT_ZERO` | ✅ Implementat (`excel-parser.ts`) |
 | 4c | Clasa 7 — sold final zero | `BALANCE_CONTROL_CLASS7_CLOSING_NOT_ZERO` | ✅ Implementat (`excel-parser.ts`) |
-| 4d | Maximum 8 coloane A–H; celule goale = 0 | `EXCEL_INVALID_COLUMN_COUNT` | ✅ Implementat (`excel-parser.ts`) |
+| 4d | Structură exact 10 coloane A–J; respinge format vechi 8 col | `EXCEL_LEGACY_8_COLUMN_FORMAT`, `EXCEL_INVALID_COLUMN_COUNT` | ✅ Implementat (`excel-parser.ts` v2.1) |
+| 4e | Formule total_sume G/H | `BALANCE_ROW_TOTAL_*`, `BALANCE_TOTAL_SUMS_MISMATCH_DETECTED` | ✅ Implementat (`excel-parser.ts` v2.1) |
+| 4f | Persistență DB total_sume | coloane `trial_balance_accounts` | ✅ Migrare `20260621100000` |
 | 5 | Clase cont obligatorii (1-7) | `MISSING_ACCOUNT_CLASSES` | ✅ Implementat |
 | 6 | Format conturi (OMFP 1802) | `INVALID_ACCOUNT_FORMAT` | ✅ Implementat |
 | 7 | Valori numerice finite | `INVALID_NUMERIC_VALUES` | ✅ Implementat |

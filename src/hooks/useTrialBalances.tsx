@@ -51,6 +51,8 @@ export interface TrialBalanceAccount {
   opening_credit: number;
   debit_turnover: number;
   credit_turnover: number;
+  total_sume_debitoare: number;
+  total_sume_creditoare: number;
   closing_debit: number;
   closing_credit: number;
 }

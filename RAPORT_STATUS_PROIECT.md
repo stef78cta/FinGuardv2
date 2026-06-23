@@ -1,249 +1,281 @@
 # Raport consolidat — FinGuard v2
 
-**Sursă analiză:** 34 fișiere `.md` unice (planning, implementare, testare, brand, Lovable, Cursor) + verificare punctuală în cod (`src/`, `supabase/migrations/`)  
-**Data raportului:** 20 iunie 2026 (documentația internă e concentrată ian. 2026)  
-**Metodă:** corelare cross-document + identificare contradicții față de codul actual
+**Sursă analiză:** 36 fișiere `.md` unice + verificare cod (`src/`, `supabase/migrations/`, `scripts/`)  
+**Data raportului:** 21 iunie 2026  
+**Versiune raport:** 2.0 (update post-stabilizare upload)  
+**Metodă:** corelare cross-document + verificare runtime (`npm test`, `verify-upload-pipeline.mjs`)
+
+---
+
+## Changelog raport (v1.0 → v2.0)
+
+| Zona                | v1.0 (20 iun.)                           | v2.0 (21 iun.)                                                                     |
+| ------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------- |
+| Pipeline upload     | Parțial, bucket ambiguu, Edge Fn ocolită | Refactorizat end-to-end; bucket **`balante`** canonical                            |
+| Format Excel        | 8 coloane (A–H)                          | **10 coloane obligatorii (A–J)** + formule G/H                                     |
+| Teste automate      | 0% (doar MD)                             | **Vitest: 13/13 teste** (`excel-parser.test.ts`)                                   |
+| Migrări noi         | —                                        | `20260621000000`, `20260621100000`                                                 |
+| Documente noi       | —                                        | `RAPORT_STABILIZARE_UPLOAD_BALANTA.md`, `ce_verificari_se_fac_la_upload_baanta.md` |
+| MVP estimat         | ~72%                                     | **~78%**                                                                           |
+| Pregătire producție | ~58%                                     | **~62%**                                                                           |
 
 ---
 
 ## Documente duplicate, depășite sau contradictorii
 
-| Problemă | Documente implicate | Realitate consolidată |
-|----------|-------------------|------------------------|
-| **„100% production ready” vs TODO-uri deschise** | `IMPLEMENTATION_COMPLETE.md` vs `planning/IMPLEMENTATION_SUMMARY.md` vs `VISUAL_SUMMARY.md` | Migrările v1.8 există în repo; `IMPLEMENTATION_SUMMARY` listează încă Edge Function + frontend ca TODO. `VISUAL_SUMMARY` menționează explicit TODO pentru view public. |
-| **Bucket storage: `balante` vs `trial-balances`** | `IMPLEMENTATION_UPLOAD_BALANTA.md`, `QUICK_START_IMPLEMENTATION.md` vs `REZOLVARE_EROARE_INCARCARE.md` vs cod | Codul actual (`useTrialBalances.tsx`) folosește **`balante`** (revert v1.9). Există migrări pentru ambele nume → risc de policies pe bucket greșit. |
-| **Index documentație depășit** | `planning/summary_md.md` (22 fișiere, 28 ian.) | Lipsesc ~12 documente din ian. 29 (upload, validări, fix-uri). |
-| **N+1 queries „încă problemă”** | `planning/analiza_app.md` secțiunea 4 vs secțiunea 6/7 | Aceeași analiză spune că N+1 e problemă ȘI că e rezolvată — secțiunea 4 nu a fost actualizată. |
-| **Confidențialitate fără CUI** | `planning/analiza_app.md`, `KNOWLEDGE.md` | Schema DB + `create_company_with_member` **cer CUI obligatoriu** și UNIQUE. |
-| **Test coverage 90%+** | `START_HERE.md`, `VISUAL_SUMMARY.md` | Doar teste **documentate** în MD; `package.json` **nu** conține Vitest/Playwright/Jest. |
-| **Propunere valoare vs stack** | Marketing docs | „Date pe Amazon” — stack real: **Supabase** (PostgreSQL + Storage + Edge Functions). |
+| Problemă                                  | Documente implicate                                                                               | Realitate consolidată (iun. 2026)                                                                                                               |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **„100% production ready”**               | `IMPLEMENTATION_COMPLETE.md`, `QUICK_START_IMPLEMENTATION.md`, `IMPLEMENTATION_UPLOAD_BALANTA.md` | Cod upload refăcut (21 iun.), dar **deploy Supabase obligatoriu**; test E2E live încă manual                                                    |
+| **Bucket `balante` vs `trial-balances`**  | Docs ian. 29 vs `REZOLVARE_EROARE_INCARCARE.md`                                                   | **Rezolvat în cod:** `BALANCE_STORAGE_BUCKET = 'balante'` + migrare `20260621000000` elimină legacy `trial-balances`                            |
+| **Edge Function neapelată**               | Workaround v1.9 documentat                                                                        | **Rezolvat:** `importPipeline.ts` invocă `parse-balanta`; fallback client doar la eșec                                                          |
+| **View public nefolosit**                 | `FRONTEND_UPDATES_REQUIRED.md`                                                                    | **Parțial rezolvat:** `importPipeline.getImportsReadSource()` preferă `trial_balance_imports_public` cu fallback; script static: 7/8 verificări |
+| **`p_user_id` eliminat**                  | Security v1.8 docs                                                                                | **Inconsistent:** `useCompany.tsx` OK; **`CompanyContext.tsx` încă trimite `p_user_id`**; types.ts neactualizat                                 |
+| **Validări 16 în `balanceValidation.ts`** | `IMPLEMENTATION_UPLOAD_BALANTA.md`                                                                | **Neconectate la upload** — fluxul folosește `excel-parser.ts` v2.1; `validateBalance()` doar pentru agregare duplicate                         |
+| **Index depășit**                         | `planning/summary_md.md` (22 fișiere, 28 ian.)                                                    | Lipsesc ≥14 documente (upload ian.–iun., rapoarte noi)                                                                                          |
+| **Test coverage 90%+**                    | `START_HERE.md`, `VISUAL_SUMMARY.md`                                                              | **Supraestimat:** 13 teste unitare parser; fără Playwright/E2E automat                                                                          |
+| **Format 8 coloane**                      | `incarcare_balanta_f.md` v1.8, `TESTING_GUIDE_*` vechi                                            | **Depășit:** format vechi respins; sursă actuală: `ce_verificari_se_fac_la_upload_baanta.md`                                                    |
+| **Confidențialitate fără CUI**            | Marketing docs                                                                                    | CUI obligatoriu + UNIQUE constraint                                                                                                             |
+| **„Date pe Amazon”**                      | `analiza_app.md`                                                                                  | Stack real: **Supabase**                                                                                                                        |
 
 ---
 
 ## 1. Executive Summary
 
-**FinGuard v2** este o platformă SaaS românească de analiză financiară: încărcare balanțe Excel, calcul KPI, dashboard, rapoarte parțiale, multi-company. Stack: **React 18 + Vite + TypeScript + Tailwind/shadcn + Supabase**.
+**FinGuard v2** este o platformă SaaS românească de analiză financiară: încărcare balanțe Excel (format 10 coloane), calcul KPI, dashboard, rapoarte parțiale, multi-company. Stack: **React 18 + Vite + TypeScript + Tailwind/shadcn + Supabase**.
 
-**Scop:** consultant financiar digital pentru IMM-uri, contabili și analiști — upload balanță → indicatori → vizualizări → (planificat) rapoarte și previziuni.
+**Scop:** consultant financiar digital pentru IMM-uri, contabili și analiști.
+
+**Eveniment major (21 iun. 2026):** stabilizarea pipeline-ului upload — refactor `useTrialBalances`, `importPipeline.ts`, migrări SQL, format Excel 10 coloane, reactivare Edge Function `parse-balanta`.
 
 **Nivel estimat de finalizare:**
 
-| Dimensiune | % | Comentariu |
-|------------|---|------------|
-| **MVP funcțional** | **~72%** | Upload + KPI + auth + multi-company funcționează; export/rapoarte incomplete |
-| **Produs complet (marketing)** | **~45%** | AI, previziuni avansate, comparații multi-perioadă, search, onboarding lipsesc |
-| **Pregătire producție** | **~58%** | Securitate documentată; deployment + teste automate + aliniere cod-doc rămân |
+| Dimensiune                     | %        | Comentariu                                                                    |
+| ------------------------------ | -------- | ----------------------------------------------------------------------------- |
+| **MVP funcțional**             | **~78%** | Upload + KPI + auth + multi-company; export/rapoarte incomplete               |
+| **Produs complet (marketing)** | **~48%** | AI, comparative avansate, search, onboarding, billing lipsesc                 |
+| **Pregătire producție**        | **~62%** | Cod upload stabilizat + teste unitare; deploy + E2E + tipuri regenerate rămân |
+
+**Verificări rulate la generarea raportului:**
+
+```
+npm test                    → ✅ 13/13 (excel-parser.test.ts)
+verify-upload-pipeline.mjs  → ⚠️ 7/8 (view public — pattern grep în hook)
+npm run build               → ✅ dist/ disponibil (conform script)
+```
 
 ---
 
 ## 2. Funcționalități existente
 
-| Funcționalitate | Descriere | Status | Confirmare |
-|-----------------|-----------|--------|------------|
-| **Autentificare** | Email/parolă, Google OAuth, PKCE, refresh token | Implementată | `KNOWLEDGE.md`, `AuthContext`, pagini Login/Signup |
-| **Multi-company** | Creare companie, switcher, RLS per tenant | Implementată | `useCompany.tsx`, `CompanyContext`, migrări companies |
-| **Upload balanță Excel** | Drag-drop, validare client, storage, Edge Function | Parțial implementată | `IncarcareBalanta.tsx`, `useTrialBalances.tsx`, `parse-balanta` — instabilități documentate (status, bucket) |
-| **Parsare & persistență conturi** | Excel → `trial_balance_accounts` via RPC | Implementată | `process_import_accounts`, `incarcare_balanta_f.md` |
-| **Validări contabile (16)** | 8 blocking + 8 warnings OMFP | Implementată (client) | `balanceValidation.ts`, `FIX_VALIDATION_BLOCKING_README.md` |
-| **Validări blocking parsare** | Control totals, clasa 6/7, max 8 coloane (goale=0), conturi invalide | Implementată | `excel-parser.ts` v2.0 |
-| **9 KPI financiari** | Lichiditate, profitabilitate, îndatorare, eficiență | Implementată | `useKPIs.tsx`, `IndicatoriCheie.tsx`, `Dashboard.tsx` |
-| **Dashboard & grafice** | KPI cards, Recharts, Top 5 conturi | Implementată | `analiza_app.md`, `tech_stack.md` |
-| **Analize financiare (tabs)** | Venituri, cheltuieli, patrimoniu | Parțial implementată | `AnalizeFinanciare.tsx` — UI există; profunzime variabilă |
-| **Rapoarte financiare** | Bilanț, P&L, cash flow | Parțial implementată | `RapoarteFinanciare.tsx` — jsPDF/xlsx importate, flux incomplet |
-| **Previziuni bugetare** | Scenarii optimist/realist/pesimist | Parțial implementată | `PreviziuniBugetare.tsx` — calcule pe date reale, nu mock pur |
-| **Landing & marketing** | Hero, pricing, FAQ, blog, about | Implementată | `Index.tsx`, pagini About/Blog/Careers |
-| **Admin panel** | Roluri admin/super_admin | Parțial implementată | `Admin.tsx`, `AdminGuard` |
-| **Securitate RLS** | Politici pe toate tabelele critice | Implementată | `descriere_database.md`, migrări ian. 2026 |
-| **Security Patches v1.8** | Auto-join, CUI unique, rate limits, views | Implementată (migrări) | 11 migrări `202601281*`, `IMPLEMENTATION_COMPLETE.md` |
-| **Performance SQL** | Batch queries, paginare, soft delete | Implementată | `20260120100000_performance_optimizations.sql` |
-| **Error Boundary** | Gestionare erori pagină upload | Implementată | `ErrorBoundary.tsx` |
-| **Normalizare filename** | ASCII, path storage | Implementată | `fileHelpers.ts` |
-| **Stale import cleanup** | Retry, cleanup >10 min | Implementată (DB) | `FIX_IMPORTS_BLOCATE_README.md`, migrări `202601291*` |
-| **Brand assets** | Logo SVG, guidelines, manifest | Parțial implementată | `.lovable/plan.md`, `BRAND_GUIDELINES.md` — PNG-uri posibil incomplete |
-| **Design system v1.3** | Style guide nou | În curs | `newa_StyleGuide.tsx`, `plan_update_style.md` — migrare incompletă |
+| Funcționalitate                | Descriere                                                       | Status                    | Confirmare                                                                          |
+| ------------------------------ | --------------------------------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------- |
+| **Autentificare**              | Email/parolă, Google OAuth, PKCE                                | Implementată              | `AuthContext`, Login/Signup                                                         |
+| **Multi-company**              | Creare, switcher, RLS                                           | Implementată              | `CompanyContext`, migrări                                                           |
+| **Upload balanță Excel v2.1**  | 10 coloane A–J, validare blocking, Storage → Edge Fn → poll     | **Implementată (cod)**    | `useTrialBalances.tsx`, `importPipeline.ts`, `RAPORT_STABILIZARE_UPLOAD_BALANTA.md` |
+| **Format Excel 10 coloane**    | G/H = total sume; I/J = sold final; respinge format vechi 8 col | Implementată              | `excel-parser.ts` v2.1, `ce_verificari_se_fac_la_upload_baanta.md`                  |
+| **Parsare server Edge Fn**     | `parse-balanta` + RPC `process_import_accounts`                 | Implementată              | Fix user ID + JSONB array (iun. 2026)                                               |
+| **Fallback client-side**       | Dacă Edge Fn eșuează                                            | Implementată              | `importPipeline.processAccountsClientSide`                                          |
+| **Coloane DB total_sume**      | `total_sume_debitoare`, `total_sume_creditoare`                 | Implementată (migrare)    | `20260621100000_add_total_sume_columns.sql`                                         |
+| **Validări blocking parser**   | SI/Rulaj/SF, formule G/H, clase 6/7, structură 10 col           | Implementată              | `excel-parser.ts`, 13 teste Vitest                                                  |
+| **Validări extinse (16 OMFP)** | Echilibru, duplicate, outliers etc.                             | **Neconectate la upload** | `balanceValidation.ts` — doar agregare duplicate activă                             |
+| **9 KPI financiari**           | Lichiditate, profitabilitate, îndatorare, eficiență             | Implementată              | `useKPIs.tsx`, Dashboard                                                            |
+| **Dashboard & grafice**        | KPI cards, Recharts, Top 5 conturi                              | Implementată              | Multiple pagini                                                                     |
+| **Analize financiare**         | Tabs venituri/cheltuieli/patrimoniu                             | Parțial                   | `AnalizeFinanciare.tsx`                                                             |
+| **Rapoarte financiare**        | Bilanț, P&L, cash flow, export parțial                          | Parțial                   | `RapoarteFinanciare.tsx`                                                            |
+| **Previziuni bugetare**        | Scenarii optimist/realist/pesimist                              | Parțial                   | Date reale, logică simplificată                                                     |
+| **Landing & marketing**        | Hero, pricing, FAQ, blog                                        | Implementată              | `Index.tsx` + pagini statice                                                        |
+| **Admin panel**                | Roluri admin                                                    | Parțial                   | `Admin.tsx`                                                                         |
+| **Security Patches v1.8**      | RLS, CUI unique, rate limits, views                             | Implementată (repo)       | Migrări `202601281*`                                                                |
+| **Stabilizare upload v2.0**    | Bucket, view, RPC robust                                        | Implementată (repo)       | `20260621000000_stabilize_upload_pipeline.sql`                                      |
+| **Stale import cleanup/retry** | Cleanup >10 min, retry UI                                       | Implementată              | Migrări `202601291*`, retry în UI                                                   |
+| **Teste unitare parser**       | Vitest                                                          | Implementată              | `src/lib/excel-parser.test.ts`                                                      |
+| **Script verificare statică**  | 8 checks pipeline                                               | Implementată              | `scripts/verify-upload-pipeline.mjs`                                                |
+| **Normalizare filename**       | ASCII, path storage                                             | Implementată              | `fileHelpers.ts`                                                                    |
+| **Error Boundary**             | Erori pagină upload                                             | Implementată              | `ErrorBoundary.tsx`                                                                 |
+| **Brand assets**               | SVG, guidelines                                                 | Parțial                   | `public/brand/`                                                                     |
+| **Design system v1.3**         | Style guide nou                                                 | În curs                   | `newa_StyleGuide.tsx`                                                               |
 
 ---
 
 ## 3. Funcționalități în dezvoltare
 
-| Funcționalitate | Status estimat | Blocaje | Prioritate |
-|-----------------|----------------|---------|------------|
-| **Stabilizare pipeline upload** | ~85% cod, ~60% operațional | Bucket `balante`/`trial-balances`, status pending/processing, migrări neaplicate uniform | **P1 critic** |
-| **Aliniere frontend Security v1.8** | ~70% | Cod încă folosește `trial_balance_imports` direct, nu `trial_balance_imports_public` | **P1** |
-| **Export PDF/Excel complet** | ~40% | Librării instalate, UX incomplet | **P2** |
-| **Analize comparative** | ~35% | Pagină există, logică limitată | **P2** |
-| **Design system v1.3 rollout** | ~30% | Plan pe 6 faze, parțial aplicat | **P3** |
-| **Debug tab switch / session restore** | Diagnostic | `DEBUG_TAB_SWITCH.md` — investigație, fără fix permanent | **P3** |
-| **Teste automate** | 0% cod, 100% documentație | Doar ghiduri MD, fără runner | **P1 pentru prod** |
+| Funcționalitate                  | Status estimat         | Blocaje                                                                   | Prioritate    |
+| -------------------------------- | ---------------------- | ------------------------------------------------------------------------- | ------------- |
+| **Deploy pipeline upload v2.0**  | Cod 95%, ops 0%        | `supabase db push` + `functions deploy parse-balanta` neconfirmat pe prod | **P1 critic** |
+| **Test E2E live upload**         | Documentat, neautomat  | Necesită Supabase live + fișier Excel 10 col                              | **P1**        |
+| **Aliniere `CompanyContext`**    | ~90%                   | Încă trimite `p_user_id` la `create_company_with_member`                  | **P1**        |
+| **Regenerare TypeScript types**  | 0%                     | `types.ts` încă arată signature veche cu `p_user_id`                      | **P1**        |
+| **Conectare validări OMFP (16)** | Cod există, neintegrat | `validateBalance()` nu e apelat în upload                                 | **P2**        |
+| **Export PDF/Excel complet**     | ~40%                   | Librării instalate, UX incomplet                                          | **P2**        |
+| **Analize comparative**          | ~35%                   | Logică limitată                                                           | **P2**        |
+| **Playwright E2E**               | Planificat în docs     | Lipsă din `package.json`                                                  | **P2**        |
+| **Design system v1.3**           | ~30%                   | Rollout incomplet                                                         | **P3**        |
+| **Debug tab switch**             | Diagnostic             | Fără fix permanent                                                        | **P3**        |
 
 ---
 
 ## 4. Funcționalități planificate
 
-| Funcționalitate | Beneficiu | Complexitate |
-|-----------------|-----------|--------------|
-| **Invite system + roluri granulare** | Colaborare echipă, securitate multi-user | Mare |
-| **Audit log complet** | Conformitate, debugging | Medie |
-| **AI insights / recomandări** | Diferențiere produs | Mare |
-| **Procesare asincronă (queue)** | Fișiere mari >50MB, timeout Edge | Mare |
-| **Integrare e-Factura / API contabilitate** | Automatizare date | Mare |
-| **Search global funcțional** | UX power users | Medie |
-| **Onboarding tutorial** | Retenție utilizatori noi | Medie |
-| **Dashboard customizabil (widgets)** | Personalizare | Mare |
-| **Notificări real-time** | Alertă procesare/erori | Medie |
-| **Mobile app** | Acces mobil nativ | Mare |
-| **Redis caching** | Scale enterprise | Medie |
-| **pg_cron cleanup automat** | Mentenanță rate_limits/imports | Mică |
-| **Edge Functions: calculate-kpis, generate-report** | Logică server-side | Medie |
-| **CSV + auto-detect header** | Flexibilitate import | Medie |
+| Funcționalitate                             | Beneficiu            | Complexitate |
+| ------------------------------------------- | -------------------- | ------------ |
+| Invite system + roluri granulare            | Colaborare echipă    | Mare         |
+| Audit log complet                           | Conformitate         | Medie        |
+| AI insights                                 | Diferențiere produs  | Mare         |
+| Procesare asincronă (queue)                 | Fișiere >50MB        | Mare         |
+| Integrare e-Factura                         | Automatizare         | Mare         |
+| Search global                               | UX power users       | Medie        |
+| Onboarding tutorial                         | Retenție             | Medie        |
+| Notificări real-time                        | Alertă procesare     | Medie        |
+| Edge Fn `calculate-kpis`, `generate-report` | Logică server-side   | Medie        |
+| CSV + auto-detect header                    | Flexibilitate import | Medie        |
+| Mobile app                                  | Acces nativ          | Mare         |
+| Billing / Stripe                            | Monetizare           | Mare         |
 
-*Sursă: `KNOWLEDGE.md` roadmap Q1–Q4 2026, `START_HERE.md` v2.0, `plan_upload_balanta.md`*
+_Sursă: `KNOWLEDGE.md` roadmap, `START_HERE.md` v2.0 planificat_
 
 ---
 
 ## 5. Arhitectura aplicației
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  CLIENT: React 18 + Vite + TS + Tailwind + shadcn/ui     │
-│  State: React Query + AuthContext + CompanyContext      │
-│  Charts: Recharts | Forms: RHF + Zod | Export: jsPDF/xlsx │
-└──────────────────────────┬──────────────────────────────┘
-                           │ HTTPS (Supabase JS client)
-┌──────────────────────────▼──────────────────────────────┐
-│  SUPABASE                                               │
-│  ├─ Auth (email, Google OAuth)                          │
-│  ├─ PostgreSQL + RLS + RPC (20+ migrări)                │
-│  ├─ Storage bucket: balante (sau trial-balances)        │
-│  └─ Edge Function: parse-balanta (Deno)                 │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  CLIENT                                                      │
+│  React 18 + Vite + TS + Tailwind + shadcn/ui                │
+│  excel-parser.ts (validare blocking) → importPipeline.ts    │
+│  useTrialBalances (orchestrare) | useBalante (citire KPI)   │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ HTTPS
+┌──────────────────────────▼──────────────────────────────────┐
+│  SUPABASE                                                    │
+│  Auth │ PostgreSQL + RLS + RPC (~27 migrări)                │
+│  Storage bucket: balante / {company_id}/{timestamp}_file    │
+│  Edge Function: parse-balanta → process_import_accounts     │
+│  Views: trial_balance_imports_public (citiri)              │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-| Layer | Tehnologii |
-|-------|------------|
-| **Frontend** | React 18.3, Vite 5.4, TS 5.8, Tailwind 3.4, Radix/shadcn, React Router 6.30, TanStack Query 5.83 |
-| **Backend** | Supabase 2.90 — PostgreSQL, Auth, Storage, Edge Functions |
-| **Baza de date** | Tabele: `users`, `user_roles`, `companies`, `company_users`, `trial_balance_imports`, `trial_balance_accounts`, `rate_limits`; views: `trial_balance_imports_public`, `active_trial_balance_imports` |
-| **API-uri** | Supabase client + RPC: `create_company_with_member`, `get_import_totals`, `get_balances_with_accounts`, `process_import_accounts`, `check_rate_limit`, `cleanup_stale_imports`, `retry_failed_import` |
-| **Integrări** | Google OAuth; Lovable (CI/deploy); fără Stripe/billing documentat |
-| **Hosting** | Lovable Publish + domeniu custom `finguard.ro` (planificat în CORS) |
+### Flux upload production-ready (v2.0)
+
+```
+UI validare client (10 col A–J, formule G/H, control totals)
+  → Storage bucket `balante`
+  → INSERT trial_balance_imports (status=processing, processing_started_at)
+  → Edge Fn parse-balanta (download, parse, RPC)
+  → status=completed
+  → poll trial_balance_imports_public
+  → Dashboard/KPI via useBalante → get_balances_with_accounts
+```
+
+| Layer            | Tehnologii                                                                                                                                                                     |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Frontend**     | React 18.3, Vite 5.4, TS 5.8, TanStack Query 5.83, Recharts, Vitest 3.2                                                                                                        |
+| **Backend**      | Supabase — PostgreSQL, Auth, Storage, Edge Functions (Deno)                                                                                                                    |
+| **Baza de date** | `users`, `companies`, `company_users`, `trial_balance_imports`, `trial_balance_accounts` (+ `total_sume_*`), `rate_limits`                                                     |
+| **API-uri RPC**  | `create_company_with_member`, `process_import_accounts`, `get_balances_with_accounts`, `get_import_totals`, `check_rate_limit`, `cleanup_stale_imports`, `retry_failed_import` |
+| **Integrări**    | Google OAuth, Lovable deploy                                                                                                                                                   |
+| **Hosting**      | Lovable + domeniu `finguard.ro` (CORS whitelist)                                                                                                                               |
 
 ---
 
 ## 6. Modulele aplicației
 
-```
-Landing (/) ──► Auth (/login, /signup)
-                    │
-                    ▼
-              AppLayout (/app) [AuthGuard + CompanyGuard]
-                    │
-    ┌───────────────┼───────────────┬──────────────┐
-    ▼               ▼               ▼              ▼
-Dashboard    IncarcareBalanta   Analize/KPI   Rapoarte/Previziuni
-    │               │               │              │
-    │          useTrialBalances  useKPIs      useFinancialCalculations
-    │          balanceValidation useBalante
-    │               │
-    └───────────────┴──────► Supabase DB + Storage + parse-balanta
-```
+| Modul                 | Rol                                         | Status iun. 2026                            |
+| --------------------- | ------------------------------------------- | ------------------------------------------- |
+| **Auth**              | Sesiune, profil                             | ✅ Stabil                                   |
+| **Company**           | Multi-tenant, creare firmă                  | ⚠️ `CompanyContext` — fix `p_user_id` rămas |
+| **Upload/Parse**      | Import Excel E2E                            | ✅ Refactorizat; necesită deploy            |
+| **importPipeline**    | Invoke Edge Fn, polling, erori UI, fallback | ✅ Nou                                      |
+| **excel-parser**      | Validări blocking v2.1                      | ✅ + 13 teste                               |
+| **Validation (OMFP)** | 16 reguli contabile                         | ⚠️ Cod există, neintegrat                   |
+| **Analytics/KPI**     | 9 indicatori, grafice                       | ✅ Client-side                              |
+| **Reports**           | Bilanț, P&L, export                         | ⚠️ Parțial                                  |
+| **Admin**             | Panou administrare                          | ⚠️ Parțial                                  |
+| **Security**          | RLS, rate limits, views                     | ✅ DB; ⚠️ types regenerate                  |
 
-| Modul | Rol | Dependențe | Lacune |
-|-------|-----|------------|--------|
-| **Auth** | Sesiune, profil user | Supabase Auth | — |
-| **Company** | Tenant switching, creare firmă | RLS, `create_company_with_member` | Fără invite |
-| **Upload/Parse** | Import Excel end-to-end | Storage, Edge Fn, RPC | Instabilitate bucket/status |
-| **Validation** | Integritate contabilă | `balanceValidation.ts`, `excel-parser.ts` | Duplicate policy v1.2 vs v1.3 neclar |
-| **Analytics/KPI** | Indicatori + grafice | Conturi din DB | KPI client-side, nu server |
-| **Reports** | Bilanț, P&L, export | useBalante, jsPDF | Export incomplet |
-| **Admin** | Administrare | user_roles | Funcționalitate limitată |
-| **Security layer** | RLS, rate limits, views | Migrări v1.8 | Frontend nealiniat complet |
+**Separare hooks (post-refactor):**
+
+- `useTrialBalances` — upload, listare, retry, delete (pagina Încărcare)
+- `useBalante` — citire balanțe `completed` pentru Dashboard/KPI/Rapoarte
 
 ---
 
 ## 7. Probleme și riscuri
 
-### Bug-uri documentate (ian. 2026)
+### Rezolvate recent (iun. 2026)
 
-1. **Imports blocate în „processing”** — mismatch status frontend/DB (`FIX_IMPORTS_BLOCATE_README.md`) — fix parțial aplicat
-2. **„Eroare la încărcare” generică** — bucket/policies lipsă (`REZOLVARE_EROARE_INCARCARE.md`)
-3. **Balanțe invalide acceptate** — lipsă validări blocking (`FIX_VALIDATION_BLOCKING_README.md`) — rezolvat în cod
-4. **Tab switch resetează app** — diagnostic fără fix (`DEBUG_TAB_SWITCH.md`)
-5. **Bucket name inconsistent** — risc upload 100% blocat (`plan_upload_balanta.md` v1.4.1)
+| #   | Problemă                                        | Rezolvare                                  |
+| --- | ----------------------------------------------- | ------------------------------------------ |
+| 1   | Edge Function neapelată (workaround client)     | `importPipeline.ts` invocă `parse-balanta` |
+| 2   | User ID greșit la RPC (auth vs public.users)    | Fix în Edge Fn + RPC ownership             |
+| 3   | JSONB dublu-serializat                          | Array JS direct, nu `JSON.stringify`       |
+| 4   | Bucket inconsistent                             | Canonical `balante` + migrare consolidare  |
+| 5   | Format Excel ambiguu (8 vs 10 col)              | v2.1: doar 10 coloane A–J                  |
+| 6   | retryFailedImport API vechi (`success` vs `ok`) | Aliniat la `parseResult.ok`                |
 
-### Arhitectură
+### Deschise / parțial rezolvate
 
-- **Dualitate hooks** `useBalante` vs `useTrialBalances` — suprapunere, mentenanță dificilă
-- **Parsare client + server** — validări duplicate, risc divergență
-- **Edge Function timeout** — fișiere mari fără queue
-- **~25 migrări SQL** — ordine și aplicare pe medii diferite = risc drift DB
-
-### Funcționalități critice lipsă pentru prod
-
-- Teste automate (0 în repo)
-- Invite system / RBAC granular
-- Billing / abonamente (pricing UI există, backend absent)
-- Monitoring/alerting producție documentat dar neimplementat
-- Consolidare documentație (index depășit)
+| #   | Problemă                                 | Severitate | Locație                                |
+| --- | ---------------------------------------- | ---------- | -------------------------------------- |
+| 1   | **Deploy migrări iun. neconfirmat**      | Critic     | Supabase remote                        |
+| 2   | **`CompanyContext` trimite `p_user_id`** | Ridicat    | `CompanyContext.tsx:182`               |
+| 3   | **Types.ts neactualizat**                | Mediu      | `src/integrations/supabase/types.ts`   |
+| 4   | **16 validări OMFP neconectate**         | Mediu      | `balanceValidation.ts`                 |
+| 5   | **Tab switch reset app**                 | Mediu      | `DEBUG_TAB_SWITCH.md`                  |
+| 6   | **Docs vechi format 8 coloane**          | Scăzut     | `incarcare_balanta_f.md`, ghiduri ian. |
+| 7   | **Fără E2E Playwright**                  | Mediu      | Lipsă din repo                         |
+| 8   | **Admin query direct tabel**             | Scăzut     | `Admin.tsx`                            |
 
 ### Datorie tehnică
 
-- `trial_balance_imports` direct vs view public
-- Secțiunea N+1 neactualizată în `analiza_app.md`
-- Design system v1.2 → v1.3 neterminat
-- Debug logging în `main.tsx`/`App.tsx` (tab switch)
-- Claims marketing ≠ implementare (CUI, Amazon)
-
-### Documentație
-
-- **Foarte voluminoasă** (~20.000+ linii) dar **fragmentată** pe valuri (v1.8 security → v1.4 upload → v1.9 quick fixes)
-- **Index `summary_md.md` depășit**
-- **Contradicții status** între documente de implementare
+- ~15 README-uri „IMPLEMENTATION_COMPLETE" contradictorii
+- `planning/summary_md.md` index depășit
+- Marketing claims (fără CUI, Amazon cloud)
+- KPI calculate client-side (Edge Fn `calculate-kpis` planificat)
 
 ---
 
-## 8. Roadmap actual (reconstruit)
+## 8. Roadmap actual (reconstruit iun. 2026)
 
-### Prioritate 1 — critic
+### Prioritate 1 — critic (săptămâna curentă)
 
-1. Aplicare uniformă migrări pe staging/prod + Gate 0
-2. Decizie definitivă bucket: **`balante`** (cod actual) sau **`trial-balances`** — aliniere migrări + policies + Edge Function
-3. Fix frontend: `trial_balance_imports_public`, eliminare `p_user_id` dacă rămâne
-4. Verificare E2E upload (ghid `TESTING_GUIDE_UPLOAD_BALANTA.md`)
-5. Setup teste automate minime (Playwright upload + create company)
+1. **`supabase db push`** — migrări `20260621000000` + `20260621100000`
+2. **`supabase functions deploy parse-balanta`**
+3. Test manual E2E: upload Excel 10 col → status `completed` → KPI Dashboard
+4. Fix `CompanyContext.tsx` — elimină `p_user_id`
+5. `npx supabase gen types typescript` — regenerare types
+6. `node scripts/verify-upload-pipeline.mjs` — 8/8 verificări
 
-### Prioritate 2 — important
+### Prioritate 2 — important (2–4 săptămâni)
 
-6. Finalizare export PDF/Excel în `RapoarteFinanciare.tsx`
-7. Completare analize comparative multi-perioadă
-8. Invite system + roluri (viewer/editor/admin)
-9. CUI UNIQUE CONCURRENTLY pe producție (>1000 companii)
-10. Consolidare documentație — un singur `STATUS.md` sursă de adevăr
-11. Rollout design system v1.3
-12. Procesare asincronă pentru fișiere mari
+7. Playwright E2E: signup → company → upload
+8. Finalizare export PDF/Excel rapoarte
+9. Integrare opțională `validateBalance()` în flux upload (warnings UI)
+10. Gate 0 + deploy staging Security v1.8 (dacă neaplicat)
+11. CUI UNIQUE CONCURRENTLY pe producție (>1000 companii)
+12. Actualizare docs vechi (format 10 col) + deprecare README duplicate
 
 ### Prioritate 3 — nice to have
 
-13. AI insights
-14. Search global
-15. Onboarding tutorial
-16. Notificări real-time
-17. Integrare e-Factura
-18. Mobile app
-19. Redis caching
-20. Dashboard widgets drag-and-drop
+13. Invite system + RBAC granular
+14. Analize comparative YoY/QoQ
+15. AI insights
+16. Procesare async queue
+17. Design system v1.3 rollout
+18. Onboarding tutorial
+19. Billing / abonamente
+20. Search global
 
 ---
 
 ## 9. Recomandări
 
-**Finalizare urgentă:** pipeline upload stabil (bucket + status + migrări), aliniere security v1.8 în frontend, primul suite E2E automatizat, decizie go-live pe staging cu checklist din `DEPLOYMENT_GUIDE.md`.
+**Urgent (blocant go-live upload):** deploy migrări iun. + Edge Function + test E2E manual cu fișier 10 coloane.
 
-**Poate fi amânat:** AI, mobile, dashboard customizabil, redesign complet v1.3, search global.
+**Impact maxim următor:** export PDF balanță/KPI + invite multi-user pentru cabinete contabilitate.
 
-**Impact maxim:** upload fiabil + KPI corecte + export PDF balanță/KPI + invite multi-user pentru cabinete contabilitate.
+**Poate fi amânat:** AI, mobile, redesign v1.3 complet, search global.
 
-**Refactorizări necesare:** unificare `useBalante`/`useTrialBalances`; mutare KPI pe server (`calculate-kpis` planificat); canonicalizare bucket storage; actualizare `summary_md.md` + `analiza_app.md`.
+**Documentație:** folosește **`RAPORT_STATUS_PROIECT.md`** (acest fișier) + **`ce_verificari_se_fac_la_upload_baanta.md`** ca referințe live; tratează `IMPLEMENTATION_*` din ian. ca arhivă.
 
 ---
 
@@ -251,139 +283,189 @@ Dashboard    IncarcareBalanta   Analize/KPI   Rapoarte/Previziuni
 
 ### 1. În ce stadiu este aplicația?
 
-**Beta avansat / pre-producție.** Core-ul funcționează; zona upload a trecut prin multiple fix-uri; documentația declară „production ready” dar codul și migrările nu sunt complet aliniate.
+**Beta avansat, aproape de MVP.** Upload-ul a fost refactorizat fundamental pe 21 iun. 2026; rămâne validarea operațională post-deploy.
 
 ### 2. Ce funcționează deja?
 
-Autentificare, multi-company, upload Excel (cu rezerve), parsare conturi, 9 KPI, dashboard, analize parțiale, landing, securitate DB (dacă migrările sunt aplicate), validări contabile client-side.
+Auth, multi-company, parser Excel v2.1 (10 col), pipeline upload refăcut (cod), 9 KPI, dashboard, analize parțiale, landing, securitate DB (migrări în repo), 13 teste unitare parser, script verificare statică.
 
 ### 3. Ce lipsește pentru MVP complet?
 
-Export PDF/Excel funcțional, analize comparative minime, pipeline upload stabil verificat E2E, teste automate, onboarding, eliminare mesaje generice de eroare, documentație unică de status.
+Deploy upload v2.0 verificat, export PDF/Excel, analize comparative minime, fix CompanyContext, types regenerate, E2E automat, onboarding.
 
 ### 4. Ce lipsește pentru lansarea în producție?
 
-Deployment verificat (Gate 0 + migrări), teste automate, monitoring, invite/RBAC, billing (dacă e monetizat), CUI UNIQUE manual pe prod, consolidare bucket storage, legal/compliance review, performanță fișiere mari.
+Deploy + monitoring 24h, Playwright E2E, invite/RBAC, billing, audit log, legal review, performanță fișiere mari, consolidare documentație.
 
 ### 5. Următorii 10 pași recomandați
 
-1. Rulează Gate 0 pe environment-ul țintă
-2. Inventariază migrări aplicate vs repo (`supabase migration list`)
-3. Standardizează bucket **`balante`** (sau migrează tot la `trial-balances`)
-4. Înlocuiește `.from('trial_balance_imports')` cu view public în hooks
-5. Test manual complet upload (valid/invalid/retry)
-6. Adaugă Playwright pentru flux signup → company → upload
-7. Finalizează export PDF din rapoarte
-8. Creează `STATUS.md` unic, depreciază duplicatele de implementare
-9. Deploy staging + 24h monitoring
-10. Planifică invite system pentru Q2
+1. `supabase db push` (migrări iun. 2026)
+2. `supabase functions deploy parse-balanta`
+3. Test upload manual cu Excel 10 coloane
+4. Fix `p_user_id` în `CompanyContext.tsx`
+5. Regenerare `types.ts`
+6. `npm test` + `verify-upload-pipeline.mjs` (țintă 8/8)
+7. Adaugă Playwright pentru flux critic
+8. Finalizează export PDF rapoarte
+9. Deploy staging + monitoring stale imports
+10. Actualizează `planning/summary_md.md` sau depreciază-l
 
 ---
 
 ## Tabel final — funcționalități și status
 
-| # | Funcționalitate | Status | Evidență |
-|---|-----------------|--------|----------|
-| 1 | Landing & marketing | ✅ Implementată | `Index.tsx`, pagini About/Blog |
-| 2 | Auth email + Google | ✅ Implementată | `KNOWLEDGE.md`, Auth pages |
-| 3 | Multi-company + RLS | ✅ Implementată | Migrări, `useCompany` |
-| 4 | Creare companie (CUI) | ✅ Implementată | RPC, Security v1.8 |
-| 5 | Upload balanță Excel | ⚠️ Parțial | Fix-uri v1.9, bucket drift |
-| 6 | Parsare server Edge Fn | ✅ Implementată | `parse-balanta` |
-| 7 | Validări blocking (16) | ✅ Implementată | `balanceValidation.ts` |
-| 8 | Stale import cleanup/retry | ✅ Implementată | Migrări `202601291*` |
-| 9 | Dashboard KPI (9 indicatori) | ✅ Implementată | `useKPIs`, `Dashboard` |
-| 10 | Grafice Recharts | ✅ Implementată | Multiple pagini |
-| 11 | Analize financiare | ⚠️ Parțial | `AnalizeFinanciare.tsx` |
-| 12 | Indicatori cheie (pagină) | ✅ Implementată | `IndicatoriCheie.tsx` |
-| 13 | Analize comparative | ⚠️ Parțial | UI există, logică limitată |
-| 14 | Previziuni bugetare | ⚠️ Parțial | Scenarii pe date reale |
-| 15 | Rapoarte PDF | ⚠️ Parțial | jsPDF importat, incomplet |
-| 16 | Export Excel | ❌ Neimplementat | xlsx instalat, fără UX |
-| 17 | AI Analysis | ❌ Neimplementat | Menționat în UI |
-| 18 | Search global | ❌ Neimplementat | `analiza_app.md` |
-| 19 | Notificări reale | ❌ Neimplementat | Popover placeholder |
-| 20 | Onboarding tutorial | ❌ Neimplementat | Roadmap |
-| 21 | Admin panel | ⚠️ Parțial | `Admin.tsx` |
-| 22 | Security Patches v1.8 (DB) | ✅ Implementată (repo) | 11 migrări |
-| 23 | Security Patches v1.8 (FE) | ⚠️ Parțial | View public nefolosit |
-| 24 | Rate limiting DB | ✅ Implementată | `rate_limits`, Edge Fn |
-| 25 | Performance (batch, paginare) | ✅ Implementată | Migrare ian. 2026 |
-| 26 | Error Boundary | ✅ Implementată | Component există |
-| 27 | Brand assets | ⚠️ Parțial | SVG + guidelines |
-| 28 | Design system v1.3 | ⚠️ În dezvoltare | `plan_update_style.md` |
-| 29 | Teste automate | ❌ Neimplementat | Doar MD |
-| 30 | Invite system | ❌ Planificat | v2.0 roadmap |
-| 31 | Audit log | ❌ Planificat | Security gap rămas |
-| 32 | Billing/abonamente | ❌ Neimplementat | Pricing UI only |
-| 33 | Procesare async/queue | ❌ Planificat | Scalabilitate |
-| 34 | Integrări contabilitate | ❌ Planificat | Q3 2026 |
+| #   | Funcționalitate             | Status | Evidență                                 |
+| --- | --------------------------- | ------ | ---------------------------------------- |
+| 1   | Landing & marketing         | ✅     | `Index.tsx`, About/Blog                  |
+| 2   | Auth email + Google         | ✅     | Auth pages                               |
+| 3   | Multi-company + RLS         | ✅     | Migrări, contexts                        |
+| 4   | Creare companie (CUI)       | ⚠️     | RPC OK; `CompanyContext` bug `p_user_id` |
+| 5   | Upload balanță Excel v2.1   | ⚠️     | Cod refactorizat; deploy necesar         |
+| 6   | Format 10 coloane A–J       | ✅     | `excel-parser.ts`, 13 teste              |
+| 7   | Edge Function parse-balanta | ✅     | Reactivată via `importPipeline`          |
+| 8   | Coloane total_sume DB       | ✅     | Migrare `20260621100000`                 |
+| 9   | Validări blocking parser    | ✅     | SI/Rulaj/SF, formule G/H                 |
+| 10  | Validări OMFP (16) extinse  | ❌     | Neconectate la upload                    |
+| 11  | Stale import cleanup/retry  | ✅     | DB + UI retry                            |
+| 12  | Dashboard KPI (9)           | ✅     | `useKPIs`, Dashboard                     |
+| 13  | Grafice Recharts            | ✅     | Multiple pagini                          |
+| 14  | Analize financiare          | ⚠️     | UI există                                |
+| 15  | Analize comparative         | ⚠️     | Logică limitată                          |
+| 16  | Previziuni bugetare         | ⚠️     | Scenarii pe date reale                   |
+| 17  | Rapoarte PDF                | ⚠️     | jsPDF, incomplet                         |
+| 18  | Export Excel                | ❌     | xlsx fără UX                             |
+| 19  | AI Analysis                 | ❌     | Menționat în UI                          |
+| 20  | Search global               | ❌     | Placeholder                              |
+| 21  | Notificări reale            | ❌     | Popover placeholder                      |
+| 22  | Onboarding tutorial         | ❌     | Planificat                               |
+| 23  | Admin panel                 | ⚠️     | Parțial                                  |
+| 24  | Security Patches v1.8 (DB)  | ✅     | Migrări în repo                          |
+| 25  | Security Patches v1.8 (FE)  | ⚠️     | View via importPipeline; types vechi     |
+| 26  | Stabilizare upload v2.0     | ⚠️     | Cod ✅; deploy ❓                        |
+| 27  | Rate limiting DB            | ✅     | Edge Fn + RPC                            |
+| 28  | Performance SQL             | ✅     | Batch, paginare                          |
+| 29  | Teste unitare (Vitest)      | ✅     | 13 teste parser                          |
+| 30  | Teste E2E (Playwright)      | ❌     | Doar documentat                          |
+| 31  | Script verify pipeline      | ✅     | 7/8 checks                               |
+| 32  | Invite system               | ❌     | v2.0 roadmap                             |
+| 33  | Audit log                   | ❌     | Gap securitate                           |
+| 34  | Billing/abonamente          | ❌     | Pricing UI only                          |
+| 35  | Procesare async/queue       | ❌     | Planificat                               |
+| 36  | Brand assets                | ⚠️     | SVG + guidelines                         |
+| 37  | Design system v1.3          | ⚠️     | Rollout incomplet                        |
 
-**Legendă:** ✅ Implementată | ⚠️ Parțial | ❌ Lipsă/Planificat
+**Legendă:** ✅ Implementată | ⚠️ Parțial / deploy pending | ❌ Lipsă
 
 ---
 
 ## Top 20 acțiuni prioritizate după impact
 
-| Rank | Acțiune | Impact | Efort |
-|------|---------|--------|-------|
-| 1 | Stabilizare pipeline upload (bucket + status + migrări) | 🔴 Critic | Mediu |
-| 2 | Aplicare Gate 0 + deploy migrări pe staging | 🔴 Critic | Mic |
-| 3 | Aliniere frontend la `trial_balance_imports_public` | 🔴 Securitate | Mic |
-| 4 | Test E2E manual + automat upload | 🔴 Calitate | Mediu |
-| 5 | Consolidare documentație (STATUS.md unic) | 🟠 Mentenanță | Mic |
-| 6 | Finalizare export PDF rapoarte | 🟠 Produs | Mediu |
-| 7 | Unificare hooks balanțe | 🟠 Mentenanță | Mediu |
-| 8 | Invite system multi-user | 🟠 Produs B2B | Mare |
-| 9 | Export Excel KPI/rapoarte | 🟠 Produs | Mediu |
-| 10 | Analize comparative YoY/QoQ | 🟠 Produs | Mare |
-| 11 | CUI UNIQUE CONCURRENTLY prod | 🟠 Securitate | Mic |
-| 12 | Monitoring stale imports + alerting | 🟡 Ops | Mediu |
-| 13 | Procesare async fișiere mari | 🟡 Scalabilitate | Mare |
-| 14 | Completare analize financiare | 🟡 Produs | Mediu |
-| 15 | Rollout design system v1.3 | 🟡 UX | Mare |
-| 16 | Fix session restore tab switch | 🟡 UX | Mediu |
-| 17 | Onboarding tutorial | 🟡 Retenție | Mediu |
-| 18 | Search funcțional | 🟢 UX | Mediu |
-| 19 | pg_cron cleanup rate_limits | 🟢 Ops | Mic |
-| 20 | Actualizare index `summary_md.md` | 🟢 Docs | Mic |
+| Rank | Acțiune                                    | Impact           | Efort |
+| ---- | ------------------------------------------ | ---------------- | ----- |
+| 1    | Deploy migrări `20260621*` + Edge Function | 🔴 Critic        | Mic   |
+| 2    | Test E2E manual upload 10 coloane          | 🔴 Critic        | Mic   |
+| 3    | Fix `p_user_id` în `CompanyContext.tsx`    | 🔴 Securitate    | Mic   |
+| 4    | Regenerare TypeScript types                | 🔴 Mentenanță    | Mic   |
+| 5    | Playwright E2E flux critic                 | 🔴 Calitate      | Mediu |
+| 6    | Finalizare export PDF rapoarte             | 🟠 Produs        | Mediu |
+| 7    | Invite system multi-user                   | 🟠 Produs B2B    | Mare  |
+| 8    | Integrare warnings `validateBalance()`     | 🟠 Calitate date | Mediu |
+| 9    | Export Excel KPI/rapoarte                  | 🟠 Produs        | Mediu |
+| 10   | Analize comparative YoY/QoQ                | 🟠 Produs        | Mare  |
+| 11   | Gate 0 + staging Security v1.8             | 🟠 Securitate    | Mediu |
+| 12   | CUI UNIQUE CONCURRENTLY prod               | 🟠 Securitate    | Mic   |
+| 13   | Monitoring stale imports + alerting        | 🟡 Ops           | Mediu |
+| 14   | Actualizare docs format 10 col             | 🟡 Docs          | Mic   |
+| 15   | Deprecare README duplicate ian.            | 🟡 Docs          | Mic   |
+| 16   | Procesare async fișiere mari               | 🟡 Scalabilitate | Mare  |
+| 17   | Rollout design system v1.3                 | 🟡 UX            | Mare  |
+| 18   | Fix session restore tab switch             | 🟡 UX            | Mediu |
+| 19   | Onboarding tutorial                        | 🟢 Retenție      | Mediu |
+| 20   | Billing / Stripe                           | 🟢 Monetizare    | Mare  |
 
 ---
 
 ## Scor maturitate proiect (0–100)
 
-| Dimensiune | Scor | Justificare |
-|------------|------|-------------|
-| **Produs** | **62** | Core solid; funcții promovate incomplete (export, AI, comparative) |
-| **Arhitectură** | **70** | Stack modern, RLS, Edge Fn; drift bucket/hooks, fără queue |
-| **Documentație** | **78** | Volum mare, utilă, dar contradictorie și parțial depășită |
-| **Scalabilitate** | **58** | Optimizări SQL OK; Edge timeout, fără cache server, fără async |
-| **Pregătire producție** | **52** | Migrări există; fără teste auto, deployment neconfirmat, doc-code gap |
+| Dimensiune              | v1.0 | **v2.0** | Justificare                                                  |
+| ----------------------- | ---- | -------- | ------------------------------------------------------------ |
+| **Produs**              | 62   | **65**   | Upload stabilizat în cod; export/AI încă lipsesc             |
+| **Arhitectură**         | 70   | **76**   | Pipeline unificat, constants, importPipeline; deploy pending |
+| **Documentație**        | 78   | **80**   | Docs noi excelente (`ce_verificari_*`); fragmentare rămasă   |
+| **Scalabilitate**       | 58   | **58**   | Fără queue; Edge timeout risc                                |
+| **Pregătire producție** | 52   | **62**   | Vitest + script verify; E2E + deploy lipsesc                 |
 
-**Scor mediu ponderat: ~64/100** — proiect matur tehnic pe fundație, imatur operațional pentru lansare publică sigură.
+**Scor mediu ponderat: ~68/100** (+4 față de v1.0) — progres semnificativ pe upload; gap principal = deploy operațional + E2E.
 
 ---
 
-## Referințe documentație cheie
+## Inventar documentație `.md` (36 fișiere unice)
 
-| Categorie | Fișiere principale |
-|-----------|-------------------|
-| Knowledge base | `planning/KNOWLEDGE.md`, `planning/tech_stack.md` |
-| Status aplicație | `planning/analiza_app.md` |
-| Security v1.8 | `START_HERE.md`, `IMPLEMENTATION_COMPLETE.md`, `planning/DEPLOYMENT_GUIDE.md` |
-| Upload balanță | `plan_upload_balanta.md`, `IMPLEMENTATION_UPLOAD_BALANTA.md`, `incarcare_balanta_f.md` |
-| Fix-uri upload | `FIX_IMPORTS_BLOCATE_README.md`, `REZOLVARE_EROARE_INCARCARE.md`, `FIX_VALIDATION_BLOCKING_README.md` |
-| Testare | `TESTING_GUIDE_UPLOAD_BALANTA.md`, `testing/SECURITY_PATCHES_TEST_SUITE.md` |
-| Index documente | `planning/summary_md.md` (depășit — de actualizat) |
+### Sursă de adevăr (actualizate iun. 2026)
+
+| Fișier                                         | Rol                                        |
+| ---------------------------------------------- | ------------------------------------------ |
+| **`RAPORT_STATUS_PROIECT.md`**                 | Status consolidat proiect (acest document) |
+| **`RAPORT_STABILIZARE_UPLOAD_BALANTA.md`**     | Audit + fix-uri pipeline upload            |
+| **`ce_verificari_se_fac_la_upload_baanta.md`** | Referință validări + mesaje UI (v2.1)      |
+
+### Implementare & fix-uri (ian.–iun. 2026 — arhivă parțial depășită)
+
+| Fișier                                                              | Notă                                                    |
+| ------------------------------------------------------------------- | ------------------------------------------------------- |
+| `IMPLEMENTATION_COMPLETE.md`, `START_HERE.md`, `VISUAL_SUMMARY.md`  | Security v1.8 — util deploy, status „100%" supraestimat |
+| `IMPLEMENTATION_UPLOAD_BALANTA.md`, `QUICK_START_IMPLEMENTATION.md` | Upload v1.4 — parțial depășit (bucket trial-balances)   |
+| `FIX_IMPORTS_BLOCATE_README.md`, `REZOLVARE_EROARE_INCARCARE.md`    | Fix-uri ian. 29 — context istoric                       |
+| `FIX_VALIDATION_BLOCKING_README.md`, `TESTS_VALIDATION_BLOCKING.md` | Validări blocking — acoperite de excel-parser v2.1      |
+| `TESTING_GUIDE_UPLOAD_BALANTA.md`                                   | Verifică format 10 col înainte de utilizare             |
+
+### Planning & arhitectură
+
+| Fișier                                                                   | Notă                                           |
+| ------------------------------------------------------------------------ | ---------------------------------------------- |
+| `planning/KNOWLEDGE.md`, `planning/tech_stack.md`                        | Referință zilnică — actualizează bucket/format |
+| `planning/analiza_app.md`                                                | Analiză ian. — secțiune N+1 depășită           |
+| `planning/summary_md.md`                                                 | **Index depășit** (22 vs 36 fișiere)           |
+| `planning/plan_upload_balanta.md`                                        | Plan detaliat — util istoric                   |
+| `planning/incarcare_balanta_f.md`                                        | v1.8 — format 8 col depășit                    |
+| `planning/descriere_database.md`, `planning/plan_dezvoltare_database.md` | Schema DB exhaustivă                           |
+
+### Altele
+
+| Fișier                                            | Rol                            |
+| ------------------------------------------------- | ------------------------------ |
+| `planning/DEPLOYMENT_GUIDE.md`, `GATE0_README.md` | Deploy Security v1.8           |
+| `testing/SECURITY_PATCHES_TEST_SUITE.md`          | 29+ teste documentate (manuel) |
+| `DEBUG_TAB_SWITCH.md`                             | Diagnostic UX                  |
+| `README.md`                                       | Setup Lovable generic          |
+| `.lovable/plan*.md`, `BRAND_GUIDELINES.md`        | Brand & design                 |
+
+---
+
+## Referințe rapide comenzi
+
+```bash
+# Deploy upload v2.0
+supabase db push
+supabase functions deploy parse-balanta
+
+# Verificări locale
+npm test
+node scripts/verify-upload-pipeline.mjs
+npm run build
+
+# Types
+npx supabase gen types typescript --project-id <id> > src/integrations/supabase/types.ts
+```
 
 ---
 
 ## Observație finală
 
-Documentația FinGuard v2 este **de calitate peste medie** pentru un proiect SaaS, dar suferă de **„documentație de valuri”**: fiecare sprint (security v1.8 → upload v1.4 → fix v1.9) a generat propriile README-uri „100% complete”, fără reconciliere. Riscul principal nu e lipsa funcționalității, ci **decalajul între ce declară markdown-ul și ce rulează în producție** — în special upload, storage bucket și view-uri RLS.
+Proiectul a trecut de la **„upload instabil cu workaround client"** la **„pipeline coerent documentat și testat unitar"** în iunie 2026. Riscul principal s-a mutat de la arhitectură la **operațiuni**: migrările noi trebuie aplicate pe Supabase remote, iar documentația din ianuarie trebuie tratată ca arhivă — nu ca status curent.
 
-**Acest document (`RAPORT_STATUS_PROIECT.md`) este sursa consolidată de status.** La fiecare milestone major, actualizează secțiunile 2, 3, 7, 8 și tabelul final.
+**Actualizează acest raport** la fiecare milestone: deploy reușit, E2E verde, feature major livrat.
 
 ---
 
-*Generat: 20 iunie 2026 | Versiune: 1.0*
+_Generat: 21 iunie 2026 | Versiune raport: 2.0_

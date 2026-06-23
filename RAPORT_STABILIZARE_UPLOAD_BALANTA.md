@@ -92,7 +92,7 @@
 ### Flux final (Production Ready)
 
 ```
-[UI] validare Excel (client: celule goale=0, max 8 coloane A–H, blocking conturi/control totals)
+[UI] validare Excel (client: celule goale=0, **exact 10 coloane A–J**, formule G/H, blocking conturi/control totals)
   → [Storage] bucket `balante` / {company_id}/{timestamp}_file.xlsx
   → [DB] INSERT trial_balance_imports (status=processing, processing_started_at)
   → [Edge Fn] parse-balanta

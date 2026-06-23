@@ -2,13 +2,35 @@
 
 ## Overview
 
-Acest document descrie testele necesare pentru validarea corectă a fluxului de upload balanță cu validări blocking implementate în v2.0.
+Acest document descrie testele pentru validarea fluxului de upload balanță cu validări blocking.
+
+**Versiune parser:** v2.1 — format **10 coloane A–J** (iunie 2026)
+
+**Implementare automată:** `src/lib/excel-parser.test.ts` (Vitest, 13 teste) — rulează cu `npm test`.
+
+**Coloane Excel:**
+- G = `total_sume_debitoare` (= SI D + Rulaj D)
+- H = `total_sume_creditoare` (= SI C + Rulaj C)
+- I/J = SF Debit / SF Credit
+
+**Coduri noi:** `EXCEL_LEGACY_8_COLUMN_FORMAT`, `EXCEL_MISSING_REQUIRED_COLUMNS`, `BALANCE_ROW_TOTAL_DEBIT_SUM_MISMATCH`, `BALANCE_ROW_TOTAL_CREDIT_SUM_MISMATCH`, `BALANCE_TOTAL_SUMS_MISMATCH_DETECTED`
 
 ---
 
 ## 📋 **STRUCTURĂ TESTE**
 
-### **Test Suite**: `excel-parser.spec.ts`
+### **Test Suite**: `src/lib/excel-parser.test.ts` (Vitest — implementat)
+
+Helper pentru teste manuale/integration: `parseExcelRows(rows: unknown[][])` din `excel-parser.ts`.
+
+Mock-uri cu 10 coloane — fiecare cont trebuie să includă `total_d` (G) și `total_c` (H):
+
+```typescript
+// Exemplu rând valid: SI_D, SI_C, Rul_D, Rul_C, Tot_D, Tot_C, SF_D, SF_C
+['1012', 'Bănci', 1000, 0, 500, 200, 1500, 200, 1300, 0]
+```
+
+### **Test Suite (referință integration)**: `excel-parser.spec.ts`
 
 ```typescript
 import { parseExcelFile, ParseResult } from '@/lib/excel-parser';
@@ -138,15 +160,43 @@ describe('parseExcelFile - Validări Blocking', () => {
       expect(result.accounts[0].debit_turnover).toEqual(0);
     });
 
-    it('RESPINGE fișier cu date dincolo de coloana H (coloana I+)', async () => {
-      const invalidColumnsFile = createMockExcelFileWithExtraColumn(9);
+    it('RESPINGE fișier cu date dincolo de coloana J (coloana K+)', async () => {
+      const invalidColumnsFile = createMockExcelFileWithExtraColumn(11); // coloana K
 
       const result = await parseExcelFile(invalidColumnsFile);
 
       expect(result.ok).toBe(false);
       expect(result.blockingErrors[0].code).toBe('EXCEL_INVALID_COLUMN_COUNT');
-      expect(result.blockingErrors[0].message).toContain('dincolo de coloana H');
+      expect(result.blockingErrors[0].message).toContain('dincolo de coloana J');
       expect(result.accounts).toHaveLength(0);
+    });
+
+    it('RESPINGE format vechi cu 8 coloane (A–H)', async () => {
+      const legacyFile = createMockExcelFileLegacy8Columns();
+
+      const result = await parseExcelFile(legacyFile);
+
+      expect(result.ok).toBe(false);
+      expect(result.blockingErrors[0].code).toBe('EXCEL_LEGACY_8_COLUMN_FORMAT');
+      expect(result.accounts).toHaveLength(0);
+    });
+
+    it('RESPINGE rând cu total_sume_debitoare incorect', async () => {
+      // G=1400, dar SI_D(1000)+Rul_D(500)=1500
+      const invalidFile = createMockExcelFile({ /* ... */ });
+
+      const result = await parseExcelFile(invalidFile);
+
+      expect(result.ok).toBe(false);
+      expect(result.blockingErrors.some((e) => e.code === 'BALANCE_TOTAL_SUMS_MISMATCH_DETECTED')).toBe(true);
+      expect(result.rowErrors.some((e) => e.code === 'BALANCE_ROW_TOTAL_DEBIT_SUM_MISMATCH')).toBe(true);
+    });
+
+    it('RESPINGE rând cu total_sume_creditoare incorect', async () => {
+      const result = await parseExcelFile(invalidCreditTotalFile);
+
+      expect(result.ok).toBe(false);
+      expect(result.rowErrors.some((e) => e.code === 'BALANCE_ROW_TOTAL_CREDIT_SUM_MISMATCH')).toBe(true);
     });
 
     it('RESPINGE cont clasa 6 cu sold final nenul', async () => {
@@ -586,9 +636,10 @@ jobs:
 | Control SF Mismatch (diff > 0.01) | ❌ false | 1 (TOTAL) | 0 | 0 | ❌ No | error |
 | Control SI Mismatch (diff > 0.01) | ❌ false | 1 (OPENING) | 0 | 0 | ❌ No | error |
 | Control Rulaj Mismatch (diff > 0.01) | ❌ false | 1 (TURNOVER) | 0 | 0 | ❌ No | error |
-| Coloane ≠ 8 | ❌ false | 1 (COLUMN_COUNT) | 0 | 0 | ❌ No | error |
-| Coloane I+ cu date | ❌ false | 1 (COLUMN_COUNT) | 0 | 0 | ❌ No | error |
-| Celule goale C–H | ✅ true | 0 | 0 | > 0 | ✅ Yes | completed (valori = 0) |
+| Coloane ≠ 10 (format vechi 8) | ❌ false | 1 (LEGACY_8) | 0 | 0 | ❌ No | error |
+| Coloane K+ cu date | ❌ false | 1 (COLUMN_COUNT) | 0 | 0 | ❌ No | error |
+| total_sume G/H incorect | ❌ false | 1 (TOTAL_SUMS) | 1+ | 0 | ❌ No | error |
+| Celule goale C–J | ✅ true | 0 | 0 | > 0 | ✅ Yes | completed (valori = 0) |
 | Clasa 6 SF nenul | ❌ false | 1 (CLASS6) | 1+ | 0 | ❌ No | error |
 | Clasa 7 SF nenul | ❌ false | 1 (CLASS7) | 1+ | 0 | ❌ No | error |
 | Cont Lipsă | ❌ false | 1 (INVALID_ROWS) | 1+ | 0 | ❌ No | error |
@@ -602,11 +653,11 @@ jobs:
 
 ## 🚀 **NEXT STEPS**
 
-1. **Implementare Teste**: Creează fișierele `excel-parser.spec.ts` și `uploadBalance.integration.spec.ts`
-2. **Setup Jest/Vitest**: Configurare framework de teste (dacă nu există)
-3. **Mock Supabase**: Setup mock-uri pentru `supabase.storage` și `supabase.from()`
-4. **CI/CD**: Adaugă job de teste în pipeline
-5. **Coverage Report**: Generare raport coverage și integrare Codecov
+1. ✅ **Teste unitare parser**: `src/lib/excel-parser.test.ts` — `npm test`
+2. **Teste integration upload**: `uploadBalance.integration.spec.ts` (mock Supabase)
+3. **Fixtures Excel 10 coloane**: actualizare fișiere din `testing/fixtures/`
+4. **CI/CD**: job `npm test` în pipeline
+5. **Migrare DB**: `supabase db push` pentru coloane `total_sume_*`
 
 ---
 

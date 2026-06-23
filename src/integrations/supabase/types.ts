@@ -667,6 +667,8 @@ export type Database = {
           import_id: string
           opening_credit: number | null
           opening_debit: number | null
+          total_sume_creditoare: number
+          total_sume_debitoare: number
         }
         Insert: {
           account_code: string
@@ -680,6 +682,8 @@ export type Database = {
           import_id: string
           opening_credit?: number | null
           opening_debit?: number | null
+          total_sume_creditoare?: number
+          total_sume_debitoare?: number
         }
         Update: {
           account_code?: string
@@ -693,6 +697,8 @@ export type Database = {
           import_id?: string
           opening_credit?: number | null
           opening_debit?: number | null
+          total_sume_creditoare?: number
+          total_sume_debitoare?: number
         }
         Relationships: [
           {

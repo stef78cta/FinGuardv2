@@ -47,11 +47,17 @@ const MAX_NUMERIC_VALUE = 999_999_999_999.99;
 /** Minimum allowed numeric value */
 const MIN_NUMERIC_VALUE = -999_999_999_999.99;
 
+/** Număr coloane obligatorii A–J */
+const EXPECTED_COLUMN_COUNT = 10;
+const LAST_COLUMN_INDEX = EXPECTED_COLUMN_COUNT - 1;
+const CONTROL_THRESHOLD = 0.01;
+
 /** Maximum allowed accounts in a single file */
 const MAX_ACCOUNTS = 10_000;
 
 /** Bucket Storage canonical pentru balanțe */
 const BALANCE_STORAGE_BUCKET = "balante";
+
 
 // =============================================================================
 // SECURITY: CORS Configuration (v1.7 - aligned with config.toml)
@@ -96,6 +102,8 @@ interface ParsedAccount {
   opening_credit: number;
   debit_turnover: number;
   credit_turnover: number;
+  total_sume_debitoare: number;
+  total_sume_creditoare: number;
   closing_debit: number;
   closing_credit: number;
 }
@@ -113,6 +121,8 @@ function aggregateDuplicateAccounts(accounts: ParsedAccount[]): ParsedAccount[] 
         opening_credit: existing.opening_credit + account.opening_credit,
         debit_turnover: existing.debit_turnover + account.debit_turnover,
         credit_turnover: existing.credit_turnover + account.credit_turnover,
+        total_sume_debitoare: existing.total_sume_debitoare + account.total_sume_debitoare,
+        total_sume_creditoare: existing.total_sume_creditoare + account.total_sume_creditoare,
         closing_debit: existing.closing_debit + account.closing_debit,
         closing_credit: existing.closing_credit + account.closing_credit,
       });
@@ -137,7 +147,48 @@ interface ParseResult {
   };
   accountsCount: number;
   error?: string;
+  errorCode?: string;
 }
+
+function isBlankCell(value: unknown): boolean {
+  if (value === null || value === undefined) return true;
+  return String(value).trim() === "";
+}
+
+function normalizeRowToTenColumns(row: unknown[] | undefined): unknown[] {
+  const normalized = [...(row ?? [])].slice(0, EXPECTED_COLUMN_COUNT);
+  while (normalized.length < EXPECTED_COLUMN_COUNT) {
+    normalized.push(undefined);
+  }
+  return normalized;
+}
+
+function getWorksheetMaxColumnIndex(worksheet: XLSX.WorkSheet): number {
+  const ref = worksheet["!ref"];
+  if (!ref) return -1;
+  const range = XLSX.utils.decode_range(ref);
+  return range.e.c;
+}
+
+function hasExtraColumnsBeyondJ(row: unknown[]): boolean {
+  for (let i = EXPECTED_COLUMN_COUNT; i < row.length; i++) {
+    if (!isBlankCell(row[i])) return true;
+  }
+  return false;
+}
+
+function applyBalanceControlCheck(
+  debit: number,
+  credit: number,
+  label: string,
+): string | null {
+  const diff = Math.abs(debit - credit);
+  if (diff > CONTROL_THRESHOLD) {
+    return `${label} (diferență: ${diff.toFixed(2)} RON)`;
+  }
+  return null;
+}
+
 
 // =============================================================================
 // SECURITY: Input Validation & Sanitization
@@ -324,7 +375,48 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
         totals: { opening_debit: 0, opening_credit: 0, debit_turnover: 0, credit_turnover: 0, closing_debit: 0, closing_credit: 0 },
         accountsCount: 0,
         error: "Fișierul nu conține date suficiente",
+        errorCode: "EXCEL_INSUFFICIENT_DATA",
       };
+    }
+
+    const maxColIndex = getWorksheetMaxColumnIndex(worksheet);
+
+    if (maxColIndex <= 7) {
+      return {
+        success: false,
+        accounts: [],
+        totals: { opening_debit: 0, opening_credit: 0, debit_turnover: 0, credit_turnover: 0, closing_debit: 0, closing_credit: 0 },
+        accountsCount: 0,
+        error: `Structura veche cu 8 coloane (A–H) nu mai este acceptată. Aplicația acceptă exclusiv balanțe cu 10 coloane (A–J): ${COLUMN_STRUCTURE_LABEL}.`,
+        errorCode: "EXCEL_LEGACY_8_COLUMN_FORMAT",
+      };
+    }
+
+    if (maxColIndex < LAST_COLUMN_INDEX) {
+      return {
+        success: false,
+        accounts: [],
+        totals: { opening_debit: 0, opening_credit: 0, debit_turnover: 0, credit_turnover: 0, closing_debit: 0, closing_credit: 0 },
+        accountsCount: 0,
+        error: `Fișierul nu conține toate coloanele obligatorii A–J (${COLUMN_STRUCTURE_LABEL}).`,
+        errorCode: "EXCEL_MISSING_REQUIRED_COLUMNS",
+      };
+    }
+
+    for (let i = 0; i < jsonData.length; i++) {
+      const row = jsonData[i];
+      if (!row || row.length === 0) continue;
+      if (i !== 0 && isBlankCell(row[0])) continue;
+      if (hasExtraColumnsBeyondJ(row)) {
+        return {
+          success: false,
+          accounts: [],
+          totals: { opening_debit: 0, opening_credit: 0, debit_turnover: 0, credit_turnover: 0, closing_debit: 0, closing_credit: 0 },
+          accountsCount: 0,
+          error: `Fișierul nu respectă structura de ${EXPECTED_COLUMN_COUNT} coloane. Rândul ${i + 1} conține date dincolo de coloana J.`,
+          errorCode: "EXCEL_INVALID_COLUMN_COUNT",
+        };
+      }
     }
 
     const accounts: ParsedAccount[] = [];
@@ -337,28 +429,25 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
       closing_credit: 0,
     };
 
-    // Skip header row (index 0)
+    const totalSumErrors: string[] = [];
+
     for (let i = 1; i < jsonData.length; i++) {
-      // v1.6: Verificare timeout în buclă (incomplet, dar util)
       if (i % 1000 === 0 && Date.now() - startTime > PARSE_TIMEOUT_MS) {
         console.warn(`Parse timeout exceeded at row ${i}, truncating`);
         break;
       }
-      
-      const row = jsonData[i];
-      
-      if (!row || row.length === 0 || !row[0]) continue;
-      
+
+      const row = normalizeRowToTenColumns(jsonData[i]);
+
+      if (row.every(isBlankCell)) continue;
+      if (isBlankCell(row[0])) continue;
+
       const accountCode = sanitizeString(row[0]);
-      
-      // Validate account code (3-6 digits)
       if (!/^\d{3,6}$/.test(accountCode)) continue;
-      
+
       const accountName = sanitizeString(row[1]);
-      
       if (accountName.length > 200) continue;
-      
-      // v1.1: parseNumber cu rowContext pentru logging
+
       const account: ParsedAccount = {
         account_code: accountCode,
         account_name: accountName,
@@ -366,23 +455,65 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
         opening_credit: parseNumber(row[3], i),
         debit_turnover: parseNumber(row[4], i),
         credit_turnover: parseNumber(row[5], i),
-        closing_debit: parseNumber(row[6], i),
-        closing_credit: parseNumber(row[7], i),
+        total_sume_debitoare: parseNumber(row[6], i),
+        total_sume_creditoare: parseNumber(row[7], i),
+        closing_debit: parseNumber(row[8], i),
+        closing_credit: parseNumber(row[9], i),
       };
 
+      const expectedDebitTotal = Math.round((account.opening_debit + account.debit_turnover) * 100) / 100;
+      const expectedCreditTotal = Math.round((account.opening_credit + account.credit_turnover) * 100) / 100;
+
+      if (Math.abs(account.total_sume_debitoare - expectedDebitTotal) > CONTROL_THRESHOLD) {
+        totalSumErrors.push(
+          `Rândul ${i + 1}, cont ${accountCode}: total_sume_debitoare incorect (așteptat ${expectedDebitTotal}, găsit ${account.total_sume_debitoare})`,
+        );
+        continue;
+      }
+
+      if (Math.abs(account.total_sume_creditoare - expectedCreditTotal) > CONTROL_THRESHOLD) {
+        totalSumErrors.push(
+          `Rândul ${i + 1}, cont ${accountCode}: total_sume_creditoare incorect (așteptat ${expectedCreditTotal}, găsit ${account.total_sume_creditoare})`,
+        );
+        continue;
+      }
+
+      if (accountCode.startsWith("6") &&
+        (Math.abs(account.closing_debit) > CONTROL_THRESHOLD || Math.abs(account.closing_credit) > CONTROL_THRESHOLD)) {
+        totalSumErrors.push(`Rândul ${i + 1}, cont ${accountCode}: clasa 6 cu sold final nenul`);
+        continue;
+      }
+
+      if (accountCode.startsWith("7") &&
+        (Math.abs(account.closing_debit) > CONTROL_THRESHOLD || Math.abs(account.closing_credit) > CONTROL_THRESHOLD)) {
+        totalSumErrors.push(`Rândul ${i + 1}, cont ${accountCode}: clasa 7 cu sold final nenul`);
+        continue;
+      }
+
       accounts.push(account);
-      
+
       if (accounts.length >= MAX_ACCOUNTS) {
         console.warn(`Max accounts limit (${MAX_ACCOUNTS}) reached, truncating`);
         break;
       }
-      
+
       totals.opening_debit += account.opening_debit;
       totals.opening_credit += account.opening_credit;
       totals.debit_turnover += account.debit_turnover;
       totals.credit_turnover += account.credit_turnover;
       totals.closing_debit += account.closing_debit;
       totals.closing_credit += account.closing_credit;
+    }
+
+    if (totalSumErrors.length > 0) {
+      return {
+        success: false,
+        accounts: [],
+        totals,
+        accountsCount: 0,
+        error: `${totalSumErrors.length} rând(uri) cu total_sume_debitoare / total_sume_creditoare calculate incorect. ${totalSumErrors.slice(0, 3).join("; ")}`,
+        errorCode: "BALANCE_TOTAL_SUMS_MISMATCH_DETECTED",
+      };
     }
 
     if (accounts.length === 0) {
@@ -392,16 +523,33 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
         totals,
         accountsCount: 0,
         error: "Nu s-au găsit conturi valide în fișier",
+        errorCode: "BALANCE_NO_VALID_ACCOUNTS",
       };
     }
 
-    // Round totals
     totals.opening_debit = Math.round(totals.opening_debit * 100) / 100;
     totals.opening_credit = Math.round(totals.opening_credit * 100) / 100;
     totals.debit_turnover = Math.round(totals.debit_turnover * 100) / 100;
     totals.credit_turnover = Math.round(totals.credit_turnover * 100) / 100;
     totals.closing_debit = Math.round(totals.closing_debit * 100) / 100;
     totals.closing_credit = Math.round(totals.closing_credit * 100) / 100;
+
+    const controlErrors = [
+      applyBalanceControlCheck(totals.opening_debit, totals.opening_credit, "Total Sold inițial Debit ≠ Credit"),
+      applyBalanceControlCheck(totals.debit_turnover, totals.credit_turnover, "Total Rulaj Debit ≠ Credit"),
+      applyBalanceControlCheck(totals.closing_debit, totals.closing_credit, "Total Sold final Debit ≠ Credit"),
+    ].filter(Boolean);
+
+    if (controlErrors.length > 0) {
+      return {
+        success: false,
+        accounts: [],
+        totals,
+        accountsCount: 0,
+        error: controlErrors.join("; "),
+        errorCode: "BALANCE_CONTROL_MISMATCH",
+      };
+    }
 
     return {
       success: true,
@@ -600,7 +748,7 @@ const handler = async (req: Request): Promise<Response> => {
           status: "error", 
           error_message: parseResult.error,
           internal_error_detail: parseResult.error,
-          internal_error_code: "PARSE_FAILED"
+          internal_error_code: parseResult.errorCode || "PARSE_FAILED"
         })
         .eq("id", import_id);
 
@@ -643,6 +791,8 @@ const handler = async (req: Request): Promise<Response> => {
       opening_credit: acc.opening_credit,
       debit_turnover: acc.debit_turnover,
       credit_turnover: acc.credit_turnover,
+      total_sume_debitoare: acc.total_sume_debitoare,
+      total_sume_creditoare: acc.total_sume_creditoare,
       closing_debit: acc.closing_debit,
       closing_credit: acc.closing_credit,
     }));

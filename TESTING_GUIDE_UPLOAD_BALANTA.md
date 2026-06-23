@@ -1,7 +1,7 @@
 # 🧪 Ghid Testare Upload Balanță - finguardv2
 
-**Versiune:** v1.0  
-**Data:** 29 Ianuarie 2026  
+**Versiune:** v2.1 (format 10 coloane A–J)  
+**Data:** Iunie 2026  
 **Scop:** Suită completă de teste pentru validarea implementării upload balanță
 
 ---
@@ -42,8 +42,9 @@ supabase db push
 # Nume: "Test Company SRL"
 # CUI: "RO12345678"
 
-# 5. Start dev server
+# 5. Start dev server + teste automate parser
 npm run dev
+npm test
 ```
 
 ### Structură Fișiere Test:
@@ -52,10 +53,12 @@ npm run dev
 c:\_Software\SAAS\finguardv2\testing\
 ├── fixtures\
 │   ├── valid\
-│   │   ├── balanta_simpla_valida.xlsx         # 3 conturi, echilibrate
+│   │   ├── balanta_simpla_valida.xlsx         # 3 conturi, 10 coloane, echilibrate
 │   │   ├── balanta_complexa_valida.xlsx       # 100 conturi, echilibrate
 │   │   └── balanta_mare_valida.xlsx           # 1000 conturi, echilibrate
 │   ├── invalid\
+│   │   ├── balanta_format_vechi_8_coloane.xlsx # Respinge EXCEL_LEGACY_8_COLUMN_FORMAT
+│   │   ├── balanta_total_sume_incorect.xlsx   # G/H ≠ formule
 │   │   ├── balanta_dezechilibrata_opening.xlsx
 │   │   ├── balanta_dezechilibrata_turnover.xlsx
 │   │   ├── balanta_dezechilibrata_closing.xlsx
@@ -75,11 +78,13 @@ c:\_Software\SAAS\finguardv2\testing\
 
 ## 📊 Fișiere Test Excel
 
-### Template Standard (Coloane A-H):
+### Template Standard (Coloane A–J):
 
-| A: Cont | B: Denumire | C: SI D | D: SI C | E: Rulaj D | F: Rulaj C | G: SF D | H: SF C |
-|---------|-------------|---------|---------|------------|------------|---------|---------|
-| 1012 | Bănci | 10000 | 0 | 5000 | 3000 | 12000 | 0 |
+| A: Cont | B: Denumire | C: SI D | D: SI C | E: Rulaj D | F: Rulaj C | G: Tot. D | H: Tot. C | I: SF D | J: SF C |
+|---------|-------------|---------|---------|------------|------------|-----------|-----------|---------|---------|
+| 1012 | Bănci | 10000 | 0 | 5000 | 3000 | 15000 | 3000 | 12000 | 0 |
+
+**Formule obligatorii:** G = C + E, H = D + F. SF în coloanele I și J.
 
 ---
 
@@ -89,11 +94,11 @@ c:\_Software\SAAS\finguardv2\testing\
 
 **Conturi:**
 
-| Cont | Denumire | SI D | SI C | Rulaj D | Rulaj C | SF D | SF C |
-|------|----------|------|------|---------|---------|------|------|
-| 1012 | Bănci | 10000.00 | 0.00 | 5000.00 | 3000.00 | 12000.00 | 0.00 |
-| 4111 | Venituri din vânzări | 0.00 | 10000.00 | 0.00 | 5000.00 | 0.00 | 15000.00 |
-| 6111 | Cheltuieli cu materiale | 0.00 | 0.00 | 3000.00 | 0.00 | 3000.00 | 0.00 |
+| Cont | Denumire | SI D | SI C | Rulaj D | Rulaj C | Tot. D | Tot. C | SF D | SF C |
+|------|----------|------|------|---------|---------|--------|--------|------|------|
+| 1012 | Bănci | 10000.00 | 0.00 | 5000.00 | 3000.00 | 15000.00 | 3000.00 | 12000.00 | 0.00 |
+| 4111 | Venituri din vânzări | 0.00 | 10000.00 | 0.00 | 5000.00 | 0.00 | 15000.00 | 0.00 | 15000.00 |
+| 6111 | Cheltuieli cu materiale | 0.00 | 0.00 | 3000.00 | 0.00 | 3000.00 | 0.00 | 3000.00 | 0.00 |
 
 **Totaluri:**
 - Opening: Debit=10000, Credit=10000, Diff=0 ✅
@@ -130,12 +135,12 @@ c:\_Software\SAAS\finguardv2\testing\
 
 **Conturi:**
 
-| Cont | Denumire | SI D | SI C | Rulaj D | Rulaj C | SF D | SF C |
-|------|----------|------|------|---------|---------|------|------|
-| 1012 | Bănci BRD | 5000.00 | 0.00 | 2000.00 | 1000.00 | 6000.00 | 0.00 |
-| 1012 | Bănci ING | 5000.00 | 0.00 | 3000.00 | 2000.00 | 6000.00 | 0.00 |
-| 4111 | Venituri | 0.00 | 10000.00 | 0.00 | 3000.00 | 0.00 | 13000.00 |
-| 6111 | Cheltuieli | 0.00 | 0.00 | 3000.00 | 0.00 | 3000.00 | 0.00 |
+| Cont | Denumire | SI D | SI C | Rulaj D | Rulaj C | Tot. D | Tot. C | SF D | SF C |
+|------|----------|------|------|---------|---------|--------|--------|------|------|
+| 1012 | Bănci BRD | 5000.00 | 0.00 | 2000.00 | 1000.00 | 7000.00 | 1000.00 | 6000.00 | 0.00 |
+| 1012 | Bănci ING | 5000.00 | 0.00 | 3000.00 | 2000.00 | 8000.00 | 2000.00 | 6000.00 | 0.00 |
+| 4111 | Venituri | 0.00 | 10000.00 | 0.00 | 3000.00 | 0.00 | 13000.00 | 0.00 | 13000.00 |
+| 6111 | Cheltuieli | 0.00 | 0.00 | 3000.00 | 0.00 | 3000.00 | 0.00 | 3000.00 | 0.00 |
 
 **Așteptat (ENV default - agregare OFF):**
 - ❌ Eroare `DUPLICATE_ACCOUNTS`
@@ -332,14 +337,47 @@ export AGGREGATE_DUPLICATES=true
 
 ---
 
-### Test V4d: Structură coloane (maximum A–H) ✅
+### Test V4d: Structură coloane (exact A–J) ✅
 
-**Input:** fișier cu date în coloana I (a 9-a coloană)  
-**Așteptat:** Eroare blocking `EXCEL_INVALID_COLUMN_COUNT`  
+**Input:** fișier cu date în coloana K (a 11-a coloană)  
+**Așteptat:** Eroare blocking `EXCEL_INVALID_COLUMN_COUNT` — date dincolo de coloana J
 
-**Input alternativ:** rând cu celule goale în C–H  
+**Input alternativ:** rând cu celule goale în C–J  
 **Așteptat:** ✅ Acceptat; celulele goale = 0  
 **Status:** [ ]
+
+---
+
+### Test V4e: Format vechi 8 coloane ❌
+
+**Input:** `balanta_format_vechi_8_coloane.xlsx` (doar A–H, G/H = SF)  
+**Așteptat:** Eroare blocking `EXCEL_LEGACY_8_COLUMN_FORMAT`  
+**Mesaj:** structura veche cu 8 coloane nu mai este acceptată  
+**Status:** [ ]
+
+---
+
+### Test V4f: total_sume_debitoare incorect ❌
+
+**Input:** rând cu G ≠ SI D + Rulaj D (ex. G=1400, așteptat 1500)  
+**Așteptat:** `BALANCE_ROW_TOTAL_DEBIT_SUM_MISMATCH` + `BALANCE_TOTAL_SUMS_MISMATCH_DETECTED`  
+**Status:** [ ]
+
+---
+
+### Test V4g: total_sume_creditoare incorect ❌
+
+**Input:** rând cu H ≠ SI C + Rulaj C (ex. H=1200, așteptat 1300)  
+**Așteptat:** `BALANCE_ROW_TOTAL_CREDIT_SUM_MISMATCH`  
+**Status:** [ ]
+
+---
+
+### Test V4h: Toleranță rotunjire total_sume (0,01 RON) ✅
+
+**Input:** G sau H cu diferență ≤ 0,01 față de formulă  
+**Așteptat:** Upload acceptat  
+**Status:** [ ] (acoperit și de `npm test` / `excel-parser.test.ts`)
 
 ---
 
@@ -520,22 +558,26 @@ export AGGREGATE_DUPLICATES=true
 
 - [ ] Migrări aplicate: `20260129000001_fix_view_rls_security_invoker.sql`
 - [ ] Migrări aplicate: `20260129000002_fix_storage_bucket_consistency.sql`
-- [ ] Bucket `trial-balances` există
+- [ ] Migrări aplicate: `20260621100000_add_total_sume_columns.sql` (coloane G/H în DB)
+- [ ] Bucket `balante` există (sau `trial-balances` — verifică constanta din cod)
 - [ ] Storage policies verificate (3 policies pentru INSERT/SELECT/DELETE)
 - [ ] Views au `security_invoker = true`
 - [ ] RLS policies pe views verificate
 
 ### Code:
 
-- [ ] Hook folosește `trial-balances` (nu `balante`)
-- [ ] Edge Function folosește `trial-balances`
-- [ ] Validări 16/16 implementate
-- [ ] UI ValidationResultsDialog funcțional
-- [ ] fileHelpers.ts cu normalizare filename
+- [ ] `npm test` trece (13 teste parser 10 coloane)
+- [ ] Fișiere fixture Excel actualizate la format A–J
+- [ ] Hook folosește bucket canonical (`BALANCE_STORAGE_BUCKET` din constants)
+- [ ] Edge Function aliniată cu parser client (10 coloane + formule G/H)
+- [ ] Validări blocking în `excel-parser.ts` v2.1
+- [ ] UI ghid upload afișează 10 coloane
 
 ### Funcțional:
 
-- [ ] Upload balanță validă → SUCCESS
+- [ ] Upload balanță validă (10 coloane) → SUCCESS
+- [ ] Upload format vechi 8 coloane → ERROR `EXCEL_LEGACY_8_COLUMN_FORMAT`
+- [ ] Upload cu total_sume G/H greșit → ERROR blocking
 - [ ] Upload balanță dezechilibrată → ERROR cu detalii
 - [ ] Upload cu warnings → PERMIS cu avertizare
 - [ ] Download fișier original → SUCCESS
