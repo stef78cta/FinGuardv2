@@ -51,8 +51,8 @@ supabase/migrations/
 
 ### ✅ Documentație (6 ghiduri, 2,500+ linii)
 
-- `DEPLOYMENT_GUIDE.md` - Deployment pas-cu-pas
-- `GATE0_README.md` - Verificări preliminare
+- `planning/about generale/DEPLOYMENT_GUIDE.md` - Deployment pas-cu-pas
+- `planning/GATE0_README.md` - Verificări preliminare
 - `FRONTEND_UPDATES_REQUIRED.md` - Modificări frontend
 - `REGENERATE_TYPES.md` - Regenerare TypeScript
 - `IMPLEMENTATION_SUMMARY.md` - Sumar implementare
@@ -60,7 +60,7 @@ supabase/migrations/
 
 ### ✅ Testing (1 fișier, 600+ linii)
 
-- `testing/SECURITY_PATCHES_TEST_SUITE.md` - 29+ teste
+- `planning/about security patches, types, fix-uri tehnice/SECURITY_PATCHES_TEST_SUITE.md` - 29+ teste
 
 ---
 
@@ -107,7 +107,7 @@ npm run build
 ### Opțiunea 3: Production Deploy (Cel Mai Sigur)
 
 ```
-📖 Citește: planning/DEPLOYMENT_GUIDE.md
+📖 Citește: planning/about generale/DEPLOYMENT_GUIDE.md
 ✅ Follow: Checklist complet pas-cu-pas
 ⚠️  Atenție: Manual step pentru CUI UNIQUE (dacă > 1000 companies)
 ```
@@ -156,15 +156,15 @@ npm run build
                                    ↓
 3️⃣  planning/GATE0_README.md    ← Verificări obligatorii
                                    ↓
-4️⃣  planning/DEPLOYMENT_GUIDE   ← Ghid complet pas-cu-pas
+4️⃣  planning/about generale/DEPLOYMENT_GUIDE.md ← Ghid complet pas-cu-pas
                                    ↓
 5️⃣  IMPLEMENTATION_COMPLETE.md  ← Sumar detaliat complet
                                    ↓
-6️⃣  testing/TEST_SUITE.md       ← 29+ teste documentate
+6️⃣  SECURITY_PATCHES_TEST_SUITE.md ← 29+ teste documentate
 ```
 
 **Alternative Quick Access**:
-- 🔍 **Troubleshooting**: DEPLOYMENT_GUIDE.md (secțiunea Troubleshooting)
+- 🔍 **Troubleshooting**: `../about generale/DEPLOYMENT_GUIDE.md` (secțiunea Troubleshooting)
 - 🧪 **Testing**: SECURITY_PATCHES_TEST_SUITE.md
 - 🔄 **Frontend**: FRONTEND_UPDATES_REQUIRED.md
 - 🔧 **Types**: REGENERATE_TYPES.md
@@ -221,7 +221,7 @@ După deployment vei avea:
 
 1. **Review rapid** QUICK_START.md (5 min)
 2. **Deploy staging** (follow QUICK_START)
-3. **Test** (vezi TEST_SUITE.md)
+3. **Test** (vezi `SECURITY_PATCHES_TEST_SUITE.md`)
 
 ### În Următoarele 24h
 

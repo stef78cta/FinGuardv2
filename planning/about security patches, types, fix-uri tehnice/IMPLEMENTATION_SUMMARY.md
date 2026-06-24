@@ -158,7 +158,7 @@ Ghid complet 500+ linii cu:
 - Re-rulare după remedieri
 - FAQ și debugging
 
-#### 2. `planning/DEPLOYMENT_GUIDE.md`
+#### 2. `planning/about generale/DEPLOYMENT_GUIDE.md`
 Ghid complet 600+ linii cu:
 - Pre-deployment checklist (Gate 0 + backup)
 - Ordine migrări cu dependențe (grafic)
@@ -173,7 +173,7 @@ Ghid complet 600+ linii cu:
 - Troubleshooting (5 probleme comune)
 - Checklist final deployment
 
-#### 3. `planning/IMPLEMENTATION_SUMMARY.md`
+#### 3. `planning/about security patches, types, fix-uri tehnice/IMPLEMENTATION_SUMMARY.md`
 Acest document - sumar complet al implementării
 
 ---
@@ -191,7 +191,7 @@ Acest document - sumar complet al implementării
 
 ## ✅ TODO Completate
 
-- [x] Analiza completă plan_dezvoltare_database.md
+- [x] Analiza completă `planning/about database/plan_dezvoltare_database.md`
 - [x] Gate 0 - Verificări preliminare (queries + bash + README)
 - [x] PUNCT 1A - Fix RLS company_users + constraint triggers
 - [x] PUNCT 1B - Fix create_company_with_member + CUI UNIQUE
@@ -345,7 +345,7 @@ Verifică că:
 ## 📞 Contact & Support
 
 Pentru întrebări sau probleme legate de implementare:
-- Review `planning/DEPLOYMENT_GUIDE.md` (secțiunea Troubleshooting)
+- Review `planning/about generale/DEPLOYMENT_GUIDE.md` (secțiunea Troubleshooting)
 - Review `planning/GATE0_README.md` (secțiunea FAQ)
 - Rulează Gate 0 pentru diagnostic stare DB
 - Check migrări aplicat: `supabase migration list`

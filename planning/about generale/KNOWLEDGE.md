@@ -1098,10 +1098,10 @@ test('should upload balance sheet successfully', async ({ page }) => {
 - [Recharts Documentation](https://recharts.org)
 
 ### FinGuard Internal Docs
-- `planning/analiza_app.md` - Analiză completă aplicație + probleme rezolvate
-- `planning/tech_stack.md` - Arhitectură tehnică detaliată
+- `planning/about generale/analiza_app.md` - Analiză completă aplicație + probleme rezolvate
+- `planning/about generale/tech_stack.md` - Arhitectură tehnică detaliată
 - `planning/design-guidelines.jsonc` - Design system complete spec
-- `planning/KNOWLEDGE.md` - Acest document (knowledge base)
+- `planning/about generale/KNOWLEDGE.md` - Acest document (knowledge base)
 - `src/pages/StyleGuide.tsx` - Visual style guide live
 
 ### Helpful Tools

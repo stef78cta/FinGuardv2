@@ -514,7 +514,7 @@ const accountsToInsert = Array.from(aggregatedAccounts);
 **Actualizare Documentație:**
 
 ```markdown
-<!-- Fișier: planning/incarcare_balanta_f.md -->
+<!-- Fișier: planning/about upload balance/incarcare_balanta_f.md -->
 
 ### 3.3. Structură Excel Obligatorie
 

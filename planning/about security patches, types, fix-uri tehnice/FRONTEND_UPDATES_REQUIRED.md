@@ -541,7 +541,7 @@ export const FileUpload = ({ companyId }: { companyId: string }) => {
 ## 📞 Suport
 
 Pentru probleme sau întrebări:
-- Review `planning/DEPLOYMENT_GUIDE.md` (secțiunea Frontend Updates)
+- Review `planning/about generale/DEPLOYMENT_GUIDE.md` (secțiunea Frontend Updates)
 - Check `src/utils/fileHelpers.ts` pentru helper functions
 - Test pe staging ÎNAINTE de producție
 

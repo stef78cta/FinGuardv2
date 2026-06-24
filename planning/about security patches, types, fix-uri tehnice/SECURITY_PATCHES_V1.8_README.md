@@ -35,9 +35,9 @@ npm run build
 ### Pentru Înțelegere Completă
 
 1. 📖 **Citește**: `IMPLEMENTATION_COMPLETE.md` (sumar complet)
-2. 📋 **Review**: `planning/DEPLOYMENT_GUIDE.md` (pas-cu-pas)
-3. ✅ **Execută**: Gate 0 verificări (vezi GATE0_README.md)
-4. 🚀 **Deploy**: Urmează checklist din DEPLOYMENT_GUIDE.md
+2. 📋 **Review**: `planning/about generale/DEPLOYMENT_GUIDE.md` (pas-cu-pas)
+3. ✅ **Execută**: Gate 0 verificări (vezi `planning/GATE0_README.md`)
+4. 🚀 **Deploy**: Urmează checklist din `planning/about generale/DEPLOYMENT_GUIDE.md`
 5. 🧪 **Test**: Rulează suite din SECURITY_PATCHES_TEST_SUITE.md
 
 ---
@@ -49,9 +49,9 @@ npm run build
 | Vreau să... | Citește acest fișier |
 |-------------|---------------------|
 | Înțeleg ce s-a implementat | **IMPLEMENTATION_COMPLETE.md** |
-| Deploy pe staging/producție | **planning/DEPLOYMENT_GUIDE.md** |
+| Deploy pe staging/producție | **planning/about generale/DEPLOYMENT_GUIDE.md** |
 | Rulez verificări pre-migrare | **planning/GATE0_README.md** |
-| Testez patch-urile | **testing/SECURITY_PATCHES_TEST_SUITE.md** |
+| Testez patch-urile | **planning/about security patches, types, fix-uri tehnice/SECURITY_PATCHES_TEST_SUITE.md** |
 | Actualizez frontend | **FRONTEND_UPDATES_REQUIRED.md** |
 | Regenerez TypeScript types | **REGENERATE_TYPES.md** |
 
@@ -60,18 +60,21 @@ npm run build
 ```
 c:\_Software\SAAS\finguardv2/
 │
-├── 📋 SECURITY_PATCHES_V1.8_README.md (acest fișier)
-├── ✅ IMPLEMENTATION_COMPLETE.md (sumar complet)
-├── 🔄 FRONTEND_UPDATES_REQUIRED.md (modificări frontend)
-├── 🔧 REGENERATE_TYPES.md (regenerare TypeScript)
-│
 ├── planning/
 │   ├── 🚦 GATE0_README.md (ghid verificări)
-│   ├── 🚀 DEPLOYMENT_GUIDE.md (ghid deployment)
-│   ├── 📊 IMPLEMENTATION_SUMMARY.md (sumar implementare)
 │   ├── gate0_verificari.sql (queries diagnostice)
 │   ├── gate0_code_checks.sh (verificări cod)
-│   └── plan_dezvoltare_database.md (plan original - 3,640 linii)
+│   ├── about generale/
+│   │   └── 🚀 DEPLOYMENT_GUIDE.md (ghid deployment)
+│   ├── about database/
+│   │   └── plan_dezvoltare_database.md (plan original - 3,640 linii)
+│   └── about security patches, types, fix-uri tehnice/
+│       ├── 📋 SECURITY_PATCHES_V1.8_README.md (acest fișier)
+│       ├── ✅ IMPLEMENTATION_COMPLETE.md (sumar complet)
+│       ├── 🔄 FRONTEND_UPDATES_REQUIRED.md (modificări frontend)
+│       ├── 🔧 REGENERATE_TYPES.md (regenerare TypeScript)
+│       ├── 📊 IMPLEMENTATION_SUMMARY.md (sumar implementare)
+│       └── 🧪 SECURITY_PATCHES_TEST_SUITE.md (29+ teste)
 │
 ├── supabase/
 │   ├── config.toml (verify_jwt = true, CORS whitelist)
@@ -82,14 +85,11 @@ c:\_Software\SAAS\finguardv2/
 │       └── parse-balanta/
 │           └── index.ts (complet actualizat)
 │
-├── src/
-│   ├── hooks/
-│   │   └── useCompany.tsx (actualizat - fără p_user_id)
-│   └── utils/
-│       └── fileHelpers.ts (NOU - normalizare filename)
-│
-└── testing/
-    └── SECURITY_PATCHES_TEST_SUITE.md (29+ teste)
+└── src/
+    ├── hooks/
+    │   └── useCompany.tsx (actualizat - fără p_user_id)
+    └── utils/
+        └── fileHelpers.ts (NOU - normalizare filename)
 ```
 
 ---
@@ -186,7 +186,7 @@ cat planning/pre_deployment_commit.txt
 # 2. Revert code
 git reset --hard <commit-hash>
 
-# 3. Revert migrations (manual, vezi DEPLOYMENT_GUIDE.md)
+# 3. Revert migrations (manual, vezi planning/about generale/DEPLOYMENT_GUIDE.md)
 # SAU: Forward-only (recomandă păstrare patch-uri securitate)
 
 # 4. Re-deploy
@@ -196,7 +196,7 @@ npm run build && deploy
 
 ### Support Imediat
 
-**Probleme comune** (vezi DEPLOYMENT_GUIDE.md, secțiunea Troubleshooting):
+**Probleme comune** (vezi `planning/about generale/DEPLOYMENT_GUIDE.md`, secțiunea Troubleshooting):
 
 1. **Migrare 100006 eșuează cu "cannot run inside transaction"**  
    → Rulează manual CREATE INDEX CONCURRENTLY
@@ -249,7 +249,7 @@ npm run build && deploy
 
 Pentru suport sau întrebări:
 - Review documentația (6 ghiduri disponibile)
-- Check troubleshooting în DEPLOYMENT_GUIDE.md
+- Check troubleshooting în `planning/about generale/DEPLOYMENT_GUIDE.md`
 - Rulează Gate 0 pentru diagnostic DB
 
 ---

@@ -172,15 +172,15 @@
 ### Documentație (6 fișiere, ~2,500 linii)
 
 1. ✅ `planning/GATE0_README.md` - 475 linii
-2. ✅ `planning/DEPLOYMENT_GUIDE.md` - 534 linii
-3. ✅ `planning/IMPLEMENTATION_SUMMARY.md` - 358 linii
+2. ✅ `planning/about generale/DEPLOYMENT_GUIDE.md` - 534 linii
+3. ✅ `planning/about security patches, types, fix-uri tehnice/IMPLEMENTATION_SUMMARY.md` - 358 linii
 4. ✅ `FRONTEND_UPDATES_REQUIRED.md` - 400+ linii
 5. ✅ `REGENERATE_TYPES.md` - 250+ linii
 6. ✅ `IMPLEMENTATION_COMPLETE.md` - acest fișier
 
 ### Testing (1 fișier, 600+ linii)
 
-1. ✅ `testing/SECURITY_PATCHES_TEST_SUITE.md` - 600+ linii
+1. ✅ `planning/about security patches, types, fix-uri tehnice/SECURITY_PATCHES_TEST_SUITE.md` - 600+ linii
    - 6 test suites
    - 29+ teste individuale
    - Template rezultate
@@ -321,7 +321,7 @@ npm run type-check
 
 ```bash
 # Rulează test suite
-# Vezi testing/SECURITY_PATCHES_TEST_SUITE.md
+# Vezi planning/about security patches, types, fix-uri tehnice/SECURITY_PATCHES_TEST_SUITE.md
 
 # Teste critice obligatorii:
 # 1. Test auto-join reject (Test 1.1)
@@ -362,17 +362,18 @@ planning/
 ├── gate0_verificari.sql (300 linii)
 ├── gate0_code_checks.sh (313 linii)
 ├── GATE0_README.md (475 linii)
-├── DEPLOYMENT_GUIDE.md (534 linii)
-├── IMPLEMENTATION_SUMMARY.md (358 linii)
+├── about generale/
+│   └── DEPLOYMENT_GUIDE.md (534 linii)
+├── about security patches, types, fix-uri tehnice/
+│   ├── IMPLEMENTATION_SUMMARY.md (358 linii)
+│   ├── FRONTEND_UPDATES_REQUIRED.md (400+ linii)
+│   ├── REGENERATE_TYPES.md (250+ linii)
+│   ├── IMPLEMENTATION_COMPLETE.md (acest fișier)
+│   └── SECURITY_PATCHES_TEST_SUITE.md (600+ linii)
 └── (OUTPUT FILES - generate la rulare)
     ├── gate0_db_state.txt
     ├── gate0_code_results.txt
     └── pre_deployment_commit.txt
-
-Root:
-├── FRONTEND_UPDATES_REQUIRED.md (400+ linii)
-├── REGENERATE_TYPES.md (250+ linii)
-└── IMPLEMENTATION_COMPLETE.md (acest fișier)
 ```
 
 ### Migrations
@@ -415,7 +416,7 @@ src/
 ### Testing
 
 ```
-testing/
+planning/about security patches, types, fix-uri tehnice/
 └── SECURITY_PATCHES_TEST_SUITE.md (600+ linii)
     ├── Test Suite 1: RLS Policies (8 teste)
     ├── Test Suite 2: Funcții SECURITY DEFINER (4 teste)
@@ -521,12 +522,12 @@ Layer 4: Frontend
 
 Pentru orice întrebare, consultă în ordine:
 
-1. **DEPLOYMENT_GUIDE.md** - Pas-cu-pas deployment
-2. **GATE0_README.md** - Verificări preliminare
-3. **FRONTEND_UPDATES_REQUIRED.md** - Modificări frontend necesare
-4. **REGENERATE_TYPES.md** - Regenerare TypeScript types
-5. **SECURITY_PATCHES_TEST_SUITE.md** - Suite complete de teste
-6. **plan_dezvoltare_database.md** - Plan original detaliat (3,640 linii)
+1. **`planning/about generale/DEPLOYMENT_GUIDE.md`** - Pas-cu-pas deployment
+2. **`planning/GATE0_README.md`** - Verificări preliminare
+3. **`FRONTEND_UPDATES_REQUIRED.md`** - Modificări frontend necesare
+4. **`REGENERATE_TYPES.md`** - Regenerare TypeScript types
+5. **`SECURITY_PATCHES_TEST_SUITE.md`** - Suite complete de teste
+6. **`planning/about database/plan_dezvoltare_database.md`** - Plan original detaliat (3,640 linii)
 
 ### Debugging
 
@@ -577,7 +578,7 @@ WHERE cu.user_id IS NULL;
 
 ### ✅ IMPLEMENTARE 100% COMPLETĂ
 
-**Toate punctele din plan_dezvoltare_database.md v1.8 au fost implementate**:
+**Toate punctele din `planning/about database/plan_dezvoltare_database.md` v1.8 au fost implementate**:
 
 - ✅ Gate 0 (verificări pre-migrare)
 - ✅ PUNCT 1A (RLS company_users + triggers)

@@ -354,10 +354,10 @@ SELECT * FROM cron.job;
 
 ## 📚 Resurse Adiționale
 
-- **Plan complet bugfix:** `planning/plan_upload_balanta.md`
-- **Documentație DB:** `planning/descriere_database.md`
-- **Testing guide:** `TESTING_GUIDE_UPLOAD_BALANTA.md`
-- **Security patches:** `SECURITY_PATCHES_V1.8_README.md`
+- **Plan complet bugfix:** `planning/about upload balance/plan_upload_balanta.md`
+- **Documentație DB:** `planning/about database/descriere_database.md`
+- **Testing guide:** `planning/about upload balance/TESTING_GUIDE_UPLOAD_BALANTA.md`
+- **Security patches:** `planning/about security patches, types, fix-uri tehnice/SECURITY_PATCHES_V1.8_README.md`
 
 ---
 

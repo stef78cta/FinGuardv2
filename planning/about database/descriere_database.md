@@ -2070,15 +2070,15 @@ WHERE tablename = 'companies' AND indexname = 'idx_companies_cui_normalized';
 
 | Fișier | Descriere |
 |--------|-----------|
-| `SECURITY_PATCHES_V1.8_README.md` | Quick start & navigare |
-| `IMPLEMENTATION_COMPLETE.md` | Sumar implementare (toate patch-urile) |
-| `planning/DEPLOYMENT_GUIDE.md` | Ghid deployment pas-cu-pas (600+ linii) |
+| `planning/about security patches, types, fix-uri tehnice/SECURITY_PATCHES_V1.8_README.md` | Quick start & navigare |
+| `planning/about security patches, types, fix-uri tehnice/IMPLEMENTATION_COMPLETE.md` | Sumar implementare (toate patch-urile) |
+| `planning/about generale/DEPLOYMENT_GUIDE.md` | Ghid deployment pas-cu-pas (600+ linii) |
 | `planning/GATE0_README.md` | Ghid verificări pre-migrare (500+ linii) |
 | `planning/gate0_verificari.sql` | 7 queries diagnostice (D1-D6 + EXTRA) |
 | `planning/gate0_code_checks.sh` | Script bash verificări cod (8 secțiuni A-H) |
-| `testing/SECURITY_PATCHES_TEST_SUITE.md` | 29+ teste documentate (850+ linii) |
-| `FRONTEND_UPDATES_REQUIRED.md` | Modificări frontend necesare (550+ linii) |
-| `REGENERATE_TYPES.md` | Ghid regenerare TypeScript types |
+| `planning/about security patches, types, fix-uri tehnice/SECURITY_PATCHES_TEST_SUITE.md` | 29+ teste documentate (850+ linii) |
+| `planning/about security patches, types, fix-uri tehnice/FRONTEND_UPDATES_REQUIRED.md` | Modificări frontend necesare (550+ linii) |
+| `planning/about security patches, types, fix-uri tehnice/REGENERATE_TYPES.md` | Ghid regenerare TypeScript types |
 
 ### Gate 0 - Verificări Pre-Migrare
 
@@ -2206,14 +2206,14 @@ SELECT * FROM public.cleanup_rate_limits();
 
 ### Documentație Completă
 
-1. **START_HERE.md** - Ghid inițial proiect
-2. **QUICK_START.md** - Setup rapid development
-3. **README.md** - Overview general proiect
-4. **planning/KNOWLEDGE.md** - Cunoștințe arhitecturale
-5. **planning/tech_stack.md** - Stack tehnologic
-6. **planning/analiza_app.md** - Analiză aplicație (578 linii)
-7. **planning/plan_dezvoltare_database.md** - Plan dezvoltare complet (3,640 linii)
-8. **planning/summary_md.md** - Sumar documentație (794 linii)
+1. **planning/about security patches, types, fix-uri tehnice/START_HERE.md** - Ghid inițial proiect
+2. **planning/about security patches, types, fix-uri tehnice/QUICK_START.md** - Setup rapid development
+3. **README.md** - Overview general proiect (rădăcină repo)
+4. **planning/about generale/KNOWLEDGE.md** - Cunoștințe arhitecturale
+5. **planning/about generale/tech_stack.md** - Stack tehnologic
+6. **planning/about generale/analiza_app.md** - Analiză aplicație (578 linii)
+7. **planning/about database/plan_dezvoltare_database.md** - Plan dezvoltare complet (3,640 linii)
+8. **planning/about generale/summary_md.md** - Sumar documentație (794 linii)
 
 ### Troubleshooting
 

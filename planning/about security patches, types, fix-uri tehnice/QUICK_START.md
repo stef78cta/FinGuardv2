@@ -189,8 +189,8 @@ SELECT indexname FROM pg_indexes WHERE indexname = 'idx_companies_cui_normalized
 
 | Problemă | Soluție |
 |----------|---------|
-| Migrare eșuează | Vezi DEPLOYMENT_GUIDE.md → Troubleshooting |
-| Gate 0 găsește ❌ | Vezi GATE0_README.md → Remediere |
+| Migrare eșuează | Vezi `../about generale/DEPLOYMENT_GUIDE.md` → Troubleshooting |
+| Gate 0 găsește ❌ | Vezi `../../GATE0_README.md` → Remediere |
 | Frontend errors | Vezi FRONTEND_UPDATES_REQUIRED.md |
 | Test failures | Vezi SECURITY_PATCHES_TEST_SUITE.md |
 

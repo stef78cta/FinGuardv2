@@ -791,10 +791,11 @@ FinGuard/
 │   └── favicon.ico
 │
 ├── planning/
-│   ├── analiza_app.md          # Analiză cerințe
-│   ├── design-guidelines.json  # Design system spec
-│   ├── KNOWLEDGE.md            # Documentație cunoștințe
-│   └── tech_stack.md           # This document
+│   ├── about generale/
+│   │   ├── analiza_app.md          # Analiză cerințe
+│   │   ├── KNOWLEDGE.md            # Documentație cunoștințe
+│   │   └── tech_stack.md           # This document
+│   ├── design-guidelines.json      # Design system spec (legacy path)
 │
 ├── src/
 │   ├── assets/                  # Images, icons

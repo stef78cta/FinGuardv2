@@ -463,7 +463,7 @@ ls planning/gate0_verificari.sql
 
 ## 📚 Resurse Adiționale
 
-- [Plan Dezvoltare Database](./plan_dezvoltare_database.md)
+- [Plan Dezvoltare Database](../about database/plan_dezvoltare_database.md)
 - [Supabase RLS Documentation](https://supabase.com/docs/guides/auth/row-level-security)
 - [PostgreSQL Constraint Triggers](https://www.postgresql.org/docs/current/sql-createtrigger.html)
 

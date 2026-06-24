@@ -45,10 +45,11 @@ finguardv2/
 │   └── migrations/
 │       ├── 20260129000001_fix_view_rls_security_invoker.sql      ✨ NOU
 │       └── 20260129000002_fix_storage_bucket_consistency.sql     ✨ NOU
-└── docs/
-    ├── IMPLEMENTATION_UPLOAD_BALANTA.md      ✨ NOU (documentație)
-    ├── TESTING_GUIDE_UPLOAD_BALANTA.md       ✨ NOU (teste)
-    └── QUICK_START_IMPLEMENTATION.md          ✨ NOU (acest fișier)
+└── planning/
+    └── about upload balance/
+        ├── IMPLEMENTATION_UPLOAD_BALANTA.md      ✨ NOU (documentație)
+        ├── TESTING_GUIDE_UPLOAD_BALANTA.md       ✨ NOU (teste)
+        └── QUICK_START_IMPLEMENTATION.md          ✨ NOU (acest fișier)
 ```
 
 ---

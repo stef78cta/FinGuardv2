@@ -25,14 +25,14 @@
 
 | Problemă                                  | Documente implicate                                                                               | Realitate consolidată (iun. 2026)                                                                                                               |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| **„100% production ready”**               | `IMPLEMENTATION_COMPLETE.md`, `QUICK_START_IMPLEMENTATION.md`, `IMPLEMENTATION_UPLOAD_BALANTA.md` | Cod upload refăcut (21 iun.), dar **deploy Supabase obligatoriu**; test E2E live încă manual                                                    |
+| **„100% production ready”**               | `planning/about security patches, types, fix-uri tehnice/IMPLEMENTATION_COMPLETE.md`, `planning/about upload balance/QUICK_START_IMPLEMENTATION.md`, `planning/about upload balance/IMPLEMENTATION_UPLOAD_BALANTA.md` | Cod upload refăcut (21 iun.), dar **deploy Supabase obligatoriu**; test E2E live încă manual                                                    |
 | **Bucket `balante` vs `trial-balances`**  | Docs ian. 29 vs `REZOLVARE_EROARE_INCARCARE.md`                                                   | **Rezolvat în cod:** `BALANCE_STORAGE_BUCKET = 'balante'` + migrare `20260621000000` elimină legacy `trial-balances`                            |
 | **Edge Function neapelată**               | Workaround v1.9 documentat                                                                        | **Rezolvat:** `importPipeline.ts` invocă `parse-balanta`; fallback client doar la eșec                                                          |
 | **View public nefolosit**                 | `FRONTEND_UPDATES_REQUIRED.md`                                                                    | **Parțial rezolvat:** `importPipeline.getImportsReadSource()` preferă `trial_balance_imports_public` cu fallback; script static: 7/8 verificări |
 | **`p_user_id` eliminat**                  | Security v1.8 docs                                                                                | **Inconsistent:** `useCompany.tsx` OK; **`CompanyContext.tsx` încă trimite `p_user_id`**; types.ts neactualizat                                 |
 | **Validări 16 în `balanceValidation.ts`** | `IMPLEMENTATION_UPLOAD_BALANTA.md`                                                                | **Neconectate la upload** — fluxul folosește `excel-parser.ts` v2.1; `validateBalance()` doar pentru agregare duplicate                         |
-| **Index depășit**                         | `planning/summary_md.md` (22 fișiere, 28 ian.)                                                    | Lipsesc ≥14 documente (upload ian.–iun., rapoarte noi)                                                                                          |
-| **Test coverage 90%+**                    | `START_HERE.md`, `VISUAL_SUMMARY.md`                                                              | **Supraestimat:** 13 teste unitare parser; fără Playwright/E2E automat                                                                          |
+| **Index depășit**                         | `planning/about generale/summary_md.md` (22 fișiere, 28 ian.)                                                    | Lipsesc ≥14 documente (upload ian.–iun., rapoarte noi)                                                                                          |
+| **Test coverage 90%+**                    | `planning/about security patches, types, fix-uri tehnice/START_HERE.md`, `planning/about security patches, types, fix-uri tehnice/VISUAL_SUMMARY.md` | **Supraestimat:** 13 teste unitare parser; fără Playwright/E2E automat                                                                          |
 | **Format 8 coloane**                      | `incarcare_balanta_f.md` v1.8, `TESTING_GUIDE_*` vechi                                            | **Depășit:** format vechi respins; sursă actuală: `ce_verificari_se_fac_la_upload_baanta.md`                                                    |
 | **Confidențialitate fără CUI**            | Marketing docs                                                                                    | CUI obligatoriu + UNIQUE constraint                                                                                                             |
 | **„Date pe Amazon”**                      | `analiza_app.md`                                                                                  | Stack real: **Supabase**                                                                                                                        |
@@ -131,7 +131,7 @@ npm run build               → ✅ dist/ disponibil (conform script)
 | Mobile app                                  | Acces nativ          | Mare         |
 | Billing / Stripe                            | Monetizare           | Mare         |
 
-_Sursă: `KNOWLEDGE.md` roadmap, `START_HERE.md` v2.0 planificat_
+_Sursă: `planning/about generale/KNOWLEDGE.md` roadmap, `planning/about security patches, types, fix-uri tehnice/START_HERE.md` v2.0 planificat_
 
 ---
 
@@ -220,7 +220,7 @@ UI validare client (10 col A–J, formule G/H, control totals)
 | 2   | **`CompanyContext` trimite `p_user_id`** | Ridicat    | `CompanyContext.tsx:182`               |
 | 3   | **Types.ts neactualizat**                | Mediu      | `src/integrations/supabase/types.ts`   |
 | 4   | **16 validări OMFP neconectate**         | Mediu      | `balanceValidation.ts`                 |
-| 5   | **Tab switch reset app**                 | Mediu      | `DEBUG_TAB_SWITCH.md`                  |
+| 5   | **Tab switch reset app**                 | Mediu      | `planning/about frontend/DEBUG_TAB_SWITCH.md`                  |
 | 6   | **Docs vechi format 8 coloane**          | Scăzut     | `incarcare_balanta_f.md`, ghiduri ian. |
 | 7   | **Fără E2E Playwright**                  | Mediu      | Lipsă din repo                         |
 | 8   | **Admin query direct tabel**             | Scăzut     | `Admin.tsx`                            |
@@ -228,7 +228,7 @@ UI validare client (10 col A–J, formule G/H, control totals)
 ### Datorie tehnică
 
 - ~15 README-uri „IMPLEMENTATION_COMPLETE" contradictorii
-- `planning/summary_md.md` index depășit
+- `planning/about generale/summary_md.md` index depășit
 - Marketing claims (fără CUI, Amazon cloud)
 - KPI calculate client-side (Edge Fn `calculate-kpis` planificat)
 
@@ -308,7 +308,7 @@ Deploy + monitoring 24h, Playwright E2E, invite/RBAC, billing, audit log, legal 
 7. Adaugă Playwright pentru flux critic
 8. Finalizează export PDF rapoarte
 9. Deploy staging + monitoring stale imports
-10. Actualizează `planning/summary_md.md` sau depreciază-l
+10. Actualizează `planning/about generale/summary_md.md` sau depreciază-l
 
 ---
 
@@ -413,30 +413,30 @@ Deploy + monitoring 24h, Playwright E2E, invite/RBAC, billing, audit log, legal 
 
 | Fișier                                                              | Notă                                                    |
 | ------------------------------------------------------------------- | ------------------------------------------------------- |
-| `IMPLEMENTATION_COMPLETE.md`, `START_HERE.md`, `VISUAL_SUMMARY.md`  | Security v1.8 — util deploy, status „100%" supraestimat |
-| `IMPLEMENTATION_UPLOAD_BALANTA.md`, `QUICK_START_IMPLEMENTATION.md` | Upload v1.4 — parțial depășit (bucket trial-balances)   |
-| `FIX_IMPORTS_BLOCATE_README.md`, `REZOLVARE_EROARE_INCARCARE.md`    | Fix-uri ian. 29 — context istoric                       |
-| `FIX_VALIDATION_BLOCKING_README.md`, `TESTS_VALIDATION_BLOCKING.md` | Validări blocking — acoperite de excel-parser v2.1      |
-| `TESTING_GUIDE_UPLOAD_BALANTA.md`                                   | Verifică format 10 col înainte de utilizare             |
+| `planning/about security patches, types, fix-uri tehnice/IMPLEMENTATION_COMPLETE.md`, `planning/about security patches, types, fix-uri tehnice/START_HERE.md`, `planning/about security patches, types, fix-uri tehnice/VISUAL_SUMMARY.md`  | Security v1.8 — util deploy, status „100%" supraestimat |
+| `planning/about upload balance/IMPLEMENTATION_UPLOAD_BALANTA.md`, `planning/about upload balance/QUICK_START_IMPLEMENTATION.md` | Upload v1.4 — parțial depășit (bucket trial-balances)   |
+| `planning/about security patches, types, fix-uri tehnice/FIX_IMPORTS_BLOCATE_README.md`, `planning/about security patches, types, fix-uri tehnice/REZOLVARE_EROARE_INCARCARE.md`    | Fix-uri ian. 29 — context istoric                       |
+| `planning/about upload balance/FIX_VALIDATION_BLOCKING_README.md`, `planning/about upload balance/TESTS_VALIDATION_BLOCKING.md` | Validări blocking — acoperite de excel-parser v2.1      |
+| `planning/about upload balance/TESTING_GUIDE_UPLOAD_BALANTA.md`                                   | Verifică format 10 col înainte de utilizare             |
 
 ### Planning & arhitectură
 
 | Fișier                                                                   | Notă                                           |
 | ------------------------------------------------------------------------ | ---------------------------------------------- |
-| `planning/KNOWLEDGE.md`, `planning/tech_stack.md`                        | Referință zilnică — actualizează bucket/format |
-| `planning/analiza_app.md`                                                | Analiză ian. — secțiune N+1 depășită           |
-| `planning/summary_md.md`                                                 | **Index depășit** (22 vs 36 fișiere)           |
-| `planning/plan_upload_balanta.md`                                        | Plan detaliat — util istoric                   |
-| `planning/incarcare_balanta_f.md`                                        | v1.8 — format 8 col depășit                    |
-| `planning/descriere_database.md`, `planning/plan_dezvoltare_database.md` | Schema DB exhaustivă                           |
+| `planning/about generale/KNOWLEDGE.md`, `planning/about generale/tech_stack.md`                        | Referință zilnică — actualizează bucket/format |
+| `planning/about generale/analiza_app.md`                                                | Analiză ian. — secțiune N+1 depășită           |
+| `planning/about generale/summary_md.md`                                                 | **Index depășit** (22 vs 36 fișiere)           |
+| `planning/about upload balance/plan_upload_balanta.md`                                        | Plan detaliat — util istoric                   |
+| `planning/about upload balance/incarcare_balanta_f.md`                                        | v1.8 — format 8 col depășit                    |
+| `planning/about database/descriere_database.md`, `planning/about database/plan_dezvoltare_database.md` | Schema DB exhaustivă                           |
 
 ### Altele
 
 | Fișier                                            | Rol                            |
 | ------------------------------------------------- | ------------------------------ |
-| `planning/DEPLOYMENT_GUIDE.md`, `GATE0_README.md` | Deploy Security v1.8           |
-| `testing/SECURITY_PATCHES_TEST_SUITE.md`          | 29+ teste documentate (manuel) |
-| `DEBUG_TAB_SWITCH.md`                             | Diagnostic UX                  |
+| `planning/about generale/DEPLOYMENT_GUIDE.md`, `planning/GATE0_README.md` | Deploy Security v1.8           |
+| `planning/about security patches, types, fix-uri tehnice/SECURITY_PATCHES_TEST_SUITE.md`          | 29+ teste documentate (manuel) |
+| `planning/about frontend/DEBUG_TAB_SWITCH.md`                             | Diagnostic UX                  |
 | `README.md`                                       | Setup Lovable generic          |
 | `.lovable/plan*.md`, `BRAND_GUIDELINES.md`        | Brand & design                 |
 
