@@ -24,6 +24,7 @@ import { BalanceAccount } from '@/hooks/useBalante';
 import { useCompanyContext } from '@/contexts/CompanyContext';
 import { useTrialBalances, TrialBalanceImport, TrialBalanceImportWithTotals } from '@/hooks/useTrialBalances';
 import { useBalanceUploadForm } from '@/hooks/useBalanceUploadForm';
+import { calculateBalancePeriodFromDate } from '@/lib/balancePeriod';
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { BalanceUploadPreview } from '@/components/upload/BalanceUploadPreview';
@@ -91,15 +92,15 @@ const IncarcareBalanta = () => {
 
   const {
     fileInputRef,
-    referenceDate,
+    balanceMonth,
     uploadedFile,
     isDragging,
     setIsDragging,
     uploadProgress,
     setUploadProgress,
     uploadStatus,
-    dateError,
-    setDateError,
+    monthError,
+    setMonthError,
     previewData,
     validationErrors,
     validationWarnings,
@@ -108,7 +109,7 @@ const IncarcareBalanta = () => {
     duplicateAccounts,
     accountsCount,
     parsedData,
-    handleReferenceDateChange,
+    handleBalanceMonthChange,
     handleFileSelect,
     handleRemoveFile,
     beginUpload,
@@ -116,6 +117,18 @@ const IncarcareBalanta = () => {
     failUpload,
     resetAfterSuccessfulImport,
   } = useBalanceUploadForm();
+
+  const calculatedPeriod = useMemo(() => {
+    if (!balanceMonth) return null;
+    try {
+      return calculateBalancePeriodFromDate(
+        balanceMonth,
+        activeCompany?.fiscal_year_start_month ?? 1,
+      );
+    } catch {
+      return null;
+    }
+  }, [balanceMonth, activeCompany?.fiscal_year_start_month]);
 
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -182,9 +195,9 @@ const IncarcareBalanta = () => {
     }
   };
   const handleUpload = async () => {
-    if (!referenceDate) {
-      setDateError(true);
-      toast.error('Data de referință este obligatorie');
+    if (!balanceMonth) {
+      setMonthError(true);
+      toast.error('Luna balanței este obligatorie');
       return;
     }
     if (!uploadedFile) {
@@ -217,15 +230,16 @@ const IncarcareBalanta = () => {
 
     const uploadGeneration = beginUpload();
     try {
-      // Calculate period start (first day of month)
-      const periodStart = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
       setUploadProgress(30);
-      await uploadBalance(uploadedFile, periodStart, referenceDate, userData.id, {
-        onProgress: setUploadProgress,
-        onPhase: (phase) => {
-          if (phase === 'processing') {
-            toast.info('Procesare balanță pe server...');
-          }
+      await uploadBalance(uploadedFile, balanceMonth, userData.id, {
+        fiscalYearStartMonth: activeCompany?.fiscal_year_start_month ?? 1,
+        callbacks: {
+          onProgress: setUploadProgress,
+          onPhase: (phase) => {
+            if (phase === 'processing') {
+              toast.info('Procesare balanță pe server...');
+            }
+          },
         },
       });
       completeUpload(uploadGeneration);
@@ -448,28 +462,30 @@ const IncarcareBalanta = () => {
       {/* Main Container */}
       <Card className="overflow-hidden">
 
-        {/* Date Picker Section */}
+        {/* Month Picker Section */}
         <div className="p-5 2xl:p-8 border-b">
           <div className="max-w-xs 2xl:max-w-sm">
-            <Label htmlFor="reference-date" className="text-sm font-semibold mb-2 block">
-              Data de Referință <span className="text-destructive">*</span>
+            <Label htmlFor="balance-month" className="text-sm font-semibold mb-2 block">
+              Luna balanței <span className="text-destructive">*</span>
             </Label>
             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
-                <Button id="reference-date" variant="outline" className={cn("w-full justify-start text-left font-normal", !referenceDate && "text-muted-foreground", dateError && "border-destructive")}>
+                <Button id="balance-month" variant="outline" className={cn("w-full justify-start text-left font-normal", !balanceMonth && "text-muted-foreground", monthError && "border-destructive")}>
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {referenceDate ? format(referenceDate, "dd.MM.yyyy", {
+                  {balanceMonth ? format(balanceMonth, "MMMM yyyy", {
                   locale: ro
-                }) : "Selectează data"}
+                }) : "Selectează luna"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <AdvancedCalendar 
-                  selected={referenceDate} 
+                  selected={balanceMonth} 
                   onSelect={date => {
-                    handleReferenceDateChange(date);
+                    handleBalanceMonthChange(date);
                     setCalendarOpen(false);
                   }} 
+                  monthPickerOnly
+                  defaultViewMode="month"
                   enableDrillDown 
                   enableDecadeView 
                   yearRange={{ from: 2000, to: 2050 }}
@@ -478,10 +494,15 @@ const IncarcareBalanta = () => {
                 />
               </PopoverContent>
             </Popover>
-            {dateError && <p className="text-xs text-destructive mt-1">Data de referință este obligatorie</p>}
-            <p className="text-xs text-muted-foreground mt-1">
-              Data până la care este validă balanța contabilă
-            </p>
+            {monthError && <p className="text-xs text-destructive mt-1">Luna balanței este obligatorie</p>}
+            {calculatedPeriod && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Perioada contabilă va fi calculată automat:{' '}
+                {format(new Date(calculatedPeriod.period_start), 'dd.MM.yyyy', { locale: ro })}
+                {' – '}
+                {format(new Date(calculatedPeriod.period_end), 'dd.MM.yyyy', { locale: ro })}
+              </p>
+            )}
           </div>
         </div>
 
@@ -778,7 +799,7 @@ const IncarcareBalanta = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nume Fișier</TableHead>
-                    <TableHead>Perioadă</TableHead>
+                    <TableHead>Luna balanței</TableHead>
                     <TableHead>Data Încărcare</TableHead>
                     <TableHead className="text-right">Nr. Conturi</TableHead>
                     <TableHead className="text-right">Total Debit</TableHead>
@@ -798,7 +819,7 @@ const IncarcareBalanta = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {format(new Date(imp.period_end), "MMMM yyyy", {
+                          {format(new Date(imp.balance_month ?? imp.period_end), "MMMM yyyy", {
                       locale: ro
                     })}
                         </TableCell>

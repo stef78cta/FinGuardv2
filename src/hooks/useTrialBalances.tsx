@@ -3,6 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { parseExcelFile } from '@/lib/excel-parser';
 import {
+  calculateBalancePeriodFromDate,
+  validateBalancePeriod,
+} from '@/lib/balancePeriod';
+import {
   formatBlockingValidationErrors,
   getImportsReadSource,
   processImport,
@@ -21,6 +25,7 @@ export interface TrialBalanceImport {
   company_id: string;
   source_file_name: string;
   source_file_url: string | null;
+  balance_month: string;
   period_start: string;
   period_end: string;
   status: 'draft' | 'processing' | 'validated' | 'completed' | 'error';
@@ -120,6 +125,7 @@ export const useTrialBalances = (companyId: string | null) => {
           company_id: companyId,
           source_file_name: row.source_file_name as string,
           source_file_url: row.source_file_url as string | null,
+          balance_month: (row.balance_month as string) ?? (row.period_start as string),
           period_start: row.period_start as string,
           period_end: row.period_end as string,
           status: row.status as TrialBalanceImport['status'],
@@ -168,12 +174,21 @@ export const useTrialBalances = (companyId: string | null) => {
    */
   const uploadBalance = async (
     file: File,
-    periodStart: Date,
-    periodEnd: Date,
+    balanceMonth: Date,
     userId: string,
-    callbacks?: UploadProgressCallbacks
+    options?: {
+      fiscalYearStartMonth?: number;
+      callbacks?: UploadProgressCallbacks;
+    }
   ): Promise<TrialBalanceImport> => {
     if (!companyId) throw new Error('No company selected');
+
+    const callbacks = options?.callbacks;
+    const period = calculateBalancePeriodFromDate(
+      balanceMonth,
+      options?.fiscalYearStartMonth ?? 1,
+    );
+    validateBalancePeriod(period);
 
     callbacks?.onPhase?.('validating');
     callbacks?.onProgress?.(10);
@@ -207,8 +222,9 @@ export const useTrialBalances = (companyId: string | null) => {
         company_id: companyId,
         source_file_name: file.name,
         source_file_url: filePath,
-        period_start: periodStart.toISOString().split('T')[0],
-        period_end: periodEnd.toISOString().split('T')[0],
+        balance_month: period.balance_month,
+        period_start: period.period_start,
+        period_end: period.period_end,
         file_size_bytes: file.size,
         uploaded_by: userId,
         status: 'processing',
@@ -218,6 +234,13 @@ export const useTrialBalances = (companyId: string | null) => {
 
     if (insertError) {
       await supabase.storage.from(BALANCE_STORAGE_BUCKET).remove([filePath]);
+
+      if (insertError.code === '23505') {
+        throw new Error(
+          'Există deja o balanță activă pentru luna selectată. Ștergeți importul anterior sau alegeți altă lună.',
+        );
+      }
+
       throw insertError;
     }
 

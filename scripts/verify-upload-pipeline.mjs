@@ -77,11 +77,29 @@ if (hook.includes('TRIAL_BALANCE_IMPORTS_VIEW')) {
   fail('useTrialBalances view', 'Nu folosește view public');
 }
 
-// 7. Migrare v2.0 există
+// 7. Migrări pipeline
 if (existsSync(join(root, 'supabase/migrations/20260621000000_stabilize_upload_pipeline.sql'))) {
   pass('Migrare 20260621000000_stabilize_upload_pipeline.sql există');
 } else {
   fail('Migrare', 'Lipsește migrarea de stabilizare');
+}
+
+if (constants.includes('balance_month')) {
+  pass('constants.ts: balance_month în TRIAL_BALANCE_IMPORTS_SELECT_COLUMNS');
+} else {
+  fail('balance_month column', 'Lipsește balance_month din SELECT columns');
+}
+
+if (existsSync(join(root, 'supabase/migrations/20260630100000_add_balance_month_to_trial_balance_imports.sql'))) {
+  pass('Migrare 20260630100000_add_balance_month există');
+} else {
+  fail('Migrare balance_month', 'Lipsește migrarea balance_month');
+}
+
+if (existsSync(join(root, 'src/lib/balancePeriod.ts'))) {
+  pass('Helper calculateBalancePeriod există');
+} else {
+  fail('balancePeriod.ts', 'Lipsește helper-ul de calcul perioadă');
 }
 
 // 8. Build artifacts (optional)

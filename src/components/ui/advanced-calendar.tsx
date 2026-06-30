@@ -21,6 +21,11 @@ export interface AdvancedCalendarProps
   yearRange?: { from: number; to: number };
   /** Locale pentru formatare (default: ro) */
   locale?: Locale;
+  /**
+   * Dacă true, selectarea unei luni confirmă direct (prima zi a lunii),
+   * fără navigare la view-ul de zile.
+   */
+  monthPickerOnly?: boolean;
 }
 
 /**
@@ -49,6 +54,7 @@ function AdvancedCalendar({
   enableDecadeView = true,
   defaultViewMode = "day",
   yearRange = { from: 1950, to: 2100 },
+  monthPickerOnly = false,
   selected,
   onSelect,
   locale = ro,
@@ -104,8 +110,12 @@ function AdvancedCalendar({
 
   // Handlers pentru drill-down (click pe element în grid)
   const handleMonthSelect = (monthIndex: number) => {
-    const newDate = setMonth(setYear(new Date(), displayYear), monthIndex);
-    setDisplayMonth(startOfMonth(newDate));
+    const newDate = startOfMonth(setMonth(setYear(new Date(), displayYear), monthIndex));
+    setDisplayMonth(newDate);
+    if (monthPickerOnly) {
+      onSelect?.(newDate);
+      return;
+    }
     setViewMode("day");
   };
 

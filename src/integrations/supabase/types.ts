@@ -374,7 +374,28 @@ export type Database = {
             foreignKeyName: "financial_statements_source_import_id_fkey"
             columns: ["source_import_id"]
             isOneToOne: false
+            referencedRelation: "stale_imports_monitor"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_statements_source_import_id_fkey"
+            columns: ["source_import_id"]
+            isOneToOne: false
             referencedRelation: "trial_balance_imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_statements_source_import_id_fkey"
+            columns: ["source_import_id"]
+            isOneToOne: false
+            referencedRelation: "trial_balance_imports_internal"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_statements_source_import_id_fkey"
+            columns: ["source_import_id"]
+            isOneToOne: false
+            referencedRelation: "trial_balance_imports_public"
             referencedColumns: ["id"]
           },
         ]
@@ -559,7 +580,28 @@ export type Database = {
             foreignKeyName: "kpi_values_trial_balance_import_id_fkey"
             columns: ["trial_balance_import_id"]
             isOneToOne: false
+            referencedRelation: "stale_imports_monitor"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kpi_values_trial_balance_import_id_fkey"
+            columns: ["trial_balance_import_id"]
+            isOneToOne: false
             referencedRelation: "trial_balance_imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kpi_values_trial_balance_import_id_fkey"
+            columns: ["trial_balance_import_id"]
+            isOneToOne: false
+            referencedRelation: "trial_balance_imports_internal"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kpi_values_trial_balance_import_id_fkey"
+            columns: ["trial_balance_import_id"]
+            isOneToOne: false
+            referencedRelation: "trial_balance_imports_public"
             referencedColumns: ["id"]
           },
         ]
@@ -712,22 +754,48 @@ export type Database = {
             foreignKeyName: "trial_balance_accounts_import_id_fkey"
             columns: ["import_id"]
             isOneToOne: false
+            referencedRelation: "stale_imports_monitor"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trial_balance_accounts_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
             referencedRelation: "trial_balance_imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trial_balance_accounts_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "trial_balance_imports_internal"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trial_balance_accounts_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "trial_balance_imports_public"
             referencedColumns: ["id"]
           },
         ]
       }
       trial_balance_imports: {
         Row: {
+          accounts_count: number | null
+          balance_month: string
           company_id: string
           created_at: string | null
           deleted_at: string | null
           error_message: string | null
           file_size_bytes: number | null
           id: string
+          internal_error_code: string | null
+          internal_error_detail: string | null
           period_end: string
           period_start: string
           processed_at: string | null
+          processing_started_at: string | null
           source_file_name: string
           source_file_url: string | null
           status: Database["public"]["Enums"]["import_status"] | null
@@ -736,15 +804,20 @@ export type Database = {
           validation_errors: Json | null
         }
         Insert: {
+          accounts_count?: number | null
+          balance_month: string
           company_id: string
           created_at?: string | null
           deleted_at?: string | null
           error_message?: string | null
           file_size_bytes?: number | null
           id?: string
+          internal_error_code?: string | null
+          internal_error_detail?: string | null
           period_end: string
           period_start: string
           processed_at?: string | null
+          processing_started_at?: string | null
           source_file_name: string
           source_file_url?: string | null
           status?: Database["public"]["Enums"]["import_status"] | null
@@ -753,15 +826,20 @@ export type Database = {
           validation_errors?: Json | null
         }
         Update: {
+          accounts_count?: number | null
+          balance_month?: string
           company_id?: string
           created_at?: string | null
           deleted_at?: string | null
           error_message?: string | null
           file_size_bytes?: number | null
           id?: string
+          internal_error_code?: string | null
+          internal_error_detail?: string | null
           period_end?: string
           period_start?: string
           processed_at?: string | null
+          processing_started_at?: string | null
           source_file_name?: string
           source_file_url?: string | null
           status?: Database["public"]["Enums"]["import_status"] | null
@@ -922,6 +1000,187 @@ export type Database = {
           },
         ]
       }
+      stale_imports_monitor: {
+        Row: {
+          company_id: string | null
+          company_name: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string | null
+          minutes_elapsed: number | null
+          processing_started_at: string | null
+          source_file_name: string | null
+          status: Database["public"]["Enums"]["import_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trial_balance_imports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trial_balance_imports_internal: {
+        Row: {
+          accounts_count: number | null
+          balance_month: string | null
+          company_id: string | null
+          created_at: string | null
+          deleted_at: string | null
+          error_message: string | null
+          file_size_bytes: number | null
+          id: string | null
+          internal_error_code: string | null
+          internal_error_detail: string | null
+          period_end: string | null
+          period_start: string | null
+          processed_at: string | null
+          processing_started_at: string | null
+          source_file_name: string | null
+          source_file_url: string | null
+          status: Database["public"]["Enums"]["import_status"] | null
+          updated_at: string | null
+          uploaded_by: string | null
+          validation_errors: Json | null
+        }
+        Insert: {
+          accounts_count?: number | null
+          balance_month?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          error_message?: string | null
+          file_size_bytes?: number | null
+          id?: string | null
+          internal_error_code?: string | null
+          internal_error_detail?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          processed_at?: string | null
+          processing_started_at?: string | null
+          source_file_name?: string | null
+          source_file_url?: string | null
+          status?: Database["public"]["Enums"]["import_status"] | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+          validation_errors?: Json | null
+        }
+        Update: {
+          accounts_count?: number | null
+          balance_month?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          error_message?: string | null
+          file_size_bytes?: number | null
+          id?: string | null
+          internal_error_code?: string | null
+          internal_error_detail?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          processed_at?: string | null
+          processing_started_at?: string | null
+          source_file_name?: string | null
+          source_file_url?: string | null
+          status?: Database["public"]["Enums"]["import_status"] | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+          validation_errors?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trial_balance_imports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trial_balance_imports_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trial_balance_imports_public: {
+        Row: {
+          accounts_count: number | null
+          balance_month: string | null
+          company_id: string | null
+          created_at: string | null
+          deleted_at: string | null
+          error_message: string | null
+          file_size_bytes: number | null
+          id: string | null
+          period_end: string | null
+          period_start: string | null
+          processed_at: string | null
+          source_file_name: string | null
+          source_file_url: string | null
+          status: Database["public"]["Enums"]["import_status"] | null
+          updated_at: string | null
+          uploaded_by: string | null
+          validation_errors: Json | null
+        }
+        Insert: {
+          accounts_count?: number | null
+          balance_month?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          error_message?: string | null
+          file_size_bytes?: number | null
+          id?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          processed_at?: string | null
+          source_file_name?: string | null
+          source_file_url?: string | null
+          status?: Database["public"]["Enums"]["import_status"] | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+          validation_errors?: Json | null
+        }
+        Update: {
+          accounts_count?: number | null
+          balance_month?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          error_message?: string | null
+          file_size_bytes?: number | null
+          id?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          processed_at?: string | null
+          source_file_name?: string | null
+          source_file_url?: string | null
+          status?: Database["public"]["Enums"]["import_status"] | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+          validation_errors?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trial_balance_imports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trial_balance_imports_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       assert_mappings_complete_for_import: {
@@ -944,6 +1203,13 @@ export type Database = {
         Args: { _tb_account_id: string; _user_id: string }
         Returns: boolean
       }
+      cleanup_stale_imports: {
+        Args: never
+        Returns: {
+          cleaned_count: number
+          import_ids: string[]
+        }[]
+      }
       create_company_with_member: {
         Args: { p_cui: string; p_name: string; p_user_id: string }
         Returns: string
@@ -962,6 +1228,8 @@ export type Database = {
           opening_credit: number
           opening_debit: number
           total_count: number
+          total_sume_creditoare: number
+          total_sume_debitoare: number
         }[]
       }
       get_balances_with_accounts: {
@@ -972,6 +1240,7 @@ export type Database = {
         Args: { _company_id: string }
         Returns: {
           accounts_count: number
+          balance_month: string
           created_at: string
           error_message: string
           import_id: string
@@ -1007,6 +1276,18 @@ export type Database = {
       }
       is_company_member: {
         Args: { _company_id: string; _user_id: string }
+        Returns: boolean
+      }
+      process_import_accounts: {
+        Args: {
+          p_accounts: Json
+          p_import_id: string
+          p_requester_user_id: string
+        }
+        Returns: boolean
+      }
+      retry_failed_import: {
+        Args: { p_import_id: string; p_user_id: string }
         Returns: boolean
       }
       soft_delete_import: { Args: { _import_id: string }; Returns: boolean }

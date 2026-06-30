@@ -10,6 +10,7 @@ export interface BalanceImport {
   id: string;
   company_id: string;
   source_file_name: string;
+  balance_month: string;
   period_start: string;
   period_end: string;
   status: 'draft' | 'processing' | 'validated' | 'completed' | 'error';
@@ -86,7 +87,7 @@ export const useBalante = () => {
         .eq('company_id', companyId)
         .eq('status', 'completed')
         .is('deleted_at', null)
-        .order('period_end', { ascending: false });
+        .order('balance_month', { ascending: false });
 
       if (fetchError) throw fetchError;
 

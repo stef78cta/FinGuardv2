@@ -8,6 +8,7 @@ export interface Company {
   name: string;
   cui: string;
   currency: string | null;
+  fiscal_year_start_month: number | null;
 }
 
 interface CompanyContextType {
@@ -116,7 +117,7 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
       // Get company details
       const { data: companyData, error: companyError } = await supabase
         .from('companies')
-        .select('id, name, cui, currency')
+        .select('id, name, cui, currency, fiscal_year_start_month')
         .in('id', companyIds);
 
       if (companyError) throw companyError;
@@ -189,6 +190,7 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
       name,
       cui,
       currency: 'RON',
+      fiscal_year_start_month: 1,
     };
 
     // Update local state

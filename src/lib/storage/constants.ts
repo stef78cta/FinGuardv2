@@ -20,7 +20,7 @@ export const ACTIVE_TRIAL_BALANCE_IMPORTS_VIEW = 'active_trial_balance_imports' 
 
 /** Coloane safe pentru SELECT / INSERT RETURNING pe tabel. */
 export const TRIAL_BALANCE_IMPORTS_SELECT_COLUMNS =
-  'id, company_id, source_file_name, source_file_url, period_start, period_end, status, error_message, file_size_bytes, created_at, processed_at, uploaded_by, validation_errors, deleted_at' as const;
+  'id, company_id, balance_month, source_file_name, source_file_url, period_start, period_end, status, error_message, file_size_bytes, created_at, processed_at, uploaded_by, validation_errors, deleted_at' as const;
 
 /**
  * Extrage mesajul util din erori Supabase / Edge Functions.

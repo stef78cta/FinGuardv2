@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import { startOfMonth } from 'date-fns';
 import { toast } from 'sonner';
 import {
   parseExcelFile,
@@ -23,11 +24,11 @@ export interface BalanceUploadTotals {
 }
 
 export interface BalanceUploadFormState {
-  referenceDate?: Date;
+  balanceMonth?: Date;
   uploadedFile: File | null;
   uploadStatus: UploadStatus;
   uploadProgress: number;
-  dateError: boolean;
+  monthError: boolean;
   isDragging: boolean;
   parsedData: ParseResult | null;
   previewData: ParsedAccount[];
@@ -41,8 +42,8 @@ export interface BalanceUploadFormState {
 }
 
 interface ResetUploadStateOptions {
-  /** Dacă este setat, data de referință este păstrată/actualizată după reset */
-  keepReferenceDate?: Date;
+  /** Dacă este setat, luna balanței este păstrată/actualizată după reset */
+  keepBalanceMonth?: Date;
 }
 
 function extractDuplicateAccounts(parseResult: ParseResult | null): string[] {
@@ -88,18 +89,18 @@ export const balanceUploadFormUtils = {
 
 /**
  * Gestionează starea formularului de upload balanță, inclusiv resetarea completă
- * la schimbarea datei de referință sau a fișierului selectat.
+ * la schimbarea lunii balanței sau a fișierului selectat.
  */
 export function useBalanceUploadForm() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadGenerationRef = useRef(0);
 
-  const [referenceDate, setReferenceDate] = useState<Date>();
+  const [balanceMonth, setBalanceMonth] = useState<Date>();
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');
-  const [dateError, setDateError] = useState(false);
+  const [monthError, setMonthError] = useState(false);
   const [parsedData, setParsedData] = useState<ParseResult | null>(null);
   const [previewData, setPreviewData] = useState<ParsedAccount[]>([]);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
@@ -112,7 +113,7 @@ export function useBalanceUploadForm() {
 
   /**
    * Curăță toată starea temporară a formularului de upload.
-   * Opțional păstrează o nouă dată de referință (la schimbarea datei).
+   * Opțional păstrează luna balanței (la schimbarea lunii).
    */
   const resetUploadState = useCallback((options?: ResetUploadStateOptions) => {
     uploadGenerationRef.current += 1;
@@ -121,7 +122,7 @@ export function useBalanceUploadForm() {
     setIsDragging(false);
     setUploadProgress(0);
     setUploadStatus('idle');
-    setDateError(false);
+    setMonthError(false);
     setParsedData(null);
     setPreviewData([]);
     setValidationErrors([]);
@@ -132,8 +133,8 @@ export function useBalanceUploadForm() {
     setDuplicateAccounts([]);
     setAccountsCount(0);
 
-    if (options && 'keepReferenceDate' in options) {
-      setReferenceDate(options.keepReferenceDate);
+    if (options && 'keepBalanceMonth' in options) {
+      setBalanceMonth(options.keepBalanceMonth);
     }
 
     if (fileInputRef.current) {
@@ -168,13 +169,13 @@ export function useBalanceUploadForm() {
     [],
   );
 
-  const handleReferenceDateChange = useCallback(
+  const handleBalanceMonthChange = useCallback(
     (date: Date | undefined) => {
       if (date) {
-        resetUploadState({ keepReferenceDate: date });
+        resetUploadState({ keepBalanceMonth: startOfMonth(date) });
       } else {
         resetUploadState();
-        setReferenceDate(undefined);
+        setBalanceMonth(undefined);
       }
     },
     [resetUploadState],
@@ -195,7 +196,7 @@ export function useBalanceUploadForm() {
       }
 
       resetUploadState(
-        referenceDate ? { keepReferenceDate: referenceDate } : undefined,
+        balanceMonth ? { keepBalanceMonth: balanceMonth } : undefined,
       );
 
       const generation = uploadGenerationRef.current;
@@ -215,15 +216,15 @@ export function useBalanceUploadForm() {
         toast.error('Eroare la parsarea fișierului Excel.');
       }
     },
-    [applyParseResult, referenceDate, resetUploadState],
+    [applyParseResult, balanceMonth, resetUploadState],
   );
 
   const handleRemoveFile = useCallback(() => {
-    resetUploadState(referenceDate ? { keepReferenceDate: referenceDate } : undefined);
-  }, [referenceDate, resetUploadState]);
+    resetUploadState(balanceMonth ? { keepBalanceMonth: balanceMonth } : undefined);
+  }, [balanceMonth, resetUploadState]);
 
   const beginUpload = useCallback(() => {
-    setDateError(false);
+    setMonthError(false);
     setUploadErrorMessage(null);
     setUploadStatus('uploading');
     setUploadProgress(10);
@@ -269,15 +270,15 @@ export function useBalanceUploadForm() {
 
   return {
     fileInputRef,
-    referenceDate,
+    balanceMonth,
     uploadedFile,
     isDragging,
     setIsDragging,
     uploadProgress,
     setUploadProgress,
     uploadStatus,
-    dateError,
-    setDateError,
+    monthError,
+    setMonthError,
     parsedData,
     previewData,
     validationErrors,
@@ -289,7 +290,7 @@ export function useBalanceUploadForm() {
     accountsCount,
     isUploadFormDirty,
     resetUploadState,
-    handleReferenceDateChange,
+    handleBalanceMonthChange,
     handleFileSelect,
     handleRemoveFile,
     beginUpload,
