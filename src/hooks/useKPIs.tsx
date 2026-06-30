@@ -163,9 +163,9 @@ export const useKPIs = (
         const cheltuieli = calculateExpenses(accounts);
         const profit = venituri - cheltuieli;
 
-        const periodEnd = new Date(balance.period_end);
-        const monthIndex = periodEnd.getMonth();
-        const year = periodEnd.getFullYear();
+        const monthDate = new Date(balance.balance_month ?? balance.period_end);
+        const monthIndex = monthDate.getMonth();
+        const year = monthDate.getFullYear();
 
         return {
           month: monthNames[monthIndex],

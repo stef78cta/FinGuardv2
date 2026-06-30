@@ -270,39 +270,30 @@ export const useTrialBalances = (companyId: string | null) => {
     return (completedImport ?? importData) as TrialBalanceImport;
   };
 
+  /**
+   * Șterge (soft delete) un import via RPC `soft_delete_import`.
+   *
+   * Nu mai facem optimistic update „orb": dacă RPC eșuează sau returnează FALSE
+   * (lipsă permisiune / deja șters), aruncăm eroare. La succes refacem lista din
+   * baza de date pentru ca UI-ul să reflecte starea reală.
+   */
   const deleteImport = async (importId: string) => {
-    try {
-      const { data: softDeleteResult, error: rpcError } = await supabase.rpc('soft_delete_import', {
-        _import_id: importId,
-      });
+    const { data: softDeleteResult, error: rpcError } = await supabase.rpc('soft_delete_import', {
+      _import_id: importId,
+    });
 
-      if (!rpcError && softDeleteResult) {
-        setImports(imports.filter((i) => i.id !== importId));
-        setImportsWithTotals(importsWithTotals.filter((i) => i.id !== importId));
-        return;
-      }
-
-      const importToDelete = imports.find((i) => i.id === importId);
-
-      if (importToDelete?.source_file_url) {
-        await supabase.storage.from(BALANCE_STORAGE_BUCKET).remove([importToDelete.source_file_url]);
-      }
-
-      await supabase.from('trial_balance_accounts').delete().eq('import_id', importId);
-
-      const { error: deleteError } = await supabase
-        .from(TRIAL_BALANCE_IMPORTS_TABLE)
-        .delete()
-        .eq('id', importId);
-
-      if (deleteError) throw deleteError;
-
-      setImports(imports.filter((i) => i.id !== importId));
-      setImportsWithTotals(importsWithTotals.filter((i) => i.id !== importId));
-    } catch (err) {
-      console.error('[useTrialBalances] Error deleting import:', err);
-      throw err;
+    if (rpcError) {
+      console.error('[useTrialBalances] Error deleting import:', rpcError);
+      throw new Error(rpcError.message || 'Ștergerea balanței a eșuat.');
     }
+
+    if (!softDeleteResult) {
+      throw new Error(
+        'Balanța nu a putut fi ștearsă: nu aveți permisiunea necesară sau a fost deja ștearsă.',
+      );
+    }
+
+    await fetchImports();
   };
 
   const getAccounts = async (

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCompanyContext } from '@/contexts/CompanyContext';
-import { TRIAL_BALANCE_IMPORTS_FALLBACK } from '@/lib/storage/constants';
+import { TRIAL_BALANCE_IMPORTS_SELECT_COLUMNS } from '@/lib/storage/constants';
+import { getImportsReadSource } from '@/lib/importPipeline';
 
 /**
  * Reprezintă un import de balanță de verificare.
@@ -80,10 +81,14 @@ export const useBalante = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
+      // IMPORTANT: nu folosim select('*') pe tabel, deoarece rolul `authenticated`
+      // nu are SELECT pe toate coloanele (ex. internal_error_*). Citim din view-ul
+      // public (sau coloane explicite pe tabel) pentru a evita erori 42501.
+      const source = await getImportsReadSource();
       const { data, error: fetchError } = await supabase
-        .from(TRIAL_BALANCE_IMPORTS_FALLBACK)
-        .select('*')
+        .from(source)
+        .select(TRIAL_BALANCE_IMPORTS_SELECT_COLUMNS)
         .eq('company_id', companyId)
         .eq('status', 'completed')
         .is('deleted_at', null)
@@ -227,13 +232,14 @@ export const useBalante = () => {
   const getLatestBalanceFallback = useCallback(async (): Promise<BalanceWithAccounts | null> => {
     if (!activeCompany?.id) return null;
 
+    const source = await getImportsReadSource();
     const { data: latestBalances, error: fetchError } = await supabase
-      .from(TRIAL_BALANCE_IMPORTS_FALLBACK)
-      .select('*')
+      .from(source)
+      .select(TRIAL_BALANCE_IMPORTS_SELECT_COLUMNS)
       .eq('company_id', activeCompany.id)
       .eq('status', 'completed')
       .is('deleted_at', null)
-      .order('period_end', { ascending: false })
+      .order('balance_month', { ascending: false })
       .limit(1);
 
     if (fetchError) throw fetchError;
@@ -305,13 +311,14 @@ export const useBalante = () => {
   ): Promise<BalanceWithAccounts[]> => {
     if (!activeCompany?.id) return [];
 
+    const source = await getImportsReadSource();
     const { data: allBalances, error: fetchError } = await supabase
-      .from(TRIAL_BALANCE_IMPORTS_FALLBACK)
-      .select('*')
+      .from(source)
+      .select(TRIAL_BALANCE_IMPORTS_SELECT_COLUMNS)
       .eq('company_id', activeCompany.id)
       .eq('status', 'completed')
       .is('deleted_at', null)
-      .order('period_end', { ascending: false })
+      .order('balance_month', { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (fetchError) throw fetchError;
