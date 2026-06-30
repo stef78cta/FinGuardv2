@@ -19,6 +19,7 @@ Index al documentației proiectului, organizată pe categorii.
 - **Upload balanță:** [about upload balance/QUICK_START_IMPLEMENTATION.md](about%20upload%20balance/QUICK_START_IMPLEMENTATION.md)
 - **Schema DB:** [about database/tabele.md](about%20database/tabele.md) → [about database/descriere_database.md](about%20database/descriere_database.md)
 - **Index complet:** [about generale/summary_md.md](about%20generale/summary_md.md)
+- **Catalog roluri fișiere:** [sumar_files_md.md](sumar_files_md.md)
 
 ## Fișiere la rădăcina `planning/`
 
