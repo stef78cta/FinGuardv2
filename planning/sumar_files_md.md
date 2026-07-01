@@ -15,7 +15,7 @@ Documentația este organizată pe **5 categorii** + **fișiere comune la rădăc
 | Status curent proiect        | `about generale/RAPORT_STATUS_PROIECT.md`            |
 | Deploy Security Patches v1.8 | `about security patches.../START_HERE.md`            |
 | Upload balanță               | `about upload balance/QUICK_START_IMPLEMENTATION.md` |
-| Schema bazei de date         | `about database/tabele.md` → `descriere_database.md` |
+| Schema bazei de date         | `about database/prezentare_finguard_database.md` → `tabele.md` → `descriere_database.md` |
 | Index navigare categorii     | `README.md`                                          |
 
 ---
@@ -50,6 +50,7 @@ Documentația este organizată pe **5 categorii** + **fișiere comune la rădăc
 
 | Fișier                        | Rol                                                                                                                  | Când îl consulți                                             |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `prezentare_finguard_database.md` | Prezentare onboarding DB (~500 linii): arhitectură, module, securitate, migrări, fluxuri — sinteză actualizată iun. 2026. | **Prima oprire** pentru overview rapid; fondatori, onboarding echipă. |
 | `tabele.md`                   | Sumar compact al tabelelor (15+ tabele), RLS, relații — „cheat sheet" schema.                                        | Referință rapidă la nume tabele și scop.                     |
 | `descriere_database.md`       | Documentație exhaustivă DB (~2.300 linii): arhitectură, tabele, funcții, triggere, RLS, views, migrări, performance. | Lucru profund cu schema; debugging RLS/policies.             |
 | `plan_dezvoltare_database.md` | Plan original Security Patches v1.8 (~3.600 linii): vulnerabilități, SQL propus, raționamente, rollback.             | Înțelegere „de ce" din spatele migrărilor; audit securitate. |
@@ -104,11 +105,11 @@ Documentația este organizată pe **5 categorii** + **fișiere comune la rădăc
 | ------------------------------------------------- | ------------------------ |
 | Rădăcină `planning/`                              | 6 (inclusiv acest sumar) |
 | `about generale/`                                 | 6                        |
-| `about database/`                                 | 3                        |
+| `about database/`                                 | 4                        |
 | `about upload balance/`                           | 9                        |
 | `about security patches, types, fix-uri tehnice/` | 11                       |
 | `about frontend/`                                 | 1                        |
-| **Total canonic**                                 | **36**                   |
+| **Total canonic**                                 | **37**                   |
 
 ---
 

@@ -1,9 +1,9 @@
 # Plan Dezvoltare Database - Security & Correctness Patches
 
 > **Data creării**: 28 Ianuarie 2026  
-> **Versiune Plan**: 1.8  
-> **Ultima actualizare**: 28 Ianuarie 2026  
-> **Status**: AȘTEAPTĂ APROBARE
+> **Versiune Plan**: 1.8 (+ Upload Pipeline v2.0 implementat iun. 2026)  
+> **Ultima actualizare**: 24 Iunie 2026  
+> **Status**: ✅ IMPLEMENTAT (v1.8) + extensii upload v2.0 în migrări 19–30
 
 ---
 
@@ -3634,6 +3634,57 @@ ORDER BY grantee, privilege_type;
 
 ## NOTĂ FINALĂ
 
-**NU IMPLEMENTA NIMIC DIN ACEST PLAN FĂRĂ APROBARE EXPLICITĂ.**
+**Planul v1.8 a fost implementat.** Extensiile post-v1.8 (upload pipeline v2.0) sunt documentate în secțiunea de mai jos și în migrările 19–30.
 
-Planul e complet. Așteaptă confirmarea pentru a începe implementarea.
+---
+
+## Actualizare Iunie 2026 — Upload Pipeline v2.0 (post-plan)
+
+> **Adăugat:** 24 iunie 2026  
+> **Scop:** Documentează implementarea efectivă din repo, dincolo de planul v1.8 original.
+
+### Status implementare
+
+| Componentă | Status | Migrare / cod |
+|------------|--------|---------------|
+| Security Patches v1.8 (1–18) | ✅ Implementat | `20260128100000` – `20260128100006` |
+| View security invoker | ✅ | `20260129000001` |
+| Stale imports cleanup | ✅ | `20260129100001` |
+| Bucket `balante` | ✅ | `20260129100002`, `20260621000000` |
+| Format 10 coloane G/H | ✅ | `20260621100000` |
+| `balance_month` + UNIQUE/lună | ✅ | `20260630100000` |
+| Soft delete orice membru | ✅ | `20260630120000` |
+| Normalizare perioade istorice | ✅ | `20260630130000` |
+| `prepare_balance_month_upload` | ✅ | `20260701120000` |
+
+### Decizii noi (față de plan v1.8)
+
+1. **Bucket Storage:** canonical `balante` (plan menționa `trial-balances` în unele secțiuni).
+2. **`check_rate_limit`:** returnează **BOOLEAN** (confirmat în migrarea `20260128100002`).
+3. **`rate_limits.user_id`:** FK către **`auth.users`** (nu `public.users`).
+4. **`process_import_accounts`:** returnează **BOOLEAN** în versiunea stabilizată iun. 2026.
+5. **Constraints XOR** pe solduri deschis/închis: **eliminate** (v1.9.4) — balanțe reale pot avea valori pe ambele coloane.
+6. **O balanță activă per lună:** enforced via `balance_month` + index UNIQUE parțial.
+
+### Verificări recomandate post-implementare
+
+- [ ] `supabase migration list` — 30 migrări aplicate
+- [ ] `src/integrations/supabase/types.ts` — conține `balance_month`, RPC-uri noi
+- [ ] Frontend: `prepare_balance_month_upload` înainte de INSERT import
+- [ ] Edge Function: bucket `balante`, service_role pentru RPC
+- [ ] Rulare periodică `cleanup_stale_imports()` (pg_cron sau manual)
+- [ ] Script: `node scripts/verify-upload-pipeline.mjs`
+
+### Documente actualizate
+
+- `planning/about database/prezentare_finguard_database.md` — prezentare onboarding
+- `planning/about database/tabele.md` — cheat sheet schema
+- `planning/about database/descriere_database.md` — documentație completă v2.1
+
+### Referințe upload
+
+- `planning/about upload balance/RAPORT_STABILIZARE_UPLOAD_BALANTA.md`
+- `planning/about upload balance/TESTING_GUIDE_UPLOAD_BALANTA.md`
+- `src/lib/balancePeriod.ts`
+- `src/hooks/useBalanceUploadForm.ts`
+

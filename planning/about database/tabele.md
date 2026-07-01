@@ -1,7 +1,8 @@
 # FinGuard v2 - Schema Bază de Date
 
-> **Ultima actualizare**: 28 Ianuarie 2026  
-> **Versiune Schema**: Plan Final v3.3 + Security Patches v1.8
+> **Ultima actualizare**: 24 Iunie 2026  
+> **Versiune Schema**: Plan Final v3.3 + Security Patches v1.8 + Upload Pipeline v2.0  
+> **Migrări în repo**: 30 fișiere SQL (`supabase/migrations/`)
 
 ---
 
@@ -32,8 +33,24 @@
 
 | View | Descriere | Acces |
 |------|-----------|-------|
-| `trial_balance_imports_public` | View public fără detalii erori interne | authenticated |
-| `trial_balance_imports_internal` | View pentru debugging (include error details) | service_role |
+| `trial_balance_imports_public` | View public (`security_invoker`); include `balance_month`; fără erori interne | authenticated |
+| `trial_balance_imports_internal` | Debugging; include `internal_error_detail/code` | service_role |
+| `stale_imports_monitor` | Importuri în `processing` > 5 min (warning threshold) | monitoring / service_role |
+
+**Storage:** bucket canonical **`balante`** (10 MB, MIME Excel).
+
+---
+
+## Schimbări majore post-v1.8 (ian.–iul. 2026)
+
+| Schimbare | Detaliu |
+|-----------|---------|
+| `balance_month` | Coloană NOT NULL pe `trial_balance_imports`; UNIQUE activ per `(company_id, balance_month)` |
+| Format 10 coloane | `total_sume_debitoare`, `total_sume_creditoare` pe `trial_balance_accounts` |
+| RPC upload | `prepare_balance_month_upload`, `soft_delete_import` (orice membru), `retry_failed_import` |
+| Stale imports | `cleanup_stale_imports()` (10 min), view `stale_imports_monitor` (5 min) |
+| View security | `security_invoker = true` pe view-uri import |
+| Constraints | Eliminate `check_opening_balance_xor` / `check_closing_balance_xor` (v1.9.4) |
 
 ---
 
@@ -127,6 +144,7 @@ CREATE TABLE public.company_users (
 CREATE TABLE public.trial_balance_imports (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     company_id UUID NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
+    balance_month DATE NOT NULL,  -- v2.0 iun.2026: prima zi a lunii (sursă canonică)
     period_start DATE NOT NULL,
     period_end DATE NOT NULL,
     source_file_name VARCHAR(255) NOT NULL,
@@ -138,14 +156,21 @@ CREATE TABLE public.trial_balance_imports (
     validation_errors JSONB,
     processing_started_at TIMESTAMPTZ,  -- v1.4: tracking pentru timeout detection
     internal_error_detail TEXT,  -- v1.7: detalii tehnice (DOAR service_role)
-    internal_error_code VARCHAR(10),  -- v1.7: SQLSTATE pentru debugging
+    internal_error_code VARCHAR(10),  -- v1.7: cod eroare pentru debugging
     accounts_count INT,  -- v1.5: număr conturi procesate
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     processed_at TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ,  -- Soft delete
-    CONSTRAINT valid_period CHECK (period_start <= period_end)
+    CONSTRAINT valid_period CHECK (period_start <= period_end),
+    CONSTRAINT trial_balance_imports_balance_month_first_day
+        CHECK (balance_month = date_trunc('month', balance_month)::date)
 );
+
+-- v2.0: UNIQUE o balanță activă per companie/lună
+CREATE UNIQUE INDEX idx_trial_balance_imports_unique_company_month_active
+ON public.trial_balance_imports(company_id, balance_month)
+WHERE deleted_at IS NULL;
 
 -- v1.4: Index pentru detectare imports stale (processing > 10 min)
 CREATE INDEX idx_trial_balance_imports_processing 
@@ -175,6 +200,8 @@ CREATE TABLE public.trial_balance_accounts (
     opening_credit NUMERIC(15,2) DEFAULT 0,
     debit_turnover NUMERIC(15,2) DEFAULT 0,
     credit_turnover NUMERIC(15,2) DEFAULT 0,
+    total_sume_debitoare NUMERIC(15,2) NOT NULL DEFAULT 0,  -- col. G (v2.0)
+    total_sume_creditoare NUMERIC(15,2) NOT NULL DEFAULT 0,  -- col. H (v2.0)
     closing_debit NUMERIC(15,2) DEFAULT 0,
     closing_credit NUMERIC(15,2) DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -480,14 +507,22 @@ CREATE TABLE public.report_statements (
 
 | Funcție | Descriere | Versiune | Securitate |
 |---------|-----------|----------|------------|
-| `assert_mappings_complete_for_import(import_id)` | Validare 100% mapare la ref_date (cu access hardening) | v3.3 (hardened v1.8) | SECURITY DEFINER |
-| `create_company_with_member(name, cui)` | Creare atomică companie + prim membru (normalizare CUI) | v1.8 | SECURITY DEFINER |
-| `archive_company(company_id)` | Marchează companie ca archived (permite DELETE membri) | v1.7 | SECURITY DEFINER |
-| `process_import_accounts(import_id, accounts, user_id)` | Procesare import cu idempotență și advisory lock | v1.8 | SECURITY DEFINER |
-| `check_rate_limit(user_id, resource, max, window)` | Rate limiting DB-based (fail-closed) | v1.8 | SECURITY DEFINER |
-| `cleanup_rate_limits(retention_hours)` | Cleanup periodic rate_limits (manual sau pg_cron) | v1.4 | SECURITY DEFINER |
-| `detect_stale_imports()` | Detectează imports blocate în processing > 10 min | v1.3 | STABLE |
-| `try_uuid(text)` | Conversie safe TEXT → UUID (fără excepție) | v1.8 | IMMUTABLE |
+| `assert_mappings_complete_for_import(import_id)` | Validare 100% mapare la ref_date | v3.3 (hardened v1.8) | SECURITY DEFINER |
+| `create_company_with_member(name, cui)` | Creare atomică companie + prim membru | v1.8 | SECURITY DEFINER |
+| `archive_company(company_id)` | Marchează companie ca archived | v1.7 | SECURITY DEFINER |
+| `prepare_balance_month_upload(company_id, balance_month, replace?)` | Pregătește upload; soft-delete replace opțional | v2.0 iun.2026 | SECURITY DEFINER |
+| `process_import_accounts(import_id, accounts, user_id)` | Procesare import (10 coloane, idempotență, lock) | v1.8 → v2.0 | SECURITY DEFINER |
+| `soft_delete_import(import_id)` | Soft delete — orice membru companie | v2.0 iun.2026 | SECURITY DEFINER |
+| `retry_failed_import(import_id, user_id)` | Retry import cu status `error` | v1.9 | SECURITY DEFINER |
+| `cleanup_stale_imports()` | Marchează processing > 10 min ca `error` | v1.9 | SECURITY DEFINER |
+| `get_company_imports_with_totals(company_id)` | Listă importuri + totaluri closing | v1.0 perf | SECURITY DEFINER |
+| `get_balances_with_accounts(company_id, limit, offset)` | Balanțe + conturi JSONB | v1.0 perf | SECURITY DEFINER |
+| `get_accounts_paginated(...)` | Conturi paginate per import | v1.0 perf | SECURITY DEFINER |
+| `get_import_totals(import_id)` | Totaluri per import | v1.0 perf | SECURITY DEFINER |
+| `check_rate_limit(user_id, resource, max, window)` | Rate limiting DB-based (fail-closed, **BOOLEAN**) | v1.8 | SECURITY DEFINER |
+| `cleanup_rate_limits(retention_hours)` | Cleanup periodic rate_limits | v1.4 | SECURITY DEFINER |
+| `detect_stale_imports()` | Detectează imports blocate în processing | v1.3 | STABLE |
+| `try_uuid(text)` | Conversie safe TEXT → UUID | v1.8 | IMMUTABLE |
 
 ### Trigger Functions
 
@@ -559,53 +594,70 @@ CREATE TABLE public.report_statements (
 | `20260128100005_storage_policy_hardening.sql` | Storage policies cu try_uuid și validări stricte | MEDIE |
 | `20260128100006_cui_unique_constraint.sql` | UNIQUE constraint pe CUI normalizat | CRITICĂ |
 
+### Migrări post-v1.8 — Stabilizare Upload (ian.–iul. 2026)
+
+| Fișier | Descriere |
+|--------|-----------|
+| `20260129000001_fix_view_rls_security_invoker.sql` | View-uri cu `security_invoker = true` |
+| `20260129000002_fix_storage_bucket_consistency.sql` | Aliniere bucket storage |
+| `20260129100000_fix_process_import_accepts_both_statuses.sql` | Acceptă status draft/processing |
+| `20260129100001_stale_imports_cleanup_mechanism.sql` | `cleanup_stale_imports`, `retry_failed_import`, `stale_imports_monitor` |
+| `20260129100002_fix_bucket_balante_complete.sql` | Bucket `balante` complet |
+| `20260129100003_remove_restrictive_balance_constraints.sql` | Elimină XOR constraints solduri |
+| `20260621000000_stabilize_upload_pipeline.sql` | Pipeline upload v2.0, GRANT SELECT parțial |
+| `20260621100000_add_total_sume_columns.sql` | Coloane G/H + RPC actualizate |
+| `20260630100000_add_balance_month_to_trial_balance_imports.sql` | `balance_month`, UNIQUE/lună, view-uri |
+| `20260630120000_allow_company_member_soft_delete_import.sql` | Soft delete orice membru companie |
+| `20260630130000_normalize_historical_balance_periods.sql` | Normalizare period_start/end istoric |
+| `20260701120000_prepare_balance_month_upload.sql` | RPC pregătire upload lună |
+
+**Total migrări versionate:** 30 (+ script utilitar `CLEANUP_EXISTING_STALE_IMPORTS.sql`)
+
 ---
 
-## View-uri (v1.7)
+## View-uri (v2.0 — iun. 2026)
+
+> Toate view-urile folosesc `WITH (security_invoker = true)`.
 
 ### trial_balance_imports_public
-View pentru frontend (authenticated users):
+
+View pentru frontend (`authenticated`):
 
 ```sql
-CREATE VIEW public.trial_balance_imports_public AS
-SELECT 
-  id,
-  company_id,
-  file_name,
-  file_size_bytes,
-  status,
-  error_message,  -- Safe: mesaj user-friendly
-  accounts_count,
-  processing_started_at,
-  created_at,
-  updated_at
+CREATE VIEW public.trial_balance_imports_public
+WITH (security_invoker = true) AS
+SELECT
+  id, company_id, balance_month,
+  period_start, period_end,
+  source_file_name, source_file_url, file_size_bytes,
+  uploaded_by, status, error_message, validation_errors,
+  accounts_count, created_at, updated_at, processed_at, deleted_at
+FROM public.trial_balance_imports
+WHERE deleted_at IS NULL;
+```
+
+**Exclud:** `internal_error_detail`, `internal_error_code`, `processing_started_at`
+
+### trial_balance_imports_internal
+
+View pentru debugging (`service_role`):
+
+```sql
+CREATE VIEW public.trial_balance_imports_internal
+WITH (security_invoker = true) AS
+SELECT
+  id, company_id, balance_month,
+  period_start, period_end,
+  source_file_name, status, error_message,
+  internal_error_detail, internal_error_code,
+  processing_started_at, accounts_count,
+  created_at, updated_at, processed_at
 FROM public.trial_balance_imports;
 ```
 
-**Acces:** `authenticated` (prin RLS policy)  
-**Exclud:** `internal_error_detail`, `internal_error_code` (sensibile)
+### stale_imports_monitor
 
-### trial_balance_imports_internal
-View pentru debugging (service_role only):
-
-```sql
-CREATE VIEW public.trial_balance_imports_internal AS
-SELECT 
-  id,
-  company_id,
-  file_name,
-  status,
-  error_message,
-  internal_error_detail,  -- Detalii tehnice complete
-  internal_error_code,    -- SQLSTATE pentru debugging
-  processing_started_at,
-  created_at
-FROM public.trial_balance_imports
-WHERE status IN ('failed', 'error');
-```
-
-**Acces:** `service_role` only  
-**Scop:** Monitoring, debugging, logging
+Importuri în `processing` > 5 minute (warning threshold). Folosit pentru monitoring ops/UI admin.
 
 ---
 

@@ -1,8 +1,8 @@
 # 🗄️ FinGuard v2 - Documentație Completă Bază de Date
 
-> **Ultima actualizare**: 28 Ianuarie 2026  
-> **Versiune Schema**: Plan Final v3.3 + Security Patches v1.8  
-> **Status**: ✅ PRODUCTION READY
+> **Ultima actualizare**: 24 Iunie 2026  
+> **Versiune Schema**: Plan Final v3.3 + Security Patches v1.8 + Upload Pipeline v2.0  
+> **Status**: ✅ PRODUCTION READY (cu verificări Gate 0 + migrări iun. 2026)
 
 ---
 
@@ -29,11 +29,11 @@
 |--------|---------|
 | **Tabele principale** | 15 |
 | **Tabele auxiliare** | 2 (rate_limits, rate_limits_meta) |
-| **Views** | 2 (trial_balance_imports_public/internal) |
+| **Views** | 3 (trial_balance_imports_public/internal + stale_imports_monitor) |
 | **Funcții RLS** | 9 |
-| **Funcții Business Logic** | 7 |
+| **Funcții Business Logic** | 15+ (inclusiv upload v2.0) |
 | **Triggere** | 12+ |
-| **Migrări totale** | 18 |
+| **Migrări totale** | 30 (în `supabase/migrations/`) |
 | **Indexuri** | 45+ |
 | **Constraints** | 25+ |
 
@@ -46,6 +46,8 @@
 - ✅ **Immutability**: Financial statements sunt versionate, nu modificate
 - ✅ **Audit Trail**: Timestamps pe toate tabelele
 - ✅ **Soft Delete**: Pentru trial_balance_imports
+- ✅ **Balance month canonical** (v2.0): o balanță activă per companie/lună via `balance_month`
+- ✅ **Format Excel 10 coloane**: `total_sume_debitoare/creditoare` pe conturi
 
 ---
 
@@ -1967,6 +1969,25 @@ USING (FALSE);
 | 17 | `20260128100005_storage_policy_hardening.sql` | **v1.8**: Storage policy cu try_uuid | 2026-01-28 |
 | 18 | `20260128100006_cui_unique_constraint.sql` | **v1.8**: UNIQUE constraint pe CUI normalizat | 2026-01-28 |
 
+### Migrări post-v1.8 — Upload Pipeline v2.0 (ian.–iul. 2026)
+
+| # | Fișier | Descriere | Data |
+|---|--------|-----------|------|
+| 19 | `20260129000001_fix_view_rls_security_invoker.sql` | View-uri cu `security_invoker = true` | 2026-01-29 |
+| 20 | `20260129000002_fix_storage_bucket_consistency.sql` | Aliniere bucket storage | 2026-01-29 |
+| 21 | `20260129100000_fix_process_import_accepts_both_statuses.sql` | Status draft/processing acceptate | 2026-01-29 |
+| 22 | `20260129100001_stale_imports_cleanup_mechanism.sql` | cleanup_stale_imports, retry_failed_import, stale_imports_monitor | 2026-01-29 |
+| 23 | `20260129100002_fix_bucket_balante_complete.sql` | Bucket `balante` complet | 2026-01-29 |
+| 24 | `20260129100003_remove_restrictive_balance_constraints.sql` | Elimină XOR constraints solduri | 2026-01-29 |
+| 25 | `20260621000000_stabilize_upload_pipeline.sql` | Pipeline upload v2.0 stabilizat | 2026-06-21 |
+| 26 | `20260621100000_add_total_sume_columns.sql` | Coloane G/H format 10 coloane | 2026-06-21 |
+| 27 | `20260630100000_add_balance_month_to_trial_balance_imports.sql` | balance_month + UNIQUE/lună | 2026-06-30 |
+| 28 | `20260630120000_allow_company_member_soft_delete_import.sql` | Soft delete orice membru | 2026-06-30 |
+| 29 | `20260630130000_normalize_historical_balance_periods.sql` | Normalizare perioade istorice | 2026-06-30 |
+| 30 | `20260701120000_prepare_balance_month_upload.sql` | RPC prepare_balance_month_upload | 2026-07-01 |
+
+> **Notă:** Există și script utilitar `CLEANUP_EXISTING_STALE_IMPORTS.sql` (non-versionat).
+
 ### Dependențe Migrări
 
 ```
@@ -2301,6 +2322,67 @@ WHERE id = '<import_id>';
 
 ---
 
+## 📦 Actualizare Upload Pipeline v2.0 (Iunie 2026)
+
+> **Adăugat:** 24 iunie 2026 — sinteză schimbări din migrările 19–30 și cod sursă.
+
+### balance_month — sursa canonică a lunii
+
+- Coloană `balance_month DATE NOT NULL` pe `trial_balance_imports`.
+- Constraint: trebuie să fie prima zi a lunii.
+- Index UNIQUE parțial: `(company_id, balance_month) WHERE deleted_at IS NULL`.
+- `period_start` / `period_end` derivate conform `fiscal_year_start_month` (vezi `src/lib/balancePeriod.ts`).
+
+### RPC prepare_balance_month_upload
+
+```sql
+-- Returnează JSONB: success, code (FORBIDDEN | INVALID_BALANCE_MONTH | ACTIVE_BALANCE_EXISTS | CONFLICT)
+prepare_balance_month_upload(_company_id, _balance_month, _replace_existing DEFAULT FALSE)
+```
+
+- Fără replace: eșuează dacă există balanță activă pentru lună.
+- Cu replace: soft-delete pe importul existent, apoi permite upload nou.
+
+### Format Excel 10 coloane
+
+Coloane noi pe `trial_balance_accounts`:
+- `total_sume_debitoare` (G) — SI_DEBIT + rulaj_d
+- `total_sume_creditoare` (H) — SI_CREDIT + rulaj_c
+
+`process_import_accounts` acceptă payload JSONB cu câmpurile `code`, `name`, `opening_debit`, etc.
+
+### Stale imports (v1.9)
+
+| Componentă | Threshold | Acțiune |
+|------------|-----------|---------|
+| `stale_imports_monitor` | 5 min | Warning în monitoring |
+| `cleanup_stale_imports()` | 10 min | Marchează `error` + mesaj timeout |
+| `retry_failed_import()` | — | Reset import `error` pentru reprocess |
+
+### View-uri actualizate
+
+- `security_invoker = true` pe toate view-urile import.
+- GRANT SELECT parțial pe tabel pentru `INSERT ... RETURNING` fără expunere `internal_error_*`.
+
+### Storage
+
+- Bucket canonical: **`balante`** (nu `trial-balances`).
+- Limită: 10 MB; MIME types Excel.
+
+### Funcții performance (actualizate)
+
+- `get_company_imports_with_totals` — include `balance_month`.
+- `get_balances_with_accounts` — include `total_sume_*` în JSON conturi.
+- `soft_delete_import` — orice membru al companiei (nu doar uploader).
+
+### Documente înrudite
+
+- `planning/about upload balance/RAPORT_STABILIZARE_UPLOAD_BALANTA.md`
+- `planning/about upload balance/ce_verificari_se_fac_la_upload_baanta.md`
+- `scripts/verify-upload-pipeline.mjs`
+
+---
+
 ## 🏆 Achievements
 
 - ✅ **Zero breșe critice de securitate**
@@ -2320,7 +2402,7 @@ WHERE id = '<import_id>';
 
 ---
 
-**Versiune Document**: 2.0  
-**Data Ultimă Actualizare**: 28 Ianuarie 2026  
+**Versiune Document**: 2.1  
+**Data Ultimă Actualizare**: 24 Iunie 2026  
 **Autor**: FinGuard Development Team  
 **Status**: ✅ PRODUCTION READY
