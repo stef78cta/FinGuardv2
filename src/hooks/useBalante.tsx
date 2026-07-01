@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useCompanyContext } from '@/contexts/CompanyContext';
 import { TRIAL_BALANCE_IMPORTS_SELECT_COLUMNS } from '@/lib/storage/constants';
 import { getImportsReadSource } from '@/lib/importPipeline';
+import { subscribeBalancesChanged } from '@/lib/balanceEvents';
 
 /**
  * Reprezintă un import de balanță de verificare.
@@ -120,6 +121,20 @@ export const useBalante = () => {
       doFetchBalances(activeCompany.id);
     }
   }, [activeCompany?.id, companyLoading, refetchTriggerRef.current, doFetchBalances]);
+
+  /**
+   * Reîmprospătează automat balanțele când au loc mutații (upload / ștergere)
+   * din alte instanțe de hook (ex. pagina de încărcare balanță).
+   */
+  useEffect(() => {
+    const unsubscribe = subscribeBalancesChanged((changedCompanyId) => {
+      if (!activeCompany?.id) return;
+      if (changedCompanyId === null || changedCompanyId === activeCompany.id) {
+        doFetchBalances(activeCompany.id);
+      }
+    });
+    return unsubscribe;
+  }, [activeCompany?.id, doFetchBalances]);
 
   /**
    * Funcție pentru a forța un refetch al balanțelor.

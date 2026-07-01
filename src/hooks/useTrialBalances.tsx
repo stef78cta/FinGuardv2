@@ -16,6 +16,7 @@ import {
   TRIAL_BALANCE_IMPORTS_SELECT_COLUMNS,
   TRIAL_BALANCE_IMPORTS_TABLE,
 } from '@/lib/storage/constants';
+import { emitBalancesChanged } from '@/lib/balanceEvents';
 
 /**
  * Reprezintă un import de balanță de verificare.
@@ -259,6 +260,7 @@ export const useTrialBalances = (companyId: string | null) => {
     callbacks?.onPhase?.('completed');
 
     await fetchImports();
+    emitBalancesChanged(companyId);
 
     const readSource = await getImportsReadSource();
     const { data: completedImport } = await supabase
@@ -294,6 +296,7 @@ export const useTrialBalances = (companyId: string | null) => {
     }
 
     await fetchImports();
+    emitBalancesChanged(companyId);
   };
 
   const getAccounts = async (
@@ -444,6 +447,7 @@ export const useTrialBalances = (companyId: string | null) => {
 
     await processImport(importId, parseResult.accounts);
     await fetchImports();
+    emitBalancesChanged(companyId);
     return true;
   };
 
@@ -455,6 +459,7 @@ export const useTrialBalances = (companyId: string | null) => {
     }
 
     await fetchImports();
+    emitBalancesChanged(companyId);
 
     const dataArray = data as unknown as Array<Record<string, unknown>> | null;
     return (dataArray?.[0]?.cleaned_count as number) || 0;
