@@ -251,6 +251,15 @@ export function useBalanceUploadForm() {
     [],
   );
 
+  /** Revine la starea „ready” după detectarea unui conflict de lună (fără mesaj de eroare). */
+  const restoreReadyAfterDuplicateCheck = useCallback((generation: number) => {
+    if (generation !== uploadGenerationRef.current) return;
+
+    setUploadStatus('ready');
+    setUploadErrorMessage(null);
+    setUploadProgress(0);
+  }, []);
+
   const resetAfterSuccessfulImport = useCallback(
     (generation: number) => {
       if (generation !== uploadGenerationRef.current) return;
@@ -296,6 +305,7 @@ export function useBalanceUploadForm() {
     beginUpload,
     completeUpload,
     failUpload,
+    restoreReadyAfterDuplicateCheck,
     resetAfterSuccessfulImport,
   };
 }

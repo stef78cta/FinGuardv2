@@ -29,6 +29,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { BalanceUploadPreview } from '@/components/upload/BalanceUploadPreview';
 import { BALANCE_STORAGE_BUCKET, extractSupabaseErrorMessage } from '@/lib/storage/constants';
+import { isActiveBalanceExistsError } from '@/lib/balanceUploadErrors';
 
 /** Numărul de conturi afișate per pagină în dialog-ul de vizualizare */
 const ACCOUNTS_PER_PAGE = 50;
@@ -66,6 +67,7 @@ const IncarcareBalanta = () => {
     importsWithTotals,
     loading: importsLoading,
     uploadBalance,
+    assertBalanceMonthAvailable,
     deleteImport,
     getAccounts,
     retryFailedImport
@@ -115,6 +117,7 @@ const IncarcareBalanta = () => {
     beginUpload,
     completeUpload,
     failUpload,
+    restoreReadyAfterDuplicateCheck,
     resetAfterSuccessfulImport,
   } = useBalanceUploadForm();
 
@@ -132,7 +135,9 @@ const IncarcareBalanta = () => {
 
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [replaceDialogOpen, setReplaceDialogOpen] = useState(false);
   const [selectedImportId, setSelectedImportId] = useState<string | null>(null);
+  const [isReplacingBalance, setIsReplacingBalance] = useState(false);
 
   // Wrapper pentru detailedSpecsOpen - folosește state-ul persistent
   const detailedSpecsOpen = uiState.detailedSpecsOpen;
@@ -194,22 +199,11 @@ const IncarcareBalanta = () => {
       void handleFileSelect(files[0]);
     }
   };
-  const handleUpload = async () => {
-    if (!balanceMonth) {
-      setMonthError(true);
-      toast.error('Luna balanței este obligatorie');
-      return;
-    }
-    if (!uploadedFile) {
-      toast.error('Vă rugăm să selectați un fișier');
-      return;
-    }
-    if (!user) {
-      toast.error('Trebuie să fiți autentificat');
+  const executeUpload = async (replaceExisting: boolean) => {
+    if (!balanceMonth || !uploadedFile || !user || !activeCompany?.id) {
       return;
     }
 
-    // Get user's internal ID
     const {
       data: userData,
       error: userError
@@ -223,16 +217,13 @@ const IncarcareBalanta = () => {
       );
       return;
     }
-    if (parsedData && !parsedData.ok) {
-      toast.error('Corectați erorile din fișier înainte de import.');
-      return;
-    }
 
     const uploadGeneration = beginUpload();
     try {
       setUploadProgress(30);
       await uploadBalance(uploadedFile, balanceMonth, userData.id, {
-        fiscalYearStartMonth: activeCompany?.fiscal_year_start_month ?? 1,
+        fiscalYearStartMonth: activeCompany.fiscal_year_start_month ?? 1,
+        replaceExisting,
         callbacks: {
           onProgress: setUploadProgress,
           onPhase: (phase) => {
@@ -243,13 +234,23 @@ const IncarcareBalanta = () => {
         },
       });
       completeUpload(uploadGeneration);
-      toast.success('Balanța a fost încărcată și procesată cu succes!');
+      toast.success(
+        replaceExisting
+          ? 'Balanța anterioară a fost înlocuită cu succes.'
+          : 'Balanța a fost încărcată și procesată cu succes!',
+      );
 
       setTimeout(() => {
         resetAfterSuccessfulImport(uploadGeneration);
       }, 1500);
     } catch (error) {
       console.error('[handleUpload] Upload error:', error);
+
+      if (isActiveBalanceExistsError(error) && !replaceExisting) {
+        restoreReadyAfterDuplicateCheck(uploadGeneration);
+        setReplaceDialogOpen(true);
+        return;
+      }
 
       const errorMessage =
         error instanceof Error
@@ -270,7 +271,60 @@ const IncarcareBalanta = () => {
       } else {
         toast.error(errorMessage);
       }
+    } finally {
+      setIsReplacingBalance(false);
     }
+  };
+
+  const handleUpload = async () => {
+    if (!balanceMonth) {
+      setMonthError(true);
+      toast.error('Luna balanței este obligatorie');
+      return;
+    }
+    if (!uploadedFile) {
+      toast.error('Vă rugăm să selectați un fișier');
+      return;
+    }
+    if (!user) {
+      toast.error('Trebuie să fiți autentificat');
+      return;
+    }
+    if (!activeCompany?.id) {
+      toast.error('Selectați o companie activă');
+      return;
+    }
+    if (parsedData && !parsedData.ok) {
+      toast.error('Corectați erorile din fișier înainte de import.');
+      return;
+    }
+
+    if (!calculatedPeriod) {
+      toast.error('Perioada balanței nu a putut fi calculată');
+      return;
+    }
+
+    try {
+      await assertBalanceMonthAvailable(calculatedPeriod.balance_month);
+    } catch (error) {
+      if (isActiveBalanceExistsError(error)) {
+        setReplaceDialogOpen(true);
+        return;
+      }
+
+      toast.error(
+        error instanceof Error ? error.message : 'Eroare la verificarea lunii balanței',
+      );
+      return;
+    }
+
+    await executeUpload(false);
+  };
+
+  const confirmReplaceUpload = async () => {
+    setReplaceDialogOpen(false);
+    setIsReplacingBalance(true);
+    await executeUpload(true);
   };
   const handleDelete = (id: string) => {
     setSelectedImportId(id);
@@ -918,6 +972,39 @@ const IncarcareBalanta = () => {
             <AlertDialogCancel>Anulează</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Șterge
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Replace existing balance confirmation */}
+      <AlertDialog open={replaceDialogOpen} onOpenChange={setReplaceDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Balanță existentă pentru luna selectată</AlertDialogTitle>
+            <AlertDialogDescription>
+              Există deja o balanță activă pentru luna selectată. Doriți să ștergeți automat
+              importul anterior și ca noua balanță de verificare să înlocuiască balanța încărcată
+              anterior?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isReplacingBalance}>Anulează</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => {
+                event.preventDefault();
+                void confirmReplaceUpload();
+              }}
+              disabled={isReplacingBalance}
+            >
+              {isReplacingBalance ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Se înlocuiește...
+                </>
+              ) : (
+                'Da, înlocuiește balanța'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

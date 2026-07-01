@@ -1278,6 +1278,14 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      prepare_balance_month_upload: {
+        Args: {
+          _balance_month: string
+          _company_id: string
+          _replace_existing?: boolean
+        }
+        Returns: Json
+      }
       process_import_accounts: {
         Args: {
           p_accounts: Json

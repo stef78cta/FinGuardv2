@@ -17,6 +17,8 @@ import {
   TRIAL_BALANCE_IMPORTS_TABLE,
 } from '@/lib/storage/constants';
 import { emitBalancesChanged } from '@/lib/balanceEvents';
+import { ActiveBalanceExistsError } from '@/lib/balanceUploadErrors';
+import { prepareBalanceMonthUpload } from '@/lib/prepareBalanceMonthUpload';
 
 /**
  * Reprezintă un import de balanță de verificare.
@@ -179,6 +181,7 @@ export const useTrialBalances = (companyId: string | null) => {
     userId: string,
     options?: {
       fiscalYearStartMonth?: number;
+      replaceExisting?: boolean;
       callbacks?: UploadProgressCallbacks;
     }
   ): Promise<TrialBalanceImport> => {
@@ -200,6 +203,12 @@ export const useTrialBalances = (companyId: string | null) => {
       const errorMessage = formatBlockingValidationErrors(parseResult);
       throw new Error(errorMessage);
     }
+
+    await prepareBalanceMonthUpload(
+      companyId,
+      period.balance_month,
+      options?.replaceExisting ?? false,
+    );
 
     callbacks?.onPhase?.('uploading');
     callbacks?.onProgress?.(25);
@@ -237,9 +246,7 @@ export const useTrialBalances = (companyId: string | null) => {
       await supabase.storage.from(BALANCE_STORAGE_BUCKET).remove([filePath]);
 
       if (insertError.code === '23505') {
-        throw new Error(
-          'Există deja o balanță activă pentru luna selectată. Ștergeți importul anterior sau alegeți altă lună.',
-        );
+        throw new ActiveBalanceExistsError();
       }
 
       throw insertError;
@@ -465,12 +472,22 @@ export const useTrialBalances = (companyId: string | null) => {
     return (dataArray?.[0]?.cleaned_count as number) || 0;
   };
 
+  /**
+   * Verifică dacă luna balanței este disponibilă pentru upload (fără înlocuire).
+   * Aruncă ActiveBalanceExistsError dacă există deja o balanță activă.
+   */
+  const assertBalanceMonthAvailable = async (balanceMonth: string) => {
+    if (!companyId) throw new Error('No company selected');
+    await prepareBalanceMonthUpload(companyId, balanceMonth, false);
+  };
+
   return {
     imports,
     importsWithTotals,
     loading,
     error,
     uploadBalance,
+    assertBalanceMonthAvailable,
     deleteImport,
     getAccounts,
     getAccountsTotals,
