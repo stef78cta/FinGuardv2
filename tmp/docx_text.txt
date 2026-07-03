@@ -1,0 +1,445 @@
+Fișierul Excel/CSV pe care l-am construit este mai bogat decât tabelul chart_of_accounts din Finguard. El nu conține doar conturi contabile, ci și:
+REPORT_GROUP        = rânduri de raportare / agregare
+ACCOUNT_GROUP       = conturi sintetice
+ACCOUNT_LEAF        = conturi finale pentru calcul
+CALCULATED          = indicatori calculați
+INTERNAL_ANALYTIC   = analitice interne de raportare
+De aceea, nu trebuie importat tot Excel-ul direct în chart_of_accounts. Corect este să îl împarți pe mai multe destinații.
+1. Situația actuală
+Fișierul Excel are coloane de tip:
+sort_order
+statement_type
+report_area
+section_l1
+section_l2
+section_l3
+section_l4
+account_code
+account_name
+parent_code
+parent_name
+row_type
+normal_balance
+report_sign
+is_leaf_for_calculation
+formula_or_rule
+notes
+Aceste coloane descriu:
+1. planul de conturi
+2. structura de bilanț
+3. structura de profit și pierdere
+4. structura de cash-flow
+5. regulile de calcul
+6. ordinea de afișare
+7. logica de semn + / -
+8. conturile leaf folosite în totaluri
+Tabelele Finguard existente acoperă o parte din această logică, dar nu pe toată.
+2. Ce intră în chart_of_accounts
+În chart_of_accounts trebuie importate doar rândurile care reprezintă conturi reale sau conturi de raportare contabile:
+ACCOUNT_GROUP
+ACCOUNT_LEAF
+Opțional, poți importa și:
+INTERNAL_ANALYTIC
+dar numai dacă vrei ca analiticele interne de tip 665.01, 765.01 etc. să existe explicit în planul de conturi al aplicației.
+Nu trebuie importate în chart_of_accounts:
+REPORT_GROUP
+CALCULATED
+rânduri de tip EBITDA
+rânduri de tip EBIT
+Profit brut
+Profit net
+% marje
+Încasări totale
+Plăți totale
+Sold numerar început/final
+Acestea nu sunt conturi contabile, ci linii de raportare sau indicatori calculați.
+3. Mapare Excel → chart_of_accounts
+Excel
+Finguard chart_of_accounts
+Regulă
+account_code
+account_code
+se importă doar dacă nu este NULL
+account_name
+account_name
+denumirea contului
+parent_code
+parent_id
+lookup în același tabel după company_id + parent_code
+statement_type, report_area
+account_type
+se transformă în asset, liability, equity, revenue, expense
+row_type
+is_postable
+ACCOUNT_LEAF = TRUE, ACCOUNT_GROUP = FALSE
+template standard
+is_system
+TRUE pentru planul standard Finguard
+company_id
+company_id
+compania curentă
+Regula pentru account_type:
+report_area = Active              → asset
+report_area = Datorii             → liability
+report_area = Capital propriu     → equity
+statement_type = Income Statement + venituri     → revenue
+statement_type = Income Statement + cheltuieli   → expense
+Pentru conturi precum amortizări, ajustări, reduceri comerciale, diferențe de curs etc., account_type rămâne cel contabil, iar semnul de raportare se tratează separat prin report_sign.
+4. Problemă importantă în schema actuală
+Tabelul chart_of_accounts nu are coloane pentru:
+normal_balance
+report_sign
+statement_type
+report_area
+row_type
+is_leaf_for_calculation
+formula_or_rule
+display_order
+Aceste informații există în Excel și sunt importante pentru rapoarte.
+Dacă le pierzi la import, aplicația va ști contul, dar nu va ști suficient de bine:
+unde se afișează contul;
+dacă se adună sau se scade;
+dacă este cont leaf sau grup;
+dacă este rând calculat;
+ce formulă are;
+în ce ordine apare în raport.
+De aceea, recomandarea corectă este să nu forțezi totul în chart_of_accounts.
+5. Recomandare tehnică: adaugă un tabel de layout / report definitions
+Aș adăuga un tabel separat, de exemplu:
+CREATE TABLE public.statement_line_definitions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID REFERENCES public.companies(id) ON DELETE CASCADE,
+    statement_type VARCHAR(50) NOT NULL
+        CHECK (statement_type IN ('balance_sheet', 'income_statement', 'cash_flow')),
+    line_key VARCHAR(150) NOT NULL,
+    parent_line_key VARCHAR(150),
+    display_name VARCHAR(255) NOT NULL,
+    report_area VARCHAR(100),
+    section_l1 VARCHAR(255),
+    section_l2 VARCHAR(255),
+    section_l3 VARCHAR(255),
+    section_l4 VARCHAR(255),
+    account_code VARCHAR(20),
+    chart_account_id UUID REFERENCES public.chart_of_accounts(id),
+    row_type VARCHAR(50) NOT NULL
+        CHECK (row_type IN ('REPORT_GROUP', 'ACCOUNT_GROUP', 'ACCOUNT_LEAF', 'CALCULATED', 'INTERNAL_ANALYTIC')),
+    normal_balance VARCHAR(20),
+    report_sign VARCHAR(20)
+        CHECK (report_sign IN ('+', '-', 'calculated')),
+    is_leaf_for_calculation BOOLEAN NOT NULL DEFAULT FALSE,
+    formula_or_rule TEXT,
+    display_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (company_id, statement_type, line_key)
+);
+Acest tabel devine „scheletul” rapoartelor.
+Excel-ul tău se potrivește aproape perfect cu acest tabel.
+6. Mapare Excel → statement_line_definitions
+Excel
+statement_line_definitions
+sort_order
+display_order
+statement_type
+statement_type
+report_area
+report_area
+section_l1
+section_l1
+section_l2
+section_l2
+section_l3
+section_l3
+section_l4
+section_l4
+account_code
+account_code
+account_name sau ultima secțiune completă
+display_name
+row_type
+row_type
+normal_balance
+normal_balance
+report_sign
+report_sign
+is_leaf_for_calculation
+is_leaf_for_calculation
+formula_or_rule
+formula_or_rule
+notes
+poate intra în formula_or_rule sau într-un câmp notes suplimentar
+Aici intră toate rândurile:
+REPORT_GROUP
+ACCOUNT_GROUP
+ACCOUNT_LEAF
+CALCULATED
+INTERNAL_ANALYTIC
+Deci acest tabel păstrează întreaga logică din Excel.
+7. account_mappings
+Tabelul account_mappings nu se populează direct doar din Excel.
+El se populează după ce ai deja:
+1. conturile din balanță în trial_balance_accounts;
+2. conturile standard în chart_of_accounts;
+3. regula de mapare.
+Regulă recomandată:
+trial_balance_accounts.account_code = chart_of_accounts.account_code
+Dacă există potrivire exactă, creezi mapare 100%:
+allocation_pct = 1.0
+valid_from = period_start sau CURRENT_DATE
+valid_to = NULL
+Pentru conturile unde ai split allocation:
+un cont din balanță poate merge către 2 sau mai multe conturi CoA
+suma allocation_pct trebuie să fie maxim 1.0
+Exemplu:
+TB account 628 = Alte servicii executate de terți
+70% → OPEX / servicii executate de terți
+30% → cheltuieli nerecurente, dacă utilizatorul decide această reclasificare
+8. financial_statements
+Fișierul Excel nu ar trebui să genereze direct rânduri în financial_statements.
+Acest tabel se completează când utilizatorul generează efectiv raportul pentru o lună/perioadă.
+Sursa este:
+trial_balance_imports
++ chart_of_accounts
++ account_mappings
++ statement_line_definitions
+Pentru fiecare raport generat se creează:
+balance_sheet
+income_statement
+cash_flow
+cu:
+company_id
+period_start
+period_end
+source_import_id
+statement_type
+version
+is_current
+currency_code
+generated_by
+Excel-ul este template de mapare, nu raport financiar generat.
+9. balance_sheet_lines
+Aici se salvează rezultatul calculat pentru bilanț.
+Mapare:
+Excel / template
+balance_sheet_lines
+line_key generat din ierarhie
+line_key
+report_area
+category
+section_l1 / section_l2
+subcategory
+chart_account_id
+chart_account_id
+account_code
+account_code
+display_name
+description
+valoare calculată
+amount
+sort_order
+display_order
+Rândurile de tip:
+Active totale
+Total datorii și capitaluri
+Active imobilizate nete
+Active curente
+Capital propriu
+sunt rânduri calculate, nu conturi contabile.
+Ele intră în balance_sheet_lines, dar cu:
+chart_account_id = NULL
+trial_balance_account_id = NULL
+10. income_statement_lines
+Aici apare o mică problemă în schema actuală.
+Tabelul are:
+category VARCHAR(100) NOT NULL CHECK (category IN ('venituri', 'cheltuieli'))
+Dar în imaginile tale apar și rânduri de tip:
+Rezultat operațional brut
+% Marja operațională brută
+Rezultat operațional din activitate recurentă
+% Marja operațională din activitatea recurentă
+EBITDA
+% Marja EBITDA
+EBIT
+% Marja EBIT
+Rezultat financiar
+Profit brut
+Profit net
+% Marja profit net
+Acestea nu sunt nici venituri, nici cheltuieli. Sunt rânduri calculate.
+Recomand să modifici constraint-ul:
+CHECK (category IN ('venituri', 'cheltuieli', 'rezultat', 'marja', 'calculated'))
+Ideal, adaugi și o coloană:
+line_type VARCHAR(50)
+CHECK (line_type IN ('account', 'group', 'calculated', 'kpi'))
+Altfel, aplicația va forța indicatorii calculați într-o categorie greșită.
+11. cash_flow_lines
+Pentru cash-flow, schema actuală este prea simplă:
+section CHECK (section IN ('operating', 'investing', 'financing'))
+Dar în imaginile tale apar și:
+Sold numerar la început de perioadă
+Încasări totale
+Plăți totale
+Plăți neobișnuite
+Încasări neobișnuite
+Viramente interne
+Sold numerar la final perioadă
+Acestea nu intră curat doar în:
+operating
+investing
+financing
+Recomand să extinzi secțiunea:
+CHECK (section IN (
+    'opening_cash',
+    'operating',
+    'investing',
+    'financing',
+    'internal_transfers',
+    'unusual',
+    'closing_cash',
+    'calculated'
+))
+Sau, mai bine, păstrezi section pentru nivelul principal și adaugi:
+cash_flow_area VARCHAR(100)
+line_type VARCHAR(50)
+Pentru cash-flow, mai ai nevoie și de reguli de calcul.
+12. Atenție majoră: cash-flow direct nu se poate calcula perfect doar din balanță
+Structura din imagini este de tip cash-flow direct:
+Încasări din clienți
+Plăți către furnizori
+Plăți salarii
+Plăți taxe
+Încasări din dobânzi
+Plăți dobânzi
+Plăți pentru investiții
+Pentru acest tip de raport, aplicația are nevoie de rulaje cu contrapartidă:
+5121 / 5311 contra 4111
+5121 / 5311 contra 401
+5121 / 5311 contra 421
+5121 / 5311 contra 4423
+etc.
+Dacă aplicația are doar balanța de verificare, fără jurnal contabil sau registru de casă/bancă cu contrapartidă, atunci cash-flow-ul direct poate fi doar aproximat.
+Pentru cash-flow exact, ai nevoie de unul din următoarele:
+1. jurnal contabil cu debit / credit / cont corespondent;
+2. registru bancă + casă;
+3. rulaje pe corespondențe;
+4. export contabil detaliat, nu doar balanță sintetică.
+Balanța simplă îți dă solduri și rulaje, dar nu îți spune întotdeauna clar cui s-au făcut plățile sau de la cine s-au primit încasările.
+13. Recomandare pentru Cash Flow: tabel separat de reguli
+Aș adăuga un tabel:
+CREATE TABLE public.cash_flow_mapping_rules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID REFERENCES public.companies(id) ON DELETE CASCADE,
+    line_key VARCHAR(150) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    cash_flow_direction VARCHAR(30) NOT NULL
+        CHECK (cash_flow_direction IN ('opening', 'inflow', 'outflow', 'closing', 'internal_transfer')),
+    section VARCHAR(50) NOT NULL
+        CHECK (section IN ('operating', 'investing', 'financing', 'unusual', 'internal_transfers', 'cash_balance')),
+    cash_account_prefixes TEXT[] NOT NULL DEFAULT ARRAY['5121','5124','5311','5314'],
+    counterparty_account_prefixes TEXT[],
+    report_sign VARCHAR(20) NOT NULL DEFAULT '+'
+        CHECK (report_sign IN ('+', '-', 'calculated')),
+    display_order INT NOT NULL DEFAULT 0,
+    formula_or_rule TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (company_id, line_key)
+);
+Exemplu de regulă:
+line_key: cf.receipts.operating.customers
+description: Încasări din Clienți
+cash_flow_direction: inflow
+section: operating
+cash_account_prefixes: 5121, 5124, 5311, 5314
+counterparty_account_prefixes: 411, 4111, 413, 418
+Alt exemplu:
+line_key: cf.payments.operating.suppliers
+description: Plăți pentru Furnizori
+cash_flow_direction: outflow
+section: operating
+counterparty_account_prefixes: 401, 403, 408
+14. KPIs
+Rândurile procentuale ar trebui să intre în kpi_definitions, nu doar în statement lines.
+Din Excel poți crea KPI-uri pentru:
+% Marja operațională brută
+% Marja operațională din activitatea recurentă
+% Marja EBITDA
+% Marja EBIT
+% Marja profit net
+Exemplu:
+KPI
+Formula
+gross_margin_pct
+Rezultat operațional brut / Venituri operaționale recurente
+recurring_operating_margin_pct
+Rezultat operațional recurent / Venituri operaționale recurente
+ebitda_margin_pct
+EBITDA / Venituri operaționale recurente
+ebit_margin_pct
+EBIT / Venituri operaționale recurente
+net_profit_margin_pct
+Profit net / Venituri operaționale recurente
+Acestea se salvează în:
+kpi_definitions
+kpi_values
+15. Adaptarea recomandată a fișierului Excel
+Aș adăuga în Excel câteva coloane noi, ca importul să fie clar și automat:
+target_table
+line_key
+parent_line_key
+account_type
+is_postable
+is_system
+line_type
+kpi_code
+kpi_unit
+cash_flow_direction
+counterparty_account_prefixes
+Astfel, fișierul devine direct importabil în Finguard.
+Exemplu:
+row_type = ACCOUNT_LEAF
+target_table = chart_of_accounts + statement_line_definitions
+row_type = REPORT_GROUP
+target_table = statement_line_definitions
+row_type = CALCULATED
+target_table = statement_line_definitions / kpi_definitions
+statement_type = Cash Flow
+target_table = statement_line_definitions + cash_flow_mapping_rules
+16. Fluxul corect de implementare în aplicație
+Ordinea recomandată este:
+1. Import Excel / CSV template
+2. Creează chart_of_accounts pentru conturile reale
+3. Creează statement_line_definitions pentru toate liniile de raportare
+4. Creează cash_flow_mapping_rules pentru liniile de cash-flow
+5. Importă balanța de verificare
+6. Creează account_mappings între trial_balance_accounts și chart_of_accounts
+7. Verifică dacă maparea este 100%
+8. Generează financial_statements
+9. Generează balance_sheet_lines
+10. Generează income_statement_lines
+11. Generează cash_flow_lines
+12. Calculează kpi_values
+13. Generează reports
+17. Concluzia practică
+Fișierul Excel se poate adapta foarte bine la Finguard, dar nu trebuie tratat ca un simplu chart_of_accounts.
+Structura corectă este:
+chart_of_accounts
+= doar conturile contabile reale
+statement_line_definitions
+= structura completă de raportare din Excel
+account_mappings
+= legătura dintre balanță și conturile CoA
+financial_statements
+= raportul generat pentru o perioadă
+balance_sheet_lines
+income_statement_lines
+cash_flow_lines
+= rezultatele calculate
+kpi_definitions
+kpi_values
+= indicatorii calculați
+cash_flow_mapping_rules
+= regulile speciale pentru cash-flow
+Cea mai importantă ajustare este să introduci un tabel de tip statement_line_definitions. Fără el, vei forța în chart_of_accounts rânduri care nu sunt conturi contabile, precum EBITDA, EBIT, Profit net, Total active, Total datorii sau Sold numerar final.

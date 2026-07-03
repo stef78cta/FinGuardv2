@@ -129,31 +129,37 @@ export type Database = {
       cash_flow_lines: {
         Row: {
           amount: number
+          cash_flow_area: string | null
           created_at: string
           description: string
           display_order: number
           id: string
           line_key: string
+          line_type: string | null
           section: string
           statement_id: string
         }
         Insert: {
           amount: number
+          cash_flow_area?: string | null
           created_at?: string
           description: string
           display_order?: number
           id?: string
           line_key: string
+          line_type?: string | null
           section: string
           statement_id: string
         }
         Update: {
           amount?: number
+          cash_flow_area?: string | null
           created_at?: string
           description?: string
           display_order?: number
           id?: string
           line_key?: string
+          line_type?: string | null
           section?: string
           statement_id?: string
         }
@@ -163,6 +169,65 @@ export type Database = {
             columns: ["statement_id"]
             isOneToOne: false
             referencedRelation: "financial_statements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cash_flow_mapping_rules: {
+        Row: {
+          cash_account_prefixes: string[]
+          cash_flow_direction: string
+          company_id: string | null
+          counterparty_account_prefixes: string[] | null
+          created_at: string
+          description: string
+          display_order: number
+          formula_or_rule: string | null
+          id: string
+          is_active: boolean
+          line_key: string
+          report_sign: string
+          section: string
+          updated_at: string
+        }
+        Insert: {
+          cash_account_prefixes?: string[]
+          cash_flow_direction: string
+          company_id?: string | null
+          counterparty_account_prefixes?: string[] | null
+          created_at?: string
+          description: string
+          display_order?: number
+          formula_or_rule?: string | null
+          id?: string
+          is_active?: boolean
+          line_key: string
+          report_sign?: string
+          section: string
+          updated_at?: string
+        }
+        Update: {
+          cash_account_prefixes?: string[]
+          cash_flow_direction?: string
+          company_id?: string | null
+          counterparty_account_prefixes?: string[] | null
+          created_at?: string
+          description?: string
+          display_order?: number
+          formula_or_rule?: string | null
+          id?: string
+          is_active?: boolean
+          line_key?: string
+          report_sign?: string
+          section?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_flow_mapping_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -220,6 +285,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      chart_of_accounts_template: {
+        Row: {
+          account_code: string
+          account_name: string
+          account_type: string
+          is_postable: boolean
+          parent_code: string | null
+          sort_order: number
+        }
+        Insert: {
+          account_code: string
+          account_name: string
+          account_type: string
+          is_postable?: boolean
+          parent_code?: string | null
+          sort_order?: number
+        }
+        Update: {
+          account_code?: string
+          account_name?: string
+          account_type?: string
+          is_postable?: boolean
+          parent_code?: string | null
+          sort_order?: number
+        }
+        Relationships: []
       }
       companies: {
         Row: {
@@ -411,6 +503,7 @@ export type Database = {
           display_order: number
           id: string
           line_key: string
+          line_type: string | null
           statement_id: string
           subcategory: string | null
           trial_balance_account_id: string | null
@@ -425,6 +518,7 @@ export type Database = {
           display_order?: number
           id?: string
           line_key: string
+          line_type?: string | null
           statement_id: string
           subcategory?: string | null
           trial_balance_account_id?: string | null
@@ -439,6 +533,7 @@ export type Database = {
           display_order?: number
           id?: string
           line_key?: string
+          line_type?: string | null
           statement_id?: string
           subcategory?: string | null
           trial_balance_account_id?: string | null
@@ -692,6 +787,105 @@ export type Database = {
             columns: ["generated_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      statement_line_definitions: {
+        Row: {
+          account_code: string | null
+          chart_account_id: string | null
+          company_id: string | null
+          created_at: string
+          display_name: string
+          display_order: number
+          formula_or_rule: string | null
+          id: string
+          is_active: boolean
+          is_leaf_for_calculation: boolean
+          line_key: string
+          line_type: string | null
+          normal_balance: string | null
+          notes: string | null
+          parent_line_key: string | null
+          report_area: string | null
+          report_sign: string | null
+          row_type: string
+          section_l1: string | null
+          section_l2: string | null
+          section_l3: string | null
+          section_l4: string | null
+          sort_order: number
+          statement_type: string
+          updated_at: string
+        }
+        Insert: {
+          account_code?: string | null
+          chart_account_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          display_name: string
+          display_order?: number
+          formula_or_rule?: string | null
+          id?: string
+          is_active?: boolean
+          is_leaf_for_calculation?: boolean
+          line_key: string
+          line_type?: string | null
+          normal_balance?: string | null
+          notes?: string | null
+          parent_line_key?: string | null
+          report_area?: string | null
+          report_sign?: string | null
+          row_type: string
+          section_l1?: string | null
+          section_l2?: string | null
+          section_l3?: string | null
+          section_l4?: string | null
+          sort_order?: number
+          statement_type: string
+          updated_at?: string
+        }
+        Update: {
+          account_code?: string | null
+          chart_account_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          display_name?: string
+          display_order?: number
+          formula_or_rule?: string | null
+          id?: string
+          is_active?: boolean
+          is_leaf_for_calculation?: boolean
+          line_key?: string
+          line_type?: string | null
+          normal_balance?: string | null
+          notes?: string | null
+          parent_line_key?: string | null
+          report_area?: string | null
+          report_sign?: string | null
+          row_type?: string
+          section_l1?: string | null
+          section_l2?: string | null
+          section_l3?: string | null
+          section_l4?: string | null
+          sort_order?: number
+          statement_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "statement_line_definitions_chart_account_id_fkey"
+            columns: ["chart_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "statement_line_definitions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -1191,6 +1385,14 @@ export type Database = {
         Args: { _statement_id: string; _user_id: string }
         Returns: boolean
       }
+      auto_map_import_from_chart: {
+        Args: { _import_id: string }
+        Returns: number
+      }
+      generate_financial_statements_from_import: {
+        Args: { _import_id: string }
+        Returns: Json
+      }
       can_access_import: {
         Args: { _import_id: string; _user_id: string }
         Returns: boolean
@@ -1297,6 +1499,10 @@ export type Database = {
       retry_failed_import: {
         Args: { p_import_id: string; p_user_id: string }
         Returns: boolean
+      }
+      seed_standard_chart_of_accounts: {
+        Args: { _company_id: string }
+        Returns: number
       }
       soft_delete_import: { Args: { _import_id: string }; Returns: boolean }
     }

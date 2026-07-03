@@ -1,8 +1,8 @@
 # FinGuard v2 - Schema Bază de Date
 
-> **Ultima actualizare**: 24 Iunie 2026  
-> **Versiune Schema**: Plan Final v3.3 + Security Patches v1.8 + Upload Pipeline v2.0  
-> **Migrări în repo**: 30 fișiere SQL (`supabase/migrations/`)
+> **Ultima actualizare**: 3 Iulie 2026  
+> **Versiune Schema**: Plan Final v3.3 + Security Patches v1.8 + Upload Pipeline v2.0 + Reporting Template v3.4  
+> **Migrări în repo**: 36 fișiere SQL (`supabase/migrations/`)
 
 ---
 
@@ -17,7 +17,10 @@
 | `trial_balance_imports` | Importuri balanțe (cu tracking procesare) | ✅ |
 | `trial_balance_accounts` | Conturi din balanțe | ✅ |
 | `chart_of_accounts` | Plan de conturi per companie | ✅ |
+| `chart_of_accounts_template` | Plan de conturi standard (referință globală) | ✅ |
 | `account_mappings` | Mapări conturi TB → CoA | ✅ |
+| `statement_line_definitions` | Scheletul de raportare (BS/P&L/CF): grupuri, subtotaluri, calcule | ✅ |
+| `cash_flow_mapping_rules` | Reguli cash-flow metoda directă (numerar ↔ contrapartidă) | ✅ |
 | `financial_statements` | Situații financiare generate | ✅ |
 | `balance_sheet_lines` | Linii bilanț | ✅ |
 | `income_statement_lines` | Linii cont profit/pierdere | ✅ |
@@ -51,6 +54,35 @@
 | Stale imports | `cleanup_stale_imports()` (10 min), view `stale_imports_monitor` (5 min) |
 | View security | `security_invoker = true` pe view-uri import |
 | Constraints | Eliminate `check_opening_balance_xor` / `check_closing_balance_xor` (v1.9.4) |
+
+---
+
+## Reporting Template v3.4 (3 iul. 2026)
+
+Adaptarea template-ului Excel „Chart of Accounts Mapping” (Bilanț, P&L, Cash Flow) la
+schema Finguard. Structura de raportare este separată de planul de conturi propriu-zis.
+
+| Obiect | Rol | company_id |
+|--------|-----|-----------|
+| `statement_line_definitions` | Scheletul complet al rapoartelor: și rândurile care NU sunt conturi (`REPORT_GROUP`, `CALCULATED`) | `NULL` = template global, altfel per-companie |
+| `cash_flow_mapping_rules` | Reguli pentru cash-flow direct: conturi numerar (`5121/5124/5311/5314`) ↔ conturi contrapartidă + direcție (`inflow/outflow/opening/closing/internal_transfer`) | `NULL` = global |
+| `chart_of_accounts_template` | Plan de conturi standard, deduplicat, cu `account_type` derivat pe clasă contabilă | referință globală (fără `company_id`) |
+| `seed_standard_chart_of_accounts(_company_id)` | Funcție `SECURITY DEFINER` care instanțiază idempotent planul standard pentru o companie (inclusiv legarea `parent_id`) | — |
+
+**Corecții față de propunerea inițială (verificate în cod):**
+
+- `row_type` include `INTERNAL_GROUP` (ex: `765movcredit`, `665movdebit`).
+- `report_sign` include `'+/-'` pentru conturi mixte (`442`, `4428`, `121`, `117`).
+- `normal_balance` este `VARCHAR(40)` (valori de tip `Credit/contra-cheltuială`).
+- `income_statement_lines.category` a fost relaxat: `venituri, cheltuieli, rezultat, marja, calculated` (rezolvă blocarea indicatorilor calculați: EBITDA, EBIT, marje %).
+- `cash_flow_lines.section` a fost extins: `opening_cash, operating, investing, financing, internal_transfers, unusual, closing_cash, calculated`.
+- `account_type` este derivat determinist din clasa contului (6→expense, 7→revenue, 2/3/5→asset cu excepția `519`→liability, 1→equity/liability, 4→după `normal_balance`).
+
+**Tooling:** `scripts/coa/parse-mapping-xlsx.mjs` (cititor `.xlsx` fără dependențe) →
+`scripts/coa/standard-coa-template.json` (artefact durabil) + migrarea generată
+`20260703100005_seed_standard_report_template.sql`.
+
+**Volume seed:** 177 conturi standard, 373 linii de raport, 74 reguli cash-flow, 5 KPI marje.
 
 ---
 
@@ -611,7 +643,18 @@ CREATE TABLE public.report_statements (
 | `20260630130000_normalize_historical_balance_periods.sql` | Normalizare period_start/end istoric |
 | `20260701120000_prepare_balance_month_upload.sql` | RPC pregătire upload lună |
 
-**Total migrări versionate:** 30 (+ script utilitar `CLEANUP_EXISTING_STALE_IMPORTS.sql`)
+### Reporting Template v3.4 (Iulie 3, 2026)
+
+| Fișier | Descriere |
+|--------|-----------|
+| `20260703100000_create_statement_line_definitions.sql` | Scheletul de raportare (BS/P&L/CF) + RLS |
+| `20260703100001_create_cash_flow_mapping_rules.sql` | Reguli cash-flow metoda directă + RLS |
+| `20260703100002_extend_income_statement_lines.sql` | Relaxare `category` + coloană `line_type` |
+| `20260703100003_extend_cash_flow_lines.sql` | Extindere `section` + `cash_flow_area` + `line_type` |
+| `20260703100004_chart_of_accounts_template.sql` | Tabel template CoA + funcția `seed_standard_chart_of_accounts()` |
+| `20260703100005_seed_standard_report_template.sql` | **(generată)** seed global: CoA template, definiții raport, reguli CF, KPI |
+
+**Total migrări versionate:** 36 (+ script utilitar `CLEANUP_EXISTING_STALE_IMPORTS.sql`)
 
 ---
 
