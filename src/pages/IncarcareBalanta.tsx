@@ -221,7 +221,7 @@ const IncarcareBalanta = () => {
     const uploadGeneration = beginUpload();
     try {
       setUploadProgress(30);
-      await uploadBalance(uploadedFile, balanceMonth, userData.id, {
+      const uploadResult = await uploadBalance(uploadedFile, balanceMonth, userData.id, {
         fiscalYearStartMonth: activeCompany.fiscal_year_start_month ?? 1,
         replaceExisting,
         callbacks: {
@@ -234,11 +234,24 @@ const IncarcareBalanta = () => {
         },
       });
       completeUpload(uploadGeneration);
-      toast.success(
-        replaceExisting
-          ? 'Balanța anterioară a fost înlocuită cu succes.'
-          : 'Balanța a fost încărcată și procesată cu succes!',
-      );
+
+      if (uploadResult.statementsGeneration.success) {
+        toast.success(
+          replaceExisting
+            ? 'Balanța a fost înlocuită și rapoartele financiare generate cu succes.'
+            : 'Balanța și rapoartele financiare au fost generate cu succes!',
+        );
+      } else {
+        toast.success(
+          replaceExisting
+            ? 'Balanța anterioară a fost înlocuită cu succes.'
+            : 'Balanța a fost încărcată și procesată cu succes!',
+        );
+        toast.warning(
+          uploadResult.statementsGeneration.error ??
+            'Rapoartele financiare nu au putut fi generate. Le poți genera din Rapoarte financiare.',
+        );
+      }
 
       setTimeout(() => {
         resetAfterSuccessfulImport(uploadGeneration);
@@ -368,8 +381,16 @@ const IncarcareBalanta = () => {
       }
 
       toast.info('Reîncerc procesarea balanței...');
-      await retryFailedImport(importId, userData.id);
-      toast.success('Balanța a fost reprocesată cu succes!');
+      const retryResult = await retryFailedImport(importId, userData.id);
+      if (retryResult.statementsGeneration.success) {
+        toast.success('Balanța și rapoartele financiare au fost regenerate cu succes!');
+      } else {
+        toast.success('Balanța a fost reprocesată cu succes!');
+        toast.warning(
+          retryResult.statementsGeneration.error ??
+            'Rapoartele financiare nu au putut fi generate. Le poți genera din Rapoarte financiare.',
+        );
+      }
     } catch (error) {
       console.error('[IncarcareBalanta] Error retrying import:', error);
       toast.error(error instanceof Error ? error.message : 'Eroare la reprocesare');

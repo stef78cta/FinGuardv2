@@ -18,7 +18,16 @@ import {
 } from '@/lib/storage/constants';
 import { emitBalancesChanged } from '@/lib/balanceEvents';
 import { ActiveBalanceExistsError } from '@/lib/balanceUploadErrors';
+import {
+  generateFinancialStatementsForImport,
+  type StatementsGenerationResult,
+} from '@/lib/financialStatementsPipeline';
 import { prepareBalanceMonthUpload } from '@/lib/prepareBalanceMonthUpload';
+
+export interface UploadBalanceResult {
+  import: TrialBalanceImport;
+  statementsGeneration: StatementsGenerationResult;
+}
 
 /**
  * Reprezintă un import de balanță de verificare.
@@ -184,7 +193,7 @@ export const useTrialBalances = (companyId: string | null) => {
       replaceExisting?: boolean;
       callbacks?: UploadProgressCallbacks;
     }
-  ): Promise<TrialBalanceImport> => {
+  ): Promise<UploadBalanceResult> => {
     if (!companyId) throw new Error('No company selected');
 
     const callbacks = options?.callbacks;
@@ -269,6 +278,11 @@ export const useTrialBalances = (companyId: string | null) => {
     await fetchImports();
     emitBalancesChanged(companyId);
 
+    const statementsGeneration = await generateFinancialStatementsForImport(
+      companyId,
+      importData.id,
+    );
+
     const readSource = await getImportsReadSource();
     const { data: completedImport } = await supabase
       .from(readSource)
@@ -276,7 +290,10 @@ export const useTrialBalances = (companyId: string | null) => {
       .eq('id', importData.id)
       .single();
 
-    return (completedImport ?? importData) as TrialBalanceImport;
+    return {
+      import: (completedImport ?? importData) as TrialBalanceImport,
+      statementsGeneration,
+    };
   };
 
   /**
@@ -453,9 +470,15 @@ export const useTrialBalances = (companyId: string | null) => {
     }
 
     await processImport(importId, parseResult.accounts);
+
+    const statementsGeneration = companyId
+      ? await generateFinancialStatementsForImport(companyId, importId)
+      : { success: false, error: 'Companie indisponibilă' };
+
     await fetchImports();
     emitBalancesChanged(companyId);
-    return true;
+
+    return { success: true, statementsGeneration };
   };
 
   const cleanupStaleImports = async (): Promise<number> => {

@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
-import { ro } from 'date-fns/locale';
 import {
   FileSpreadsheet,
   Printer,
@@ -8,6 +7,9 @@ import {
   Mail,
   Upload,
   Loader2,
+  RefreshCw,
+  Sparkles,
+  AlertCircle,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
@@ -28,6 +30,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -35,190 +48,148 @@ import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { useBalante, BalanceWithAccounts } from '@/hooks/useBalante';
-import { useFinancialCalculations, BilantData, ProfitPierdereData, CashFlowData } from '@/hooks/useFinancialCalculations';
+import { useBalante } from '@/hooks/useBalante';
+import { useCompanyContext } from '@/contexts/CompanyContext';
+import { useGeneratedFinancialStatements } from '@/hooks/useGeneratedFinancialStatements';
+import {
+  formatStatementAmount,
+  groupBalanceSheetLines,
+  groupCashFlowLines,
+  groupIncomeStatementLines,
+  isBalanceSheetEmphasized,
+  isEmphasizedLineType,
+} from '@/lib/financialStatementDisplay';
+import type { Database } from '@/integrations/supabase/types';
 
-// ============ UTILITY FUNCTIONS ============
+type BalanceSheetLineRow = Database['public']['Tables']['balance_sheet_lines']['Row'];
+type IncomeStatementLineRow = Database['public']['Tables']['income_statement_lines']['Row'];
+type CashFlowLineRow = Database['public']['Tables']['cash_flow_lines']['Row'];
 
-const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('ro-RO', {
-    style: 'currency',
-    currency: 'RON',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-};
-
-// ============ COMPONENTS ============
-
-interface BilantRowProps {
+interface StatementLineRowProps {
   label: string;
   value: number;
-  className?: string;
+  emphasized?: boolean;
   indent?: boolean;
 }
 
-const BilantRow = ({ label, value, className, indent = false }: BilantRowProps) => {
-  const isNegative = value < 0;
+const StatementLineRow = ({ label, value, emphasized = false, indent = false }: StatementLineRowProps) => (
+  <tr className={cn(emphasized && 'table-row-total')}>
+    <td className={cn(indent && 'pl-8')}>{label}</td>
+    <td className="text-right font-mono tabular-nums">{formatStatementAmount(value)}</td>
+  </tr>
+);
+
+interface StatementTableProps<T extends { description: string | null; amount: number; line_type?: string | null }> {
+  lines: T[];
+  getLabel: (line: T) => string;
+  isEmphasized?: (line: T) => boolean;
+}
+
+function StatementTable<T extends { description: string | null; amount: number; line_type?: string | null }>({
+  lines,
+  getLabel,
+  isEmphasized = (line) => isEmphasizedLineType(line.line_type),
+}: StatementTableProps<T>) {
+  if (lines.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground py-4 text-center">
+        Nu există linii de afișat pentru această secțiune.
+      </p>
+    );
+  }
 
   return (
-    <div
-      className={cn(
-        'flex justify-between items-center py-1',
-        indent && 'pl-4',
-        className
-      )}
-    >
-      <span className="text-sm">{label}</span>
-      <span className="text-sm font-mono tabular-nums text-foreground">
-        {isNegative && '('}
-        {formatCurrency(Math.abs(value))}
-        {isNegative && ')'}
-      </span>
-    </div>
+    <table className="table-financial">
+      <thead>
+        <tr>
+          <th>Descriere</th>
+          <th className="text-right">Sumă</th>
+        </tr>
+      </thead>
+      <tbody>
+        {lines.map((line, idx) => (
+          <StatementLineRow
+            key={`${getLabel(line)}-${idx}`}
+            label={getLabel(line)}
+            value={line.amount}
+            emphasized={isEmphasized(line)}
+            indent={!isEmphasized(line)}
+          />
+        ))}
+      </tbody>
+    </table>
   );
-};
-
-// ============ MAIN COMPONENT ============
+}
 
 const RapoarteFinanciare = () => {
-  const { balances, loading, hasData, getBalanceAccounts } = useBalante();
+  const { activeCompany } = useCompanyContext();
+  const { balances, loading, hasData } = useBalante();
   const [selectedBalanta, setSelectedBalanta] = useState<string>('');
   const [activeTab, setActiveTab] = useState<string>('bilant');
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState('');
-  const [balanceData, setBalanceData] = useState<BalanceWithAccounts | null>(null);
-  const [dataLoading, setDataLoading] = useState(false);
 
-  const { bilantData, profitPierdereData, cashFlowData } = useFinancialCalculations(
-    balanceData?.accounts || []
-  );
+  const selectedBalance = balances.find((b) => b.id === selectedBalanta);
 
-  // Load accounts when balance is selected
-  useEffect(() => {
-    const loadAccounts = async () => {
-      if (!selectedBalanta) {
-        setBalanceData(null);
-        return;
-      }
-
-      setDataLoading(true);
-      try {
-        const accounts = await getBalanceAccounts(selectedBalanta);
-        const balance = balances.find(b => b.id === selectedBalanta);
-        if (balance) {
-          setBalanceData({ ...balance, accounts });
-        }
-      } catch (error) {
-        console.error('Error loading accounts:', error);
-        toast.error('Eroare la încărcarea datelor');
-      } finally {
-        setDataLoading(false);
-      }
-    };
-
-    loadAccounts();
-  }, [selectedBalanta, balances, getBalanceAccounts]);
-
-  // ============ EXPORT FUNCTIONS ============
+  const {
+    loading: statementsLoading,
+    isGenerating,
+    error: statementsError,
+    hasStatements,
+    data: statementsData,
+    refresh,
+    generateStatements,
+  } = useGeneratedFinancialStatements(selectedBalanta || null, activeCompany?.id ?? null);
 
   const handlePrint = () => {
     window.print();
   };
 
+  const exportLinesToSheet = (
+    sheetName: string,
+    rows: Array<{ category: string; subcategory: string; description: string; amount: number }>,
+  ) => {
+    const sheetData = [
+      ['Categorie', 'Subcategorie', 'Descriere', 'Sumă'],
+      ...rows.map((r) => [r.category, r.subcategory, r.description, r.amount]),
+    ];
+    return { sheetName, sheetData };
+  };
+
   const handleExportExcel = () => {
     const wb = XLSX.utils.book_new();
 
-    if (activeTab === 'bilant') {
-      const activeData = [
-        ['ACTIVE', ''],
-        ['', ''],
-        ['A. Active imobilizate', ''],
-        ['Imobilizări corporale', bilantData.active.imobilizate.corporale],
-        ['Imobilizări necorporale', bilantData.active.imobilizate.necorporale],
-        ['Imobilizări financiare', bilantData.active.imobilizate.financiare],
-        ['Subtotal Active imobilizate', bilantData.active.imobilizate.subtotal],
-        ['', ''],
-        ['B. Active circulante', ''],
-        ['Stocuri', bilantData.active.circulante.stocuri],
-        ['Creanțe', bilantData.active.circulante.creante],
-        ['Casa și bănci', bilantData.active.circulante.casaBanci],
-        ['Subtotal Active circulante', bilantData.active.circulante.subtotal],
-        ['', ''],
-        ['TOTAL ACTIVE', bilantData.active.total],
-      ];
-
-      const wsActive = XLSX.utils.aoa_to_sheet(activeData);
-      XLSX.utils.book_append_sheet(wb, wsActive, 'Active');
-
-      const pasiveData = [
-        ['PASIVE', ''],
-        ['', ''],
-        ['A. Capitaluri proprii', ''],
-        ['Capital social', bilantData.pasive.capitaluri.capitalSocial],
-        ['Rezerve', bilantData.pasive.capitaluri.rezerve],
-        ['Profit/Pierdere', bilantData.pasive.capitaluri.profitPierdere],
-        ['Subtotal Capitaluri', bilantData.pasive.capitaluri.subtotal],
-        ['', ''],
-        ['B. Datorii', ''],
-        ['Datorii pe termen lung', bilantData.pasive.datorii.termenLung],
-        ['Datorii pe termen scurt', bilantData.pasive.datorii.termenScurt],
-        ['Subtotal Datorii', bilantData.pasive.datorii.subtotal],
-        ['', ''],
-        ['TOTAL PASIVE', bilantData.pasive.total],
-      ];
-
-      const wsPasive = XLSX.utils.aoa_to_sheet(pasiveData);
-      XLSX.utils.book_append_sheet(wb, wsPasive, 'Pasive');
-    } else if (activeTab === 'pl') {
-      const plData = [
-        ['PROFIT ȘI PIERDERE', ''],
-        ['', ''],
-        ['I. VENITURI', ''],
-        ['Venituri din vânzări', profitPierdereData.venituri.vanzari],
-        ['Alte venituri operaționale', profitPierdereData.venituri.altele],
-        ['TOTAL VENITURI', profitPierdereData.venituri.total],
-        ['', ''],
-        ['II. CHELTUIELI', ''],
-        ['Cheltuieli cu materiile prime', -profitPierdereData.cheltuieli.materiale],
-        ['Cheltuieli cu personalul', -profitPierdereData.cheltuieli.personal],
-        ['Alte cheltuieli operaționale', -profitPierdereData.cheltuieli.altele],
-        ['TOTAL CHELTUIELI', -profitPierdereData.cheltuieli.total],
-        ['', ''],
-        ['Rezultat brut', profitPierdereData.rezultatBrut],
-        ['Impozit pe profit', -profitPierdereData.impozit],
-        ['PROFIT/PIERDERE NET', profitPierdereData.rezultatNet],
-      ];
-
-      const wsPL = XLSX.utils.aoa_to_sheet(plData);
-      XLSX.utils.book_append_sheet(wb, wsPL, 'Profit si Pierdere');
-    } else if (activeTab === 'cashflow') {
-      const cfData = [
-        ['SITUAȚIA FLUXURILOR DE NUMERAR', ''],
-        ['', ''],
-        ['A. ACTIVITĂȚI OPERAȚIONALE', ''],
-        ['Încasări de la clienți', cashFlowData.operational.incasariClienti],
-        ['Plăți către furnizori', cashFlowData.operational.platiFurnizori],
-        ['Plăți salarii și contribuții', cashFlowData.operational.platiSalarii],
-        ['Flux net din activități operaționale', cashFlowData.operational.flux],
-        ['', ''],
-        ['B. ACTIVITĂȚI DE INVESTIȚII', ''],
-        ['Achiziții de imobilizări', cashFlowData.investitii.achizitiiImobilizari],
-        ['Vânzări de imobilizări', cashFlowData.investitii.vanzariImobilizari],
-        ['Flux net din activități de investiții', cashFlowData.investitii.flux],
-        ['', ''],
-        ['C. ACTIVITĂȚI DE FINANȚARE', ''],
-        ['Împrumuturi primite', cashFlowData.finantare.imprumuturiPrimite],
-        ['Rambursări de împrumuturi', cashFlowData.finantare.rambursari],
-        ['Flux net din activități de finanțare', cashFlowData.finantare.flux],
-        ['', ''],
-        ['VARIAȚIA NETĂ A NUMERARULUI', cashFlowData.variatieNeta],
-        ['Numerar la începutul perioadei', cashFlowData.numerarInceput],
-        ['NUMERAR LA SFÂRȘITUL PERIOADEI', cashFlowData.numerarSfarsit],
-      ];
-
-      const wsCF = XLSX.utils.aoa_to_sheet(cfData);
-      XLSX.utils.book_append_sheet(wb, wsCF, 'Cash Flow');
+    if (activeTab === 'bilant' && statementsData.balanceSheet) {
+      const rows = statementsData.balanceSheet.lines.map((line) => ({
+        category: line.category,
+        subcategory: line.subcategory ?? '',
+        description: line.description ?? line.line_key,
+        amount: line.amount,
+      }));
+      const { sheetName, sheetData } = exportLinesToSheet('Bilant', rows);
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheetData), sheetName);
+    } else if (activeTab === 'pl' && statementsData.incomeStatement) {
+      const rows = statementsData.incomeStatement.lines.map((line) => ({
+        category: line.category,
+        subcategory: line.subcategory ?? '',
+        description: line.description ?? line.line_key,
+        amount: line.amount,
+      }));
+      const { sheetName, sheetData } = exportLinesToSheet('Profit si Pierdere', rows);
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheetData), sheetName);
+    } else if (activeTab === 'cashflow' && statementsData.cashFlow) {
+      const rows = statementsData.cashFlow.lines.map((line) => ({
+        category: line.section,
+        subcategory: line.cash_flow_area ?? '',
+        description: line.description ?? line.line_key,
+        amount: line.amount,
+      }));
+      const { sheetName, sheetData } = exportLinesToSheet('Cash Flow', rows);
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheetData), sheetName);
+    } else {
+      toast.error('Nu există date de exportat pentru tab-ul selectat');
+      return;
     }
 
     const fileName = `Raport_${activeTab}_${format(new Date(), 'dd-MM-yyyy')}.xlsx`;
@@ -252,12 +223,27 @@ const RapoarteFinanciare = () => {
       pdf.save(`Raport_${activeTab}_${format(new Date(), 'dd-MM-yyyy')}.pdf`);
 
       toast.success('Raportul a fost exportat în PDF');
-    } catch (error) {
+    } catch {
       toast.error('Eroare la generarea PDF-ului');
     }
   };
 
-  // ============ RENDER ============
+  const handleGenerate = async () => {
+    const result = await generateStatements();
+    if (result.success) {
+      toast.success('Rapoartele financiare au fost generate cu succes');
+    } else {
+      toast.error(result.error ?? 'Generarea rapoartelor a eșuat');
+    }
+  };
+
+  const handleRegenerateConfirm = async () => {
+    setRegenerateDialogOpen(false);
+    await handleGenerate();
+  };
+
+  const getLineLabel = (line: BalanceSheetLineRow | IncomeStatementLineRow | CashFlowLineRow) =>
+    line.description ?? ('line_key' in line ? line.line_key : '');
 
   if (loading) {
     return (
@@ -273,7 +259,7 @@ const RapoarteFinanciare = () => {
         <div className="page-header">
           <h1 className="page-title">Rapoarte Financiare</h1>
           <p className="page-description">
-            Generați și vizualizați rapoarte financiare detaliate
+            Generați și vizualizați rapoarte financiare detaliate din datele Supabase
           </p>
         </div>
 
@@ -304,7 +290,7 @@ const RapoarteFinanciare = () => {
         <div className="page-header">
           <h1 className="page-title">Rapoarte Financiare</h1>
           <p className="page-description">
-            Generați și vizualizați rapoarte financiare detaliate
+            Selectați o balanță pentru a vizualiza situațiile financiare generate
           </p>
         </div>
 
@@ -339,16 +325,35 @@ const RapoarteFinanciare = () => {
     );
   }
 
+  const balanceSheetGroups = statementsData.balanceSheet
+    ? groupBalanceSheetLines(statementsData.balanceSheet.lines)
+    : [];
+  const incomeGroups = statementsData.incomeStatement
+    ? groupIncomeStatementLines(statementsData.incomeStatement.lines)
+    : [];
+  const cashFlowGroups = statementsData.cashFlow
+    ? groupCashFlowLines(statementsData.cashFlow.lines)
+    : [];
+
+  const isReportLoading = statementsLoading || isGenerating;
+
   return (
     <div className="container-app">
       <div className="page-header">
         <h1 className="page-title">Rapoarte Financiare</h1>
         <p className="page-description">
-          Rapoarte generate din balanța: {balanceData?.source_file_name}
+          Rapoarte generate din balanța: {selectedBalance?.source_file_name}
+          {statementsData.balanceSheet?.statement.period_end && (
+            <span className="text-muted-foreground">
+              {' '}
+              · Perioada {format(new Date(statementsData.balanceSheet.statement.period_start), 'dd.MM.yyyy')}
+              {' – '}
+              {format(new Date(statementsData.balanceSheet.statement.period_end), 'dd.MM.yyyy')}
+            </span>
+          )}
         </p>
       </div>
 
-      {/* Balance Selector */}
       <Card className="p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <div className="flex-1 max-w-md">
@@ -369,28 +374,83 @@ const RapoarteFinanciare = () => {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handlePrint}>
+
+          <div className="flex flex-wrap gap-2">
+            {!hasStatements ? (
+              <Button
+                size="sm"
+                className="btn-primary"
+                onClick={handleGenerate}
+                disabled={isReportLoading}
+              >
+                {isGenerating ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4 mr-2" />
+                )}
+                Generează rapoarte
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setRegenerateDialogOpen(true)}
+                disabled={isReportLoading}
+              >
+                <RefreshCw className={cn('w-4 h-4 mr-2', isGenerating && 'animate-spin')} />
+                Regenerează
+              </Button>
+            )}
+
+            <Button variant="outline" size="sm" onClick={() => void refresh()} disabled={isReportLoading}>
+              <RefreshCw className={cn('w-4 h-4 mr-2', statementsLoading && 'animate-spin')} />
+              Refresh
+            </Button>
+
+            <Button variant="outline" size="sm" onClick={handlePrint} disabled={!hasStatements}>
               <Printer className="w-4 h-4 mr-2" />
               Print
             </Button>
-            <Button variant="outline" size="sm" onClick={handleExportExcel}>
+            <Button variant="outline" size="sm" onClick={handleExportExcel} disabled={!hasStatements}>
               <FileSpreadsheet className="w-4 h-4 mr-2" />
               Excel
             </Button>
-            <Button variant="outline" size="sm" onClick={handleExportPDF}>
+            <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={!hasStatements}>
               <FileText className="w-4 h-4 mr-2" />
               PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)} disabled={!hasStatements}>
+              <Mail className="w-4 h-4 mr-2" />
+              Email
             </Button>
           </div>
         </div>
       </Card>
 
-      {dataLoading ? (
+      {statementsError && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Eroare rapoarte</AlertTitle>
+          <AlertDescription>{statementsError}</AlertDescription>
+        </Alert>
+      )}
+
+      {!hasStatements && !isReportLoading && (
+        <Alert className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Rapoarte indisponibile</AlertTitle>
+          <AlertDescription>
+            Balanța este importată, dar situațiile financiare nu au fost generate încă. Apăsați
+            „Generează rapoarte” pentru a rula pipeline-ul Supabase (mapare conturi + generare BS/P&L/CF).
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isReportLoading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
-      ) : (
+      ) : hasStatements ? (
         <div id="report-content">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-6 w-full md:w-auto">
@@ -405,138 +465,124 @@ const RapoarteFinanciare = () => {
               </TabsTrigger>
             </TabsList>
 
-            {/* Bilant Tab */}
             <TabsContent value="bilant">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Active */}
-                <Card className="p-6">
-                  <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">ACTIVE</h3>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-sm text-muted-foreground mb-2">A. Active imobilizate</h4>
-                      <BilantRow label="Imobilizări corporale" value={bilantData.active.imobilizate.corporale} indent />
-                      <BilantRow label="Imobilizări necorporale" value={bilantData.active.imobilizate.necorporale} indent />
-                      <BilantRow label="Imobilizări financiare" value={bilantData.active.imobilizate.financiare} indent />
-                      <BilantRow label="Subtotal Active imobilizate" value={bilantData.active.imobilizate.subtotal} className="font-semibold bg-muted/50 rounded px-2 -mx-2" />
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold text-sm text-muted-foreground mb-2">B. Active circulante</h4>
-                      <BilantRow label="Stocuri" value={bilantData.active.circulante.stocuri} indent />
-                      <BilantRow label="Creanțe" value={bilantData.active.circulante.creante} indent />
-                      <BilantRow label="Casa și bănci" value={bilantData.active.circulante.casaBanci} indent />
-                      <BilantRow label="Subtotal Active circulante" value={bilantData.active.circulante.subtotal} className="font-semibold bg-muted/50 rounded px-2 -mx-2" />
-                    </div>
-
-                    <BilantRow label="TOTAL ACTIVE" value={bilantData.active.total} className="font-bold text-lg border-t pt-4 mt-4" />
-                  </div>
-                </Card>
-
-                {/* Pasive */}
-                <Card className="p-6">
-                  <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">PASIVE</h3>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-sm text-muted-foreground mb-2">A. Capitaluri proprii</h4>
-                      <BilantRow label="Capital social" value={bilantData.pasive.capitaluri.capitalSocial} indent />
-                      <BilantRow label="Rezerve" value={bilantData.pasive.capitaluri.rezerve} indent />
-                      <BilantRow label="Profit/Pierdere" value={bilantData.pasive.capitaluri.profitPierdere} indent />
-                      <BilantRow label="Subtotal Capitaluri" value={bilantData.pasive.capitaluri.subtotal} className="font-semibold bg-muted/50 rounded px-2 -mx-2" />
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold text-sm text-muted-foreground mb-2">B. Datorii</h4>
-                      <BilantRow label="Datorii pe termen lung" value={bilantData.pasive.datorii.termenLung} indent />
-                      <BilantRow label="Datorii pe termen scurt" value={bilantData.pasive.datorii.termenScurt} indent />
-                      <BilantRow label="Subtotal Datorii" value={bilantData.pasive.datorii.subtotal} className="font-semibold bg-muted/50 rounded px-2 -mx-2" />
-                    </div>
-
-                    <BilantRow label="TOTAL PASIVE" value={bilantData.pasive.total} className="font-bold text-lg border-t pt-4 mt-4" />
-                  </div>
-                </Card>
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                {balanceSheetGroups.length === 0 ? (
+                  <Card className="p-6 xl:col-span-2">
+                    <p className="text-muted-foreground text-center">
+                      Nu există linii de bilanț generate pentru această balanță.
+                    </p>
+                  </Card>
+                ) : (
+                  balanceSheetGroups.map((group) => (
+                    <Card key={group.groupKey} className="p-6">
+                      <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">
+                        {group.groupLabel}
+                      </h3>
+                      {group.subgroups.map((subgroup) => (
+                        <div key={`${group.groupKey}-${subgroup.subKey}`} className="mb-6 last:mb-0">
+                          {subgroup.subLabel && (
+                            <h4 className="font-semibold text-sm text-muted-foreground mb-2">
+                              {subgroup.subLabel}
+                            </h4>
+                          )}
+                          <StatementTable
+                            lines={subgroup.lines}
+                            getLabel={(line) => getLineLabel(line)}
+                            isEmphasized={(line) => isBalanceSheetEmphasized(line)}
+                          />
+                        </div>
+                      ))}
+                    </Card>
+                  ))
+                )}
               </div>
             </TabsContent>
 
-            {/* Profit & Pierdere Tab */}
             <TabsContent value="pl">
               <Card className="p-6">
-                <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">CONTUL DE PROFIT ȘI PIERDERE</h3>
-                
-                <div className="max-w-2xl space-y-6">
-                  <div>
-                    <h4 className="font-semibold text-accent mb-2">I. VENITURI</h4>
-                    <BilantRow label="Venituri din vânzări" value={profitPierdereData.venituri.vanzari} />
-                    <BilantRow label="Alte venituri operaționale" value={profitPierdereData.venituri.altele} />
-                    <BilantRow label="TOTAL VENITURI" value={profitPierdereData.venituri.total} className="font-semibold bg-accent/10 rounded px-2 -mx-2 text-accent" />
+                <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">
+                  CONTUL DE PROFIT ȘI PIERDERE
+                </h3>
+                {incomeGroups.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">
+                    Nu există linii P&L generate pentru această balanță.
+                  </p>
+                ) : (
+                  <div className="space-y-8">
+                    {incomeGroups.map((group) => (
+                      <div key={group.groupKey}>
+                        <h4
+                          className={cn(
+                            'font-semibold mb-3',
+                            group.groupKey === 'venituri' && 'text-accent',
+                            group.groupKey === 'cheltuieli' && 'text-destructive',
+                          )}
+                        >
+                          {group.groupLabel}
+                        </h4>
+                        <StatementTable
+                          lines={group.subgroups[0]?.lines ?? []}
+                          getLabel={(line) => getLineLabel(line)}
+                          isEmphasized={(line) => isEmphasizedLineType(line.line_type)}
+                        />
+                      </div>
+                    ))}
                   </div>
-
-                  <div>
-                    <h4 className="font-semibold text-destructive mb-2">II. CHELTUIELI</h4>
-                    <BilantRow label="Cheltuieli cu materiile prime" value={-profitPierdereData.cheltuieli.materiale} />
-                    <BilantRow label="Cheltuieli cu personalul" value={-profitPierdereData.cheltuieli.personal} />
-                    <BilantRow label="Alte cheltuieli operaționale" value={-profitPierdereData.cheltuieli.altele} />
-                    <BilantRow label="TOTAL CHELTUIELI" value={-profitPierdereData.cheltuieli.total} className="font-semibold bg-destructive/10 rounded px-2 -mx-2 text-destructive" />
-                  </div>
-
-                  <div className="border-t pt-4 space-y-2">
-                    <BilantRow label="Rezultat brut" value={profitPierdereData.rezultatBrut} className="font-semibold" />
-                    <BilantRow label="Impozit pe profit" value={-profitPierdereData.impozit} />
-                    <BilantRow 
-                      label="PROFIT/PIERDERE NET" 
-                      value={profitPierdereData.rezultatNet} 
-                      className={cn(
-                        "font-bold text-lg bg-primary/10 rounded px-2 -mx-2 py-2",
-                        profitPierdereData.rezultatNet >= 0 ? "text-accent" : "text-destructive"
-                      )} 
-                    />
-                  </div>
-                </div>
+                )}
               </Card>
             </TabsContent>
 
-            {/* Cash Flow Tab */}
             <TabsContent value="cashflow">
               <Card className="p-6">
-                <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">SITUAȚIA FLUXURILOR DE NUMERAR</h3>
-                
-                <div className="max-w-2xl space-y-6">
-                  <div>
-                    <h4 className="font-semibold text-primary mb-2">A. ACTIVITĂȚI OPERAȚIONALE</h4>
-                    <BilantRow label="Încasări de la clienți" value={cashFlowData.operational.incasariClienti} />
-                    <BilantRow label="Plăți către furnizori" value={cashFlowData.operational.platiFurnizori} />
-                    <BilantRow label="Plăți salarii și contribuții" value={cashFlowData.operational.platiSalarii} />
-                    <BilantRow label="Flux net operațional" value={cashFlowData.operational.flux} className="font-semibold bg-primary/10 rounded px-2 -mx-2" />
+                <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">
+                  SITUAȚIA FLUXURILOR DE NUMERAR
+                </h3>
+                {cashFlowGroups.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">
+                    Nu există linii cash flow generate pentru această balanță.
+                  </p>
+                ) : (
+                  <div className="space-y-8">
+                    {cashFlowGroups.map((group) => (
+                      <div key={group.groupKey}>
+                        <h4 className="font-semibold text-primary mb-3">{group.groupLabel}</h4>
+                        <StatementTable
+                          lines={group.subgroups[0]?.lines ?? []}
+                          getLabel={(line) => getLineLabel(line)}
+                          isEmphasized={(line) =>
+                            isEmphasizedLineType(line.line_type) ||
+                            ['calculated', 'closing_cash', 'opening_cash'].includes(group.groupKey)
+                          }
+                        />
+                      </div>
+                    ))}
                   </div>
-
-                  <div>
-                    <h4 className="font-semibold text-primary mb-2">B. ACTIVITĂȚI DE INVESTIȚII</h4>
-                    <BilantRow label="Achiziții de imobilizări" value={cashFlowData.investitii.achizitiiImobilizari} />
-                    <BilantRow label="Vânzări de imobilizări" value={cashFlowData.investitii.vanzariImobilizari} />
-                    <BilantRow label="Flux net investiții" value={cashFlowData.investitii.flux} className="font-semibold bg-primary/10 rounded px-2 -mx-2" />
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold text-primary mb-2">C. ACTIVITĂȚI DE FINANȚARE</h4>
-                    <BilantRow label="Împrumuturi primite" value={cashFlowData.finantare.imprumuturiPrimite} />
-                    <BilantRow label="Rambursări de împrumuturi" value={cashFlowData.finantare.rambursari} />
-                    <BilantRow label="Flux net finanțare" value={cashFlowData.finantare.flux} className="font-semibold bg-primary/10 rounded px-2 -mx-2" />
-                  </div>
-
-                  <div className="border-t pt-4 space-y-2">
-                    <BilantRow label="Variația netă a numerarului" value={cashFlowData.variatieNeta} className="font-semibold" />
-                    <BilantRow label="Numerar la începutul perioadei" value={cashFlowData.numerarInceput} />
-                    <BilantRow label="NUMERAR LA SFÂRȘITUL PERIOADEI" value={cashFlowData.numerarSfarsit} className="font-bold text-lg bg-accent/10 rounded px-2 -mx-2 py-2 text-accent" />
-                  </div>
-                </div>
+                )}
               </Card>
             </TabsContent>
           </Tabs>
         </div>
-      )}
+      ) : null}
 
-      {/* Email Dialog */}
+      <AlertDialog open={regenerateDialogOpen} onOpenChange={setRegenerateDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Regenerare rapoarte</AlertDialogTitle>
+            <AlertDialogDescription>
+              Această acțiune va înlocui situațiile financiare existente pentru balanța selectată cu
+              versiuni nou generate. Continuați?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Anulează</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void handleRegenerateConfirm()}>
+              Regenerează
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -560,11 +606,13 @@ const RapoarteFinanciare = () => {
             <Button variant="outline" onClick={() => setEmailDialogOpen(false)}>
               Anulează
             </Button>
-            <Button onClick={() => {
-              toast.success(`Raportul va fi trimis la ${recipientEmail}`);
-              setEmailDialogOpen(false);
-              setRecipientEmail('');
-            }}>
+            <Button
+              onClick={() => {
+                toast.success(`Raportul va fi trimis la ${recipientEmail}`);
+                setEmailDialogOpen(false);
+                setRecipientEmail('');
+              }}
+            >
               <Mail className="w-4 h-4 mr-2" />
               Trimite
             </Button>
