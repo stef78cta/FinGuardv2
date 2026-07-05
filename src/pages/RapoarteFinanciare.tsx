@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense, useEffect } from 'react';
 import { format } from 'date-fns';
 import {
   FileSpreadsheet,
@@ -48,18 +48,23 @@ import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { useBalante } from '@/hooks/useBalante';
+import { useBalante, type BalanceAccount } from '@/hooks/useBalante';
 import { useCompanyContext } from '@/contexts/CompanyContext';
 import { useGeneratedFinancialStatements } from '@/hooks/useGeneratedFinancialStatements';
+import { useStatementLineDefinitions } from '@/hooks/useStatementLineDefinitions';
 import {
   formatStatementAmount,
-  groupBalanceSheetLines,
   groupCashFlowLines,
   groupIncomeStatementLines,
-  isBalanceSheetEmphasized,
   isEmphasizedLineType,
 } from '@/lib/financialStatementDisplay';
 import type { Database } from '@/integrations/supabase/types';
+
+const FinancialTreeTable = lazy(() =>
+  import('@/components/financial-reports/FinancialTreeTable').then((m) => ({
+    default: m.FinancialTreeTable,
+  })),
+);
 
 type BalanceSheetLineRow = Database['public']['Tables']['balance_sheet_lines']['Row'];
 type IncomeStatementLineRow = Database['public']['Tables']['income_statement_lines']['Row'];
@@ -123,12 +128,13 @@ function StatementTable<T extends { description: string | null; amount: number; 
 
 const RapoarteFinanciare = () => {
   const { activeCompany } = useCompanyContext();
-  const { balances, loading, hasData } = useBalante();
+  const { balances, loading, hasData, getBalanceAccounts } = useBalante();
   const [selectedBalanta, setSelectedBalanta] = useState<string>('');
   const [activeTab, setActiveTab] = useState<string>('bilant');
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState('');
+  const [trialBalanceAccounts, setTrialBalanceAccounts] = useState<BalanceAccount[]>([]);
 
   const selectedBalance = balances.find((b) => b.id === selectedBalanta);
 
@@ -141,6 +147,22 @@ const RapoarteFinanciare = () => {
     refresh,
     generateStatements,
   } = useGeneratedFinancialStatements(selectedBalanta || null, activeCompany?.id ?? null);
+
+  const {
+    definitions: balanceSheetDefinitions,
+    loading: definitionsLoading,
+    error: definitionsError,
+  } = useStatementLineDefinitions(activeCompany?.id ?? null, 'balance_sheet');
+
+  useEffect(() => {
+    if (!selectedBalanta) {
+      setTrialBalanceAccounts([]);
+      return;
+    }
+    void getBalanceAccounts(selectedBalanta).then(setTrialBalanceAccounts).catch(() => {
+      setTrialBalanceAccounts([]);
+    });
+  }, [selectedBalanta, getBalanceAccounts]);
 
   const handlePrint = () => {
     window.print();
@@ -325,9 +347,6 @@ const RapoarteFinanciare = () => {
     );
   }
 
-  const balanceSheetGroups = statementsData.balanceSheet
-    ? groupBalanceSheetLines(statementsData.balanceSheet.lines)
-    : [];
   const incomeGroups = statementsData.incomeStatement
     ? groupIncomeStatementLines(statementsData.incomeStatement.lines)
     : [];
@@ -335,7 +354,16 @@ const RapoarteFinanciare = () => {
     ? groupCashFlowLines(statementsData.cashFlow.lines)
     : [];
 
-  const isReportLoading = statementsLoading || isGenerating;
+  const isReportLoading = statementsLoading || isGenerating || definitionsLoading;
+  const balanceSheetCurrency =
+    statementsData.balanceSheet?.statement.currency_code ?? activeCompany?.currency ?? 'RON';
+  const balanceSheetPeriodEnd = statementsData.balanceSheet?.statement.period_end;
+  const balanceSheetYear = balanceSheetPeriodEnd
+    ? new Date(balanceSheetPeriodEnd).getFullYear()
+    : undefined;
+  const balanceSheetPeriodLabel = balanceSheetPeriodEnd
+    ? `Sold la ${format(new Date(balanceSheetPeriodEnd), 'dd.MM.yyyy')}`
+    : undefined;
 
   return (
     <div className="container-app">
@@ -427,6 +455,14 @@ const RapoarteFinanciare = () => {
         </div>
       </Card>
 
+      {definitionsError && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Structură raport indisponibilă</AlertTitle>
+          <AlertDescription>{definitionsError}</AlertDescription>
+        </Alert>
+      )}
+
       {statementsError && (
         <Alert variant="destructive" className="mb-6">
           <AlertCircle className="h-4 w-4" />
@@ -466,37 +502,49 @@ const RapoarteFinanciare = () => {
             </TabsList>
 
             <TabsContent value="bilant">
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                {balanceSheetGroups.length === 0 ? (
-                  <Card className="p-6 xl:col-span-2">
-                    <p className="text-muted-foreground text-center">
-                      Nu există linii de bilanț generate pentru această balanță.
+              <Card className="p-6">
+                <div className="mb-4 border-b pb-3">
+                  <h3 className="text-lg font-bold text-foreground">Bilanț contabil</h3>
+                  {statementsData.balanceSheet?.statement && selectedBalance && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {activeCompany?.name}
+                      {' · '}
+                      {format(new Date(statementsData.balanceSheet.statement.period_start), 'dd.MM.yyyy')}
+                      {' – '}
+                      {format(new Date(statementsData.balanceSheet.statement.period_end), 'dd.MM.yyyy')}
+                      {' · '}
+                      {selectedBalance.source_file_name}
                     </p>
-                  </Card>
+                  )}
+                </div>
+                {!statementsData.balanceSheet?.lines.length ? (
+                  <p className="text-muted-foreground text-center py-8">
+                    Nu există linii de bilanț generate pentru această balanță.
+                  </p>
                 ) : (
-                  balanceSheetGroups.map((group) => (
-                    <Card key={group.groupKey} className="p-6">
-                      <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">
-                        {group.groupLabel}
-                      </h3>
-                      {group.subgroups.map((subgroup) => (
-                        <div key={`${group.groupKey}-${subgroup.subKey}`} className="mb-6 last:mb-0">
-                          {subgroup.subLabel && (
-                            <h4 className="font-semibold text-sm text-muted-foreground mb-2">
-                              {subgroup.subLabel}
-                            </h4>
-                          )}
-                          <StatementTable
-                            lines={subgroup.lines}
-                            getLabel={(line) => getLineLabel(line)}
-                            isEmphasized={(line) => isBalanceSheetEmphasized(line)}
-                          />
-                        </div>
-                      ))}
-                    </Card>
-                  ))
+                  <Suspense
+                    fallback={
+                      <div className="flex justify-center py-12">
+                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                      </div>
+                    }
+                  >
+                    <FinancialTreeTable
+                      reportType="balance_sheet"
+                      companyId={activeCompany?.id ?? null}
+                      importId={selectedBalanta}
+                      trialBalanceAccounts={trialBalanceAccounts}
+                      currency={balanceSheetCurrency}
+                      definitions={balanceSheetDefinitions}
+                      currentLines={statementsData.balanceSheet.lines}
+                      selectedYear={balanceSheetYear}
+                      selectedPeriod={balanceSheetPeriodLabel}
+                      onExport={handleExportExcel}
+                      onPrint={handlePrint}
+                    />
+                  </Suspense>
                 )}
-              </div>
+              </Card>
             </TabsContent>
 
             <TabsContent value="pl">

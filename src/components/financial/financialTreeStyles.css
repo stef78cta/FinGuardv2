@@ -1,0 +1,79 @@
+/* Financial statement tree table — compact, professional, report-like styling.
+   Scoped under .financial-tree-report to avoid affecting other AG Grid tables. */
+
+.financial-tree-report {
+  --ag-font-family: inherit;
+  --ag-font-size: 13px;
+  --ag-row-height: 34px;
+  --ag-header-height: 38px;
+  --ag-borders: none;
+  --ag-row-border-color: hsl(var(--border) / 0.6);
+  --ag-header-background-color: hsl(var(--muted) / 0.4);
+  --ag-header-foreground-color: hsl(var(--muted-foreground));
+  --ag-row-hover-color: hsl(var(--muted) / 0.35);
+}
+
+.financial-tree-report .ag-root-wrapper {
+  border: none;
+}
+
+/* Fine separators, no aggressive borders */
+.financial-tree-report .ag-header {
+  border-bottom: 1px solid hsl(var(--border));
+  font-weight: 600;
+}
+
+.financial-tree-report .ag-header-group-cell-label {
+  justify-content: center;
+  font-weight: 600;
+}
+
+/* Numeric alignment + tabular figures for clean columns */
+.financial-tree-report .fin-value-cell {
+  font-variant-numeric: tabular-nums;
+  justify-content: flex-end;
+}
+
+.financial-tree-report .fin-value-negative {
+  color: hsl(var(--destructive));
+}
+
+.financial-tree-report .fin-value-zero {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Row hierarchy emphasis (discreet, no strong colors) */
+.financial-tree-report .fin-row-section {
+  font-weight: 700;
+  background: hsl(var(--muted) / 0.25);
+}
+
+.financial-tree-report .fin-row-section-l1 {
+  font-weight: 600;
+}
+
+.financial-tree-report .fin-row-subtotal {
+  font-weight: 600;
+  background: hsl(var(--muted) / 0.15);
+}
+
+.financial-tree-report .fin-row-account {
+  font-weight: 400;
+  color: hsl(var(--muted-foreground));
+}
+
+.financial-tree-report .fin-row-warning {
+  background: hsl(45 93% 47% / 0.08);
+}
+
+/* Keep pinned hierarchy column above horizontally scrolled columns */
+.financial-tree-report .ag-pinned-left-cols-container,
+.financial-tree-report .ag-pinned-left-header {
+  z-index: 3;
+}
+
+.financial-tree-report .ag-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
