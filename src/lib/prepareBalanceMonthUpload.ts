@@ -38,7 +38,7 @@ export async function prepareBalanceMonthUpload(
     throw error;
   }
 
-  const result = data as PrepareBalanceMonthUploadRpcResult | null;
+  const result = data as unknown as PrepareBalanceMonthUploadRpcResult | null;
 
   if (!result?.success) {
     if (result?.code === ACTIVE_BALANCE_EXISTS_CODE) {

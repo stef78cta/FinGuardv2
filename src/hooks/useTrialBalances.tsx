@@ -74,6 +74,10 @@ export interface TrialBalanceAccount {
   closing_credit: number;
 }
 
+type ImportsReadView = 'trial_balance_imports_public';
+
+const asImportsReadView = (source: string): ImportsReadView => source as ImportsReadView;
+
 /**
  * Totaluri calculate pentru un import.
  */
@@ -155,14 +159,14 @@ export const useTrialBalances = (companyId: string | null) => {
       } else {
         const readSource = await getImportsReadSource();
         const { data, error: fetchError } = await supabase
-          .from(readSource)
+          .from(asImportsReadView(readSource))
           .select('*')
           .eq('company_id', companyId)
           .order('created_at', { ascending: false });
 
         if (fetchError) throw fetchError;
 
-        const filtered = (data as TrialBalanceImport[]).filter(
+        const filtered = (data as unknown as TrialBalanceImport[]).filter(
           (row) => !(row as TrialBalanceImport & { deleted_at?: string | null }).deleted_at
         );
 
@@ -285,13 +289,13 @@ export const useTrialBalances = (companyId: string | null) => {
 
     const readSource = await getImportsReadSource();
     const { data: completedImport } = await supabase
-      .from(readSource)
+      .from(asImportsReadView(readSource))
       .select('*')
       .eq('id', importData.id)
       .single();
 
     return {
-      import: (completedImport ?? importData) as TrialBalanceImport,
+      import: (completedImport ?? importData) as unknown as TrialBalanceImport,
       statementsGeneration,
     };
   };
@@ -339,7 +343,7 @@ export const useTrialBalances = (companyId: string | null) => {
 
     if (fetchError) throw fetchError;
 
-    return data as TrialBalanceAccount[];
+    return data as unknown as TrialBalanceAccount[];
   };
 
   const getAccountsTotals = async (importId: string): Promise<ImportTotals> => {

@@ -18,6 +18,10 @@ export interface ImportStatusSnapshot {
 
 type ImportsReadSource = typeof TRIAL_BALANCE_IMPORTS_VIEW | typeof TRIAL_BALANCE_IMPORTS_FALLBACK;
 
+type ImportsReadView = typeof TRIAL_BALANCE_IMPORTS_VIEW;
+
+const asImportsReadView = (source: ImportsReadSource): ImportsReadView => source as ImportsReadView;
+
 let cachedImportsReadSource: ImportsReadSource | null = null;
 
 /**
@@ -205,7 +209,7 @@ export async function fetchImportStatus(importId: string): Promise<ImportStatusS
   const source = await getImportsReadSource();
 
   const { data, error } = await supabase
-    .from(source)
+    .from(asImportsReadView(source))
     .select('status, error_message')
     .eq('id', importId)
     .single();
@@ -215,8 +219,8 @@ export async function fetchImportStatus(importId: string): Promise<ImportStatusS
   }
 
   return {
-    status: data.status as ImportStatus,
-    error_message: data.error_message,
+    status: (data as unknown as ImportStatusSnapshot).status,
+    error_message: (data as unknown as ImportStatusSnapshot).error_message,
   };
 }
 
