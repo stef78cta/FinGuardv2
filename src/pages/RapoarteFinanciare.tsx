@@ -488,14 +488,23 @@ const RapoarteFinanciare = () => {
       ) : hasStatements ? (
         <div id="report-content">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-6 w-full md:w-auto">
-              <TabsTrigger value="bilant" className="flex items-center gap-2">
+            <TabsList className="mb-6 w-full md:w-auto bg-transparent border-b border-border rounded-none p-0 h-auto">
+              <TabsTrigger
+                value="bilant"
+                className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground px-4 py-2.5"
+              >
                 Bilanț
               </TabsTrigger>
-              <TabsTrigger value="pl" className="flex items-center gap-2">
+              <TabsTrigger
+                value="pl"
+                className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground px-4 py-2.5"
+              >
                 Profit & Pierdere
               </TabsTrigger>
-              <TabsTrigger value="cashflow" className="flex items-center gap-2">
+              <TabsTrigger
+                value="cashflow"
+                className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground px-4 py-2.5"
+              >
                 Cash Flow
               </TabsTrigger>
             </TabsList>
