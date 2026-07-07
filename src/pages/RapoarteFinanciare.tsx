@@ -385,7 +385,7 @@ const RapoarteFinanciare = () => {
       <Card className="p-4 mb-6 rounded-[20px]">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <div className="flex-1 max-w-md">
-            <Label className="text-xs text-muted-foreground mb-1 block">Balanță selectată</Label>
+            <Label className="label-micro mb-1 block">Balanță selectată</Label>
             <Select value={selectedBalanta} onValueChange={setSelectedBalanta}>
               <SelectTrigger>
                 <SelectValue />
