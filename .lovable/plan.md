@@ -1,251 +1,125 @@
+# Plan: Aliniere vizuală tab „Bilanț” din Rapoarte Financiare la Style Guide v2
 
-# Plan: Generare Fișiere Brand FinGuard
-
-## Rezumat
-
-Generarea setului complet de fișiere de brand pentru FinGuard, incluzând ambele concepte de logo (Scutul din Procente și Orizontul Strategic) împreună cu sloganul: **"Control financiar. Finanțe analizate. Riscuri anticipate."**
+## Obiectiv
+Pagina `Rapoarte Financiare`, în special tab-ul `Bilanț`, să respecte vizual regulile din `src/pages/newa_StyleGuide.tsx` (v2.0), fără modificări de logică, calcule, hooks, query-uri sau structuri de date.
 
 ---
 
-## Conceptele de Logo Identificate
+## Fișiere analizate
 
-### Concept 1: "Scutul din Procente" (Icon + Text)
-- **Simbol**: Scut minimalist cu simbolul % integrat
-- **Culori**: 
-  - Indigo (#6366F1) - structura scutului
-  - Emerald (#34D399) - simbolul % (profitabilitate)
-- **Text**: "FinGuard" sub icon
+### Pagină + tab Bilanț
+- `src/pages/RapoarteFinanciare.tsx` — orchestrarea paginii, toolbar, tabs, Card containers, TabsContent „bilant”.
+- `src/components/financial-reports/FinancialTreeTable.tsx` — orchestratorul tabelului (nu se modifică — doar clase vizuale la Alert).
+- `src/components/financial/FinancialTreeReportTable.tsx` — grid-ul AG Grid pentru Bilanț.
+- `src/components/financial/financialTreeStyles.css` — stiluri scoped ale grid-ului financiar.
+- `src/components/financial/financialTreeColumns.ts` — doar citit pentru clase de coloane numerice (nu se modifică logica).
 
-### Concept 2: "Orizontul Strategic" (Wordmark)
-- **Tipografie**: Serif pentru "Fin", Sans-Serif pentru "Guard"
-- **Culori**:
-  - Emerald (#34D399) pentru "Fin"
-  - Indigo (Navy) (#1E3A5F) pentru "Guard"
-  - Rose (#F43F5E) pentru punctul de pe "i"
+### Style guide de referință
+- `src/pages/newa_StyleGuide.tsx` (v2.0) — tokens scoped `--fpsg-*`.
+- `src/index.css` + `tailwind.config.ts` — tokens globali existenți (`--primary`, `--muted`, `--border`, `--accent`, `--destructive`, `.card-app`, `.page-title`, `.btn-primary`, `.table-financial`, `.label-micro`, `card-accent-*`).
 
 ---
 
-## Structură Fișiere de Generat
+## Reguli extrase din Style Guide v2 (relevante pentru Bilanț)
 
-### Folder: `public/brand/`
-
-```text
-public/brand/
-├── vector/
-│   ├── logo-icon.svg                    # Icon scut singur
-│   ├── logo-icon-text.svg               # Icon + "FinGuard" sub
-│   ├── logo-wordmark.svg                # Wordmark (Orizontul Strategic)
-│   ├── logo-icon-horizontal.svg         # Icon + text pe o linie
-│   ├── logo-wordmark-slogan.svg         # Wordmark + slogan dedesubt
-│   ├── logo-icon-slogan.svg             # Icon + text + slogan
-│   └── slogan.svg                       # Doar sloganul
-│
-├── web/
-│   ├── favicon-16.png                   # Favicon 16x16
-│   ├── favicon-32.png                   # Favicon 32x32
-│   ├── favicon-48.png                   # Favicon 48x48
-│   ├── apple-touch-icon.png             # Apple Touch Icon 180x180
-│   ├── android-chrome-192.png           # Android Chrome 192x192
-│   ├── android-chrome-512.png           # Android Chrome 512x512
-│   ├── og-image.png                     # Open Graph 1200x630
-│   ├── logo-icon-128.png                # Icon 128x128
-│   ├── logo-icon-256.png                # Icon 256x256
-│   ├── logo-wordmark-light.png          # Wordmark pe fundal deschis
-│   └── logo-wordmark-dark.png           # Wordmark pe fundal închis
-│
-├── supplementary/
-│   ├── brand-colors.json                # Paleta de culori în format JSON
-│   └── BRAND_GUIDELINES.md              # Ghid de utilizare brand
-│
-└── site.webmanifest                     # Web app manifest
-```
+| Zona | Regulă v2 |
+|------|-----------|
+| Culori text | primary `#0F172A`, secondary `#475569`, muted `#94A3B8` |
+| Accent | indigo `#6366F1`, emerald `#34D399`, rose `#F43F5E`, amber `#F59E0B` |
+| Suprafețe | card `#FFFFFF`, canvas `#F8FAFC` |
+| Border | default `#E2E8F0`, focus `#6366F1` |
+| Radius | card `20px`, buton `40px` (pill), input `8px` |
+| Typography | valori financiare `font-mono font-bold`, label secundar `text-[10px] uppercase tracking-widest` (`.label-micro`) |
+| Tabs | pattern underline (`border-b-2 border-indigo-500` pe tab activ), nu pill background |
+| Tabel | header `bg-slate-50`, hover row `bg-indigo-50/30`, negativ `text-rose-600`, tabular-nums |
+| Butoane | primary pill indigo; secondary outline pill; toolbar icon-buttons uniformi ca înălțime |
+| Alert/warning | fundal `#FFFBEB` + border `#F59E0B` (warning) |
+| Card | `rounded-[20px]`, umbră discretă, separator subțire în header |
 
 ---
 
-## Detalii Tehnice
+## Diferențe identificate (actual vs v2)
 
-### 1. Fișiere SVG (Vectoriale)
-
-Fiecare SVG va fi optimizat pentru web:
-- ViewBox standardizat
-- ID-uri unice pentru evitarea conflictelor
-- Culori ca variabile CSS sau HEX direct
-
-**Logo Icon (Scutul)**
-```xml
-<svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
-  <!-- Shield outline - Indigo -->
-  <path d="..." fill="#1E3A5F" />
-  <!-- Percent symbol - Emerald -->
-  <text fill="#34D399">%</text>
-</svg>
-```
-
-**Logo Wordmark (Orizontul Strategic)**
-```xml
-<svg viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
-  <!-- "Fin" - Serif, Emerald -->
-  <text font-family="Playfair Display" fill="#34D399">Fin</text>
-  <!-- "Guard" - Sans-serif, Navy -->
-  <text font-family="Inter" fill="#1E3A5F">Guard</text>
-  <!-- Dot on i - Rose -->
-  <circle fill="#F43F5E" />
-</svg>
-```
-
-**Slogan SVG**
-```xml
-<svg viewBox="0 0 400 20" xmlns="http://www.w3.org/2000/svg">
-  <text font-family="Inter" font-size="14" fill="#475569">
-    Control financiar. Finanțe analizate. Riscuri anticipate.
-  </text>
-</svg>
-```
+1. **Card containers** din pagină folosesc radius default shadcn (`rounded-lg`), nu `rounded-[20px]` conform v2.
+2. **Toolbar card** (linia 385) — padding `p-4` OK, dar Label „Balanță selectată” folosește `text-xs text-muted-foreground` în loc de pattern `.label-micro` (uppercase tracking).
+3. **Tabs** (`TabsList`) folosește stilul default shadcn (fundal muted, pill activ). v2 recomandă underline indigo pentru tab activ.
+4. **Header tab Bilanț** (`Bilanț contabil`) — border-bottom generic; poate primi accent stânga (`card-accent-indigo`) și subtitlu în `.label-micro` conform v2.
+5. **Butoane toolbar** — folosesc `variant="outline"` shadcn cu radius mic; v2 preferă pill (rounded-[40px]) sau cel puțin uniformizate și alignate cu heights `h-9`/`h-10` din memoria de header-alignment.
+6. **Alert „Bilanțul nu se închide”** (în `FinancialTreeTable.tsx`) folosește `border-amber-500/50 bg-amber-500/5` — poate deveni consistent cu token semantic warning din v2 (`bg-[#FFFBEB]` + border amber solid) prin utilitare Tailwind semantice.
+7. **Grid financiar** (`financialTreeStyles.css`):
+   - `--ag-row-hover-color` folosește muted; v2 preferă hover indigo foarte diluat (`indigo-50/30`).
+   - `.fin-row-section` folosește muted; v2 acceptă, dar consistent cu paleta indigo/slate ar fi `slate-50` pentru rânduri de secțiune.
+   - Culoarea negativelor este `#dc2626` hardcodat; v2 folosește `#F43F5E` (rose) — aliniere la token.
+   - `fin-row-warning` folosește `hsl(45 93% 47% / 0.08)` — poate folosi tokenul amber din v2.
+8. **Loading state** — `text-primary` OK; păstrat.
+9. **Empty state „Nu există linii de bilanț”** — text simplu; poate primi container discret (`bg-muted/30 rounded-[20px]`) pentru consistență cu v2 UI states.
+10. **PageHeader** — folosește `.page-title` și `.page-description` existente, deja compatibile v2.
 
 ---
 
-### 2. Fișiere PNG (Raster/Web)
+## Modificări propuse (strict vizuale)
 
-| Fișier | Dimensiune | Utilizare |
-|--------|------------|-----------|
-| favicon-16.png | 16×16 | Browser tab |
-| favicon-32.png | 32×32 | Browser tab retina |
-| favicon-48.png | 48×48 | Windows taskbar |
-| apple-touch-icon.png | 180×180 | iOS home screen |
-| android-chrome-192.png | 192×192 | Android PWA |
-| android-chrome-512.png | 512×512 | Android PWA splash |
-| og-image.png | 1200×630 | Social media sharing |
-| logo-icon-128.png | 128×128 | General use |
-| logo-icon-256.png | 256×256 | High-res displays |
+### 1. `src/pages/RapoarteFinanciare.tsx`
+- Adaugă `rounded-[20px]` pe toate `<Card>`-urile din pagină (toolbar card, tab content cards, empty-state card).
+- Toolbar Label „Balanță selectată”: schimbă `text-xs text-muted-foreground` → `label-micro` (dacă clasa există; altfel `text-[10px] font-bold text-muted-foreground uppercase tracking-widest`).
+- `TabsList`: adaugă clase pentru pattern underline v2 — `bg-transparent border-b border-border p-0 h-auto`, iar `TabsTrigger` primește `data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none px-4 py-2`.
+- Header „Bilanț contabil”: aplică `card-accent-indigo` pe cardul tab-ului Bilanț și convertește sub-title la `.label-micro` peste titlu (fără schimbare de text).
+- Toolbar butoane: uniformizează `size="sm"` → `h-9`, adaugă `rounded-[40px]` pentru consistență pill; `btn-primary` deja folosit rămâne.
+- Empty-states și loading rămân funcțional identice, doar containerele preiau radius v2.
 
----
+### 2. `src/components/financial-reports/FinancialTreeTable.tsx`
+- Alert warning: înlocuiește `border-amber-500/50 bg-amber-500/5 text-foreground` cu clase aliniate token semantic warning v2 (`bg-[hsl(45_100%_96%)] border-amber-500 text-foreground` sau clasă utilitară deja existentă `alert-warning` dacă apare în `index.css`; altfel se lasă utilitare Tailwind semantice).
+- Buton „Vezi detalii diferență”: `rounded-[40px]` pentru consistență pill.
 
-### 3. Fișiere Suplimentare
+### 3. `src/components/financial/financialTreeStyles.css`
+- `--ag-row-hover-color`: schimbă în `color-mix(in srgb, var(--primary) 8%, transparent)` (hover indigo foarte diluat).
+- `--ag-header-background-color`: `color-mix(in srgb, var(--muted) 55%, transparent)` → păstrat, dar reglat spre `slate-50`.
+- `.fin-row-section`: fundal `color-mix(in srgb, var(--primary) 4%, transparent)` pentru accent v2.
+- `.ag-cell.fin-value-negative`: schimbă `#dc2626 !important` → `hsl(var(--destructive)) !important` (mapează pe rose v2 din tokens).
+- `.fin-row-warning`: fundal aliniat token warning (`color-mix(in srgb, #F59E0B 10%, transparent)`).
+- Font header numeric: `font-weight: 600` păstrat; se adaugă `letter-spacing: 0.02em` pentru un look mai „report”.
 
-**brand-colors.json**
-```json
-{
-  "brand": {
-    "indigo": "#6366F1",
-    "emerald": "#34D399",
-    "rose": "#F43F5E",
-    "navy": "#1E3A5F",
-    "primaryDark": "#0F172A"
-  },
-  "usage": {
-    "shieldOutline": "#1E3A5F",
-    "percentSymbol": "#34D399",
-    "wordmarkFin": "#34D399",
-    "wordmarkGuard": "#1E3A5F",
-    "accentDot": "#F43F5E"
-  },
-  "slogan": "Control financiar. Finanțe analizate. Riscuri anticipate."
-}
-```
-
-**BRAND_GUIDELINES.md**
-```markdown
-# FinGuard Brand Guidelines
-
-## Logo-uri
-- **Icon (Scutul din Procente)**: Pentru favicon, iconuri app
-- **Wordmark (Orizontul Strategic)**: Pentru header-uri, documente
-
-## Culori
-- Indigo/Navy: Structură, încredere
-- Emerald: Profitabilitate, creștere
-- Rose: Alertă, vigilență (punctul de pe "i")
-
-## Slogan
-"Control financiar. Finanțe analizate. Riscuri anticipate."
-
-## Clear Space
-Minimum 20% din înălțimea logo-ului pe toate părțile
-
-## Dimensiuni Minime
-- Icon: 24px
-- Wordmark: 100px lățime
-```
-
-**site.webmanifest**
-```json
-{
-  "name": "FinGuard - Analiză Financiară",
-  "short_name": "FinGuard",
-  "icons": [
-    { "src": "/brand/web/android-chrome-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/brand/web/android-chrome-512.png", "sizes": "512x512", "type": "image/png" }
-  ],
-  "theme_color": "#6366F1",
-  "background_color": "#F8FAFC",
-  "display": "standalone"
-}
-```
+### 4. (Opțional) `src/index.css`
+- Dacă `.label-micro` sau `.card-accent-indigo` nu există deja global, se adaugă mici utilitare (deja definite în plan v1.3 conform memoriei — verific și adaug doar dacă lipsesc). Fără modificări de tokens globali.
 
 ---
 
-## Modificări în Fișierele Existente
-
-### index.html
-
-Actualizare referințe favicon și manifest:
-
-```html
-<link rel="icon" type="image/png" sizes="32x32" href="/brand/web/favicon-32.png" />
-<link rel="icon" type="image/png" sizes="16x16" href="/brand/web/favicon-16.png" />
-<link rel="apple-touch-icon" sizes="180x180" href="/brand/web/apple-touch-icon.png" />
-<link rel="manifest" href="/brand/site.webmanifest" />
-<meta name="theme-color" content="#6366F1" />
-
-<!-- Open Graph actualizat -->
-<meta property="og:image" content="https://finguard.ro/brand/web/og-image.png" />
-```
+## Ce NU se modifică
+- `useGeneratedFinancialStatements`, `useStatementLineDefinitions`, `useBalante`, `useBalanceSheetDiagnostic` — 0 modificări.
+- `buildFinancialTreeRows`, `applyParentChildValidation`, `checkBalanceSheetEquation` — 0 modificări.
+- Export Excel/PDF, print, email — 0 modificări.
+- `financialTreeColumns.ts`, `financialTreeMapper.ts` — 0 modificări (păstrează formatare, agregări, ordine).
+- Comportament expand/collapse, quick filter, layout persistence — 0 modificări.
+- Structuri de date, denumiri câmpuri, query-uri Supabase — 0 modificări.
 
 ---
 
-## Fișiere de Generat
-
-| Nr | Fișier | Tip |
-|----|--------|-----|
-| 1 | `public/brand/vector/logo-icon.svg` | SVG |
-| 2 | `public/brand/vector/logo-icon-text.svg` | SVG |
-| 3 | `public/brand/vector/logo-wordmark.svg` | SVG |
-| 4 | `public/brand/vector/logo-icon-horizontal.svg` | SVG |
-| 5 | `public/brand/vector/logo-wordmark-slogan.svg` | SVG |
-| 6 | `public/brand/vector/logo-icon-slogan.svg` | SVG |
-| 7 | `public/brand/vector/slogan.svg` | SVG |
-| 8 | `public/brand/supplementary/brand-colors.json` | JSON |
-| 9 | `public/brand/supplementary/BRAND_GUIDELINES.md` | MD |
-| 10 | `public/brand/site.webmanifest` | JSON |
-| 11 | Update `index.html` | HTML |
+## Riscuri identificate
+1. Modificarea `TabsList` la pattern underline poate afecta vizual și tab-urile `Profit & Pierdere` / `Cash Flow` (același `TabsList`). Este acceptabil — consistență în toată pagina, fără schimbare de logică.
+2. Schimbarea `--ag-row-hover-color` și `.fin-row-section` afectează orice pagină care folosește `.financial-tree-report` (clasa e scoped, deci doar tabele financiare — efectul e dorit, consistență globală).
+3. Înlocuirea `#dc2626` → token `--destructive` schimbă nuanța roșu spre rose v2 în TOATE grid-urile financiare. Este exact ce cere style-guide-v2.
+4. `rounded-[20px]` pe carduri poate crea o discrepanță scurtă cu alte pagini care încă folosesc `rounded-lg`. Nu este blocant — poate fi propagat ulterior.
 
 ---
 
-## Notă Importantă pentru Fișierele PNG
-
-Fișierele PNG (raster) nu pot fi generate direct în cod - acestea necesită:
-1. **Generare din SVG** folosind un tool precum Inkscape, Figma, sau sharp (Node.js)
-2. **Export manual** din designerul original
-
-Voi crea toate fișierele SVG vectoriale complete, iar pentru PNG voi genera:
-- Un script de conversie (opțional)
-- Placeholder-uri cu instrucțiuni de generare
-
----
-
-## Ordine Implementare
-
-1. Creare structură folder `public/brand/`
-2. Generare SVG-uri vectoriale
-3. Creare fișiere suplimentare (JSON, MD, manifest)
-4. Actualizare `index.html`
-5. Documentare instrucțiuni pentru generare PNG
+## Pași de verificare vizuală (după implementare)
+1. Deschide `/app/rapoarte-financiare`, selectează o balanță cu rapoarte generate.
+2. Verifică tab-ul `Bilanț`:
+   - Card cu radius 20px + accent indigo stânga.
+   - Toolbar cu butoane pill uniforme.
+   - Tabs cu underline indigo pe activ, fără fundal pill.
+   - Grid: header slate deschis, hover row indigo diluat, valori negative rose, secțiuni cu fundal foarte fin.
+   - Alert warning „Bilanțul nu se închide” cu fundal amber deschis + border amber.
+3. Verifică pe mobil: toolbar wrap, tabs full-width.
+4. Verifică tab-urile `P&L` și `Cash Flow` — trebuie să rămână funcționale, doar Tabs-ul preia stilul underline.
+5. Rulează un export Excel + Print — trebuie să funcționeze identic (nemodificate).
 
 ---
 
-## Rezultat Final
+## Estimare linii modificate
+- `RapoarteFinanciare.tsx`: ~15 linii (className)
+- `FinancialTreeTable.tsx`: ~2 linii (className Alert + Button)
+- `financialTreeStyles.css`: ~8 linii (variabile CSS și 2 reguli)
+- `index.css`: 0-10 linii (doar dacă `.label-micro` / `.card-accent-indigo` lipsesc)
 
-- Set complet de logo-uri vectoriale SVG, gata de utilizare
-- Fișiere de configurare brand (culori, manifest)
-- Ghid de utilizare brand în română
-- Integrare corectă în aplicație (favicon, meta tags)
+Total: ~25-35 linii, exclusiv stiluri.
