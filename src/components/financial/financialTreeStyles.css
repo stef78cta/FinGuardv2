@@ -97,6 +97,11 @@
   justify-content: flex-end;
 }
 
+/* Report-like letter spacing for improved readability */
+.financial-tree-report .ag-cell {
+  letter-spacing: 0.02em;
+}
+
 /* Negative amounts emphasised in red; !important beats row-level colors */
 .financial-tree-report .ag-cell.ag-cell-negative,
 .financial-tree-report .ag-cell.fin-value-negative {
