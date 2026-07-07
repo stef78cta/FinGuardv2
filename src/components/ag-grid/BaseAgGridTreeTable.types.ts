@@ -94,6 +94,8 @@ export interface BaseAgGridTreeTableProps<TData = Record<string, unknown>> {
   enableLayoutPersistence?: boolean;
   /** Show the built-in toolbar (expand/collapse/save/restore/reset). Defaults to true. */
   showToolbar?: boolean;
+  /** Show column visibility picker and autosize controls. Defaults to true. */
+  enableColumnToolbar?: boolean;
   /** Extra toolbar content rendered on the right side. */
   toolbarActions?: ReactNode;
   /** Left-aligned toolbar content (e.g. a search input). */

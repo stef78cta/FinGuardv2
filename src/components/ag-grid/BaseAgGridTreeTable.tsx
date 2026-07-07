@@ -17,9 +17,11 @@ import {
   type GridReadyEvent,
   type ICellRendererParams,
 } from 'ag-grid-community';
-import { ChevronDown, ChevronRight, Loader2, RotateCcw, Save, Undo2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Loader2, Maximize2, RotateCcw, Save, Undo2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { GridColumnChooser } from './GridColumnChooser';
+import { autosizeAllColumnsWithLimits, buildColumnMainMenuItems } from './gridColumnUtils';
 import type {
   BaseAgGridTreeTableHandle,
   BaseAgGridTreeTableProps,
@@ -160,6 +162,7 @@ function BaseAgGridTreeTableInner<TData extends AnyRow = AnyRow>(
     localStorageKey,
     enableLayoutPersistence = true,
     showToolbar = true,
+    enableColumnToolbar = true,
     toolbarActions,
     toolbarLeading,
     quickFilterText,
@@ -175,6 +178,7 @@ function BaseAgGridTreeTableInner<TData extends AnyRow = AnyRow>(
   } = props;
 
   const gridApiRef = useRef<GridApi<TData> | null>(null);
+  const [gridApi, setGridApi] = useState<GridApi<TData> | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [sortState, setSortState] = useState<SortState | null>(null);
   const expandedRef = useRef(expandedIds);
@@ -314,6 +318,9 @@ function BaseAgGridTreeTableInner<TData extends AnyRow = AnyRow>(
       sortable: true,
       resizable: true,
       filter: true,
+      // Legacy tabbed menu is available in Community; the new column menu is Enterprise-only.
+      menuTabs: ['generalMenuTab', 'filterMenuTab'],
+      mainMenuItems: buildColumnMainMenuItems,
       ...defaultColDef,
     };
     // In manual tree mode AG Grid's own sort would flatten the hierarchy, so we
@@ -326,7 +333,8 @@ function BaseAgGridTreeTableInner<TData extends AnyRow = AnyRow>(
     if (!treeData) return columnDefs;
     const groupColId = autoGroupColumnDef?.colId ?? 'ag-tree-group';
     const treeCol: ColDef<TData> = {
-      minWidth: 280,
+      minWidth: 520,
+      width: 580,
       flex: 1,
       pinned: 'left',
       ...autoGroupColumnDef,
@@ -365,11 +373,18 @@ function BaseAgGridTreeTableInner<TData extends AnyRow = AnyRow>(
   const handleGridReady = useCallback(
     (event: GridReadyEvent<TData>) => {
       gridApiRef.current = event.api;
+      setGridApi(event.api);
       applySavedLayout(event.api);
       onGridReady?.(event);
     },
     [applySavedLayout, onGridReady],
   );
+
+  const handleAutosizeAll = useCallback(() => {
+    const api = gridApiRef.current;
+    if (!api) return;
+    autosizeAllColumnsWithLimits(api);
+  }, []);
 
   const handleSortChanged = useCallback(() => {
     const api = gridApiRef.current;
@@ -468,6 +483,15 @@ function BaseAgGridTreeTableInner<TData extends AnyRow = AnyRow>(
               </Button>
             </>
           )}
+          {enableColumnToolbar && (
+            <>
+              <GridColumnChooser api={gridApi} />
+              <Button variant="outline" size="sm" onClick={handleAutosizeAll} disabled={!gridApi}>
+                <Maximize2 className="w-4 h-4 mr-2" />
+                Autosize coloane
+              </Button>
+            </>
+          )}
           {toolbarActions}
         </div>
       )}
@@ -495,6 +519,9 @@ function BaseAgGridTreeTableInner<TData extends AnyRow = AnyRow>(
           enableCellTextSelection
           maintainColumnOrder
           includeHiddenColumnsInQuickFilter
+          tooltipShowDelay={400}
+          columnMenu="legacy"
+          suppressMenuHide
           onGridReady={handleGridReady}
           onSortChanged={handleSortChanged}
           {...gridOptions}

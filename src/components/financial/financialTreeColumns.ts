@@ -4,7 +4,7 @@ import type {
   ColGroupDef,
   ICellRendererParams,
 } from 'ag-grid-community';
-import { createNumberValueFormatter } from '@/components/ag-grid/formatters';
+import { createNumberValueFormatter, coerceNumericValue } from '@/components/ag-grid/formatters';
 import type { FinancialViewRow } from './financialTreeMapper';
 
 const financialValueFormatter = createNumberValueFormatter({
@@ -12,10 +12,29 @@ const financialValueFormatter = createNumberValueFormatter({
   maximumFractionDigits: 2,
 });
 
-/** Emphasise negative and zero amounts discreetly via CSS classes. */
+/** Shared numeric column sizing — indicator column absorbs extra horizontal space. */
+const NUMERIC_COLUMN_DEFAULTS: Pick<
+  ColDef<FinancialViewRow>,
+  'type' | 'minWidth' | 'width' | 'maxWidth' | 'flex' | 'cellClass' | 'headerClass' | 'filter'
+> = {
+  type: 'numericColumn',
+  minWidth: 200,
+  width: 260,
+  maxWidth: 320,
+  flex: 0.35,
+  cellClass: 'fin-value-cell ag-cell-numeric',
+  headerClass: 'ag-header-numeric',
+  filter: 'agNumberColumnFilter',
+};
 const amountCellClassRules = {
-  'fin-value-negative': (p: CellClassParams<FinancialViewRow>) => (p.value as number) < 0,
-  'fin-value-zero': (p: CellClassParams<FinancialViewRow>) => (p.value as number) === 0,
+  'ag-cell-negative fin-value-negative': (p: CellClassParams<FinancialViewRow>) => {
+    const value = coerceNumericValue(p.value);
+    return value != null && value < 0;
+  },
+  'fin-value-zero': (p: CellClassParams<FinancialViewRow>) => {
+    const value = coerceNumericValue(p.value);
+    return value === 0;
+  },
 };
 
 export interface BuildFinancialColumnsParams {
@@ -51,10 +70,11 @@ export function buildFinancialColumns(params: BuildFinancialColumnsParams): Fina
     colId: 'indicator',
     headerName: 'Indicator',
     field: 'displayLabel',
-    minWidth: 340,
-    flex: 2,
+    minWidth: 520,
+    width: 580,
+    flex: 1,
     pinned: 'left',
-    lockPinned: true,
+    lockVisible: true,
     tooltipField: 'displayLabel',
     filter: 'agTextColumnFilter',
     cellRendererParams: { innerRenderer: indicatorInnerRenderer },
@@ -75,13 +95,14 @@ export function buildFinancialColumns(params: BuildFinancialColumnsParams): Fina
         colId: 'value',
         field: 'value',
         headerName: valueHeader,
-        type: 'numericColumn',
-        minWidth: 150,
-        flex: 1,
-        cellClass: 'fin-value-cell',
+        ...NUMERIC_COLUMN_DEFAULTS,
+        minWidth: 240,
+        width: 300,
+        maxWidth: 360,
+        flex: 0.4,
+        headerClass: 'ag-header-numeric-centered',
         cellClassRules: amountCellClassRules,
         valueFormatter: financialValueFormatter,
-        filter: 'agNumberColumnFilter',
       },
     ],
   };
@@ -93,22 +114,15 @@ export function buildFinancialColumns(params: BuildFinancialColumnsParams): Fina
       colId: 'previous',
       field: 'previous',
       headerName: 'Perioadă anterioară',
-      type: 'numericColumn',
-      minWidth: 150,
-      flex: 1,
-      cellClass: 'fin-value-cell',
+      ...NUMERIC_COLUMN_DEFAULTS,
       cellClassRules: amountCellClassRules,
       valueFormatter: financialValueFormatter,
-      filter: 'agNumberColumnFilter',
     });
     columnDefs.push({
       colId: 'delta',
       field: 'delta',
       headerName: 'Δ',
-      type: 'numericColumn',
-      minWidth: 130,
-      flex: 1,
-      cellClass: 'fin-value-cell',
+      ...NUMERIC_COLUMN_DEFAULTS,
       cellClassRules: amountCellClassRules,
       valueFormatter: financialValueFormatter,
     });
