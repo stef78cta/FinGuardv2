@@ -141,7 +141,7 @@
 }
 
 .financial-tree-report .ag-row.fin-row-warning {
-  background: hsl(45 93% 47% / 0.08);
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
 }
 
 /* Keep pinned hierarchy column above horizontally scrolled columns */
