@@ -406,8 +406,7 @@ const RapoarteFinanciare = () => {
           <div className="flex flex-wrap gap-2">
             {!hasStatements ? (
               <Button
-                size="sm"
-                className="btn-primary"
+                className="btn-primary h-9 rounded-[40px]"
                 onClick={handleGenerate}
                 disabled={isReportLoading}
               >
@@ -421,7 +420,7 @@ const RapoarteFinanciare = () => {
             ) : (
               <Button
                 variant="outline"
-                size="sm"
+                className="h-9 rounded-[40px]"
                 onClick={() => setRegenerateDialogOpen(true)}
                 disabled={isReportLoading}
               >
@@ -430,24 +429,24 @@ const RapoarteFinanciare = () => {
               </Button>
             )}
 
-            <Button variant="outline" size="sm" onClick={() => void refresh()} disabled={isReportLoading}>
+            <Button variant="outline" className="h-9 rounded-[40px]" onClick={() => void refresh()} disabled={isReportLoading}>
               <RefreshCw className={cn('w-4 h-4 mr-2', statementsLoading && 'animate-spin')} />
               Refresh
             </Button>
 
-            <Button variant="outline" size="sm" onClick={handlePrint} disabled={!hasStatements}>
+            <Button variant="outline" className="h-9 rounded-[40px]" onClick={handlePrint} disabled={!hasStatements}>
               <Printer className="w-4 h-4 mr-2" />
               Print
             </Button>
-            <Button variant="outline" size="sm" onClick={handleExportExcel} disabled={!hasStatements}>
+            <Button variant="outline" className="h-9 rounded-[40px]" onClick={handleExportExcel} disabled={!hasStatements}>
               <FileSpreadsheet className="w-4 h-4 mr-2" />
               Excel
             </Button>
-            <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={!hasStatements}>
+            <Button variant="outline" className="h-9 rounded-[40px]" onClick={handleExportPDF} disabled={!hasStatements}>
               <FileText className="w-4 h-4 mr-2" />
               PDF
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)} disabled={!hasStatements}>
+            <Button variant="outline" className="h-9 rounded-[40px]" onClick={() => setEmailDialogOpen(true)} disabled={!hasStatements}>
               <Mail className="w-4 h-4 mr-2" />
               Email
             </Button>
