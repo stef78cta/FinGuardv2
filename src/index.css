@@ -541,6 +541,34 @@
     border-left: 4px solid var(--newa-semantic-warning);
   }
 
+  /* ===== CARD ACCENTS (app cards) ===== */
+  .card-accent-indigo {
+    border-left: 4px solid var(--newa-brand-accent-indigo);
+  }
+
+  .card-accent-emerald {
+    border-left: 4px solid var(--newa-brand-accent-emerald);
+  }
+
+  .card-accent-warning {
+    border-left: 4px solid var(--newa-semantic-warning);
+  }
+
+  .card-accent-danger {
+    border-left: 4px solid var(--newa-semantic-danger);
+  }
+
+  /* ===== MICRO LABELS ===== */
+  .label-micro {
+    font-family: var(--newa-font-application);
+    font-size: var(--newa-font-size-xs);
+    font-weight: var(--newa-font-weight-semibold);
+    line-height: var(--newa-line-height-tight);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--newa-text-muted);
+  }
+
   /* ===== EMPTY STATES ===== */
   .newa-empty-state {
     display: flex;
