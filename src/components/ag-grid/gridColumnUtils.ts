@@ -1,4 +1,4 @@
-import type { Column, GetMainMenuItemsParams, GridApi, MenuItemDef } from 'ag-grid-community';
+import type { Column, DefaultMenuItem, GetMainMenuItemsParams, GridApi, MenuItemDef } from 'ag-grid-community';
 
 /**
  * Clamp column widths to each column's minWidth / maxWidth after autosize.
@@ -41,13 +41,15 @@ export function autosizeColumnWithLimits(api: GridApi, colId: string): void {
  * Extends AG Grid defaults with Romanian labels for custom actions while
  * keeping built-in filter / sort / pin submenu items when available.
  */
-export function buildColumnMainMenuItems(params: GetMainMenuItemsParams): (string | MenuItemDef)[] {
+export function buildColumnMainMenuItems<TData = any>(
+  params: GetMainMenuItemsParams<TData>,
+): (DefaultMenuItem | MenuItemDef<TData>)[] {
   const colId = params.column?.getColId();
   const api = params.api;
   const isPinned = Boolean(params.column?.getPinned());
   const defaultItems = params.defaultItems ?? [];
 
-  const customItems: MenuItemDef[] = [];
+  const customItems: MenuItemDef<TData>[] = [];
 
   if (colId && params.column) {
     customItems.push(

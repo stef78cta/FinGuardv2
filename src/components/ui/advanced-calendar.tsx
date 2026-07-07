@@ -113,7 +113,7 @@ function AdvancedCalendar({
     const newDate = startOfMonth(setMonth(setYear(new Date(), displayYear), monthIndex));
     setDisplayMonth(newDate);
     if (monthPickerOnly) {
-      onSelect?.(newDate);
+      (onSelect as ((day: Date | undefined) => void) | undefined)?.(newDate);
       return;
     }
     setViewMode("day");

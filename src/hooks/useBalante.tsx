@@ -32,9 +32,15 @@ export interface BalanceAccount {
   opening_credit: number;
   debit_turnover: number;
   credit_turnover: number;
+  total_sume_debitoare: number;
+  total_sume_creditoare: number;
   closing_debit: number;
   closing_credit: number;
 }
+
+type ImportsReadView = 'trial_balance_imports_public';
+
+const asImportsReadView = (source: string): ImportsReadView => source as ImportsReadView;
 
 /**
  * Reprezintă o balanță cu conturile asociate.
@@ -88,7 +94,7 @@ export const useBalante = () => {
       // public (sau coloane explicite pe tabel) pentru a evita erori 42501.
       const source = await getImportsReadSource();
       const { data, error: fetchError } = await supabase
-        .from(source)
+        .from(asImportsReadView(source))
         .select(TRIAL_BALANCE_IMPORTS_SELECT_COLUMNS)
         .eq('company_id', companyId)
         .eq('status', 'completed')
@@ -98,7 +104,7 @@ export const useBalante = () => {
       if (fetchError) throw fetchError;
 
       console.log('[useBalante] Fetched balances:', data?.length || 0, 'for company:', companyId);
-      setBalances(data as BalanceImport[]);
+      setBalances(data as unknown as BalanceImport[]);
     } catch (err) {
       console.error('[useBalante] Error fetching balances:', err);
       setError(err instanceof Error ? err.message : 'Eroare la încărcarea balanțelor');
@@ -179,7 +185,7 @@ export const useBalante = () => {
         .range(offset, offset + limit - 1);
       
       if (fallbackError) throw fallbackError;
-      return fallbackData as BalanceAccount[];
+      return fallbackData as unknown as BalanceAccount[];
     }
 
     const dataArray = data as unknown as Array<Record<string, unknown>> | null;
@@ -195,6 +201,8 @@ export const useBalante = () => {
       credit_turnover: Number(row.credit_turnover) || 0,
       closing_debit: Number(row.closing_debit) || 0,
       closing_credit: Number(row.closing_credit) || 0,
+      total_sume_debitoare: Number(row.total_sume_debitoare) || 0,
+      total_sume_creditoare: Number(row.total_sume_creditoare) || 0,
     })) as BalanceAccount[];
   }, []);
 
@@ -249,7 +257,7 @@ export const useBalante = () => {
 
     const source = await getImportsReadSource();
     const { data: latestBalances, error: fetchError } = await supabase
-      .from(source)
+      .from(asImportsReadView(source))
       .select(TRIAL_BALANCE_IMPORTS_SELECT_COLUMNS)
       .eq('company_id', activeCompany.id)
       .eq('status', 'completed')
@@ -263,7 +271,7 @@ export const useBalante = () => {
       return null;
     }
 
-    const latestBalance = latestBalances[0] as BalanceImport;
+    const latestBalance = latestBalances[0] as unknown as BalanceImport;
     const accounts = await getBalanceAccounts(latestBalance.id);
 
     return {
@@ -328,7 +336,7 @@ export const useBalante = () => {
 
     const source = await getImportsReadSource();
     const { data: allBalances, error: fetchError } = await supabase
-      .from(source)
+      .from(asImportsReadView(source))
       .select(TRIAL_BALANCE_IMPORTS_SELECT_COLUMNS)
       .eq('company_id', activeCompany.id)
       .eq('status', 'completed')
@@ -346,8 +354,9 @@ export const useBalante = () => {
     // Folosim Promise.all pentru a paraleliza query-urile când funcția RPC nu e disponibilă
     const results = await Promise.all(
       allBalances.map(async (balance) => {
-        const accounts = await getBalanceAccounts(balance.id);
-        return { ...(balance as BalanceImport), accounts };
+        const typedBalance = balance as unknown as BalanceImport;
+        const accounts = await getBalanceAccounts(typedBalance.id);
+        return { ...typedBalance, accounts };
       })
     );
 
@@ -399,6 +408,8 @@ export const useBalante = () => {
       credit_turnover: Number(row.credit_turnover) || 0,
       closing_debit: Number(row.closing_debit) || 0,
       closing_credit: Number(row.closing_credit) || 0,
+      total_sume_debitoare: Number(row.total_sume_debitoare) || 0,
+      total_sume_creditoare: Number(row.total_sume_creditoare) || 0,
     })) as BalanceAccount[];
 
     const totalCount = dataArray?.[0]?.total_count || 0;

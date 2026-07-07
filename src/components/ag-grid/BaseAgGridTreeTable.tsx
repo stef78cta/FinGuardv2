@@ -320,7 +320,7 @@ function BaseAgGridTreeTableInner<TData extends AnyRow = AnyRow>(
       filter: true,
       // Legacy tabbed menu is available in Community; the new column menu is Enterprise-only.
       menuTabs: ['generalMenuTab', 'filterMenuTab'],
-      mainMenuItems: buildColumnMainMenuItems,
+      mainMenuItems: buildColumnMainMenuItems<TData>,
       ...defaultColDef,
     };
     // In manual tree mode AG Grid's own sort would flatten the hierarchy, so we
