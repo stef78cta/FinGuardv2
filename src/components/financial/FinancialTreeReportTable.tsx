@@ -59,7 +59,7 @@ function IndicatorInnerRenderer(params: ICellRendererParams<FinancialViewRow>) {
   return (
     <span className="inline-flex items-center gap-1.5 min-w-0 w-full">
       {data.hasValidationIssue && (
-        <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" aria-label="Diferență validare" />
+        <AlertTriangle className="w-3.5 h-3.5 text-[var(--newa-semantic-warning)] shrink-0" aria-label="Diferență validare" />
       )}
       <span className="truncate">{label}</span>
     </span>
