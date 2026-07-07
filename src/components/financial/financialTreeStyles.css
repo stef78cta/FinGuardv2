@@ -12,7 +12,7 @@
   --ag-row-border-color: color-mix(in srgb, var(--border) 60%, transparent);
   --ag-header-background-color: color-mix(in srgb, var(--muted) 45%, transparent);
   --ag-header-foreground-color: var(--muted-foreground);
-  --ag-row-hover-color: color-mix(in srgb, var(--muted) 35%, transparent);
+  --ag-row-hover-color: color-mix(in srgb, var(--primary) 8%, transparent);
 }
 
 .financial-tree-report .ag-root-wrapper {
