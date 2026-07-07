@@ -116,7 +116,7 @@
 
 /* Row hierarchy emphasis (discreet, no strong colors) */
 .financial-tree-report .ag-row.fin-row-section {
-  background: color-mix(in srgb, var(--muted) 30%, transparent);
+  background: color-mix(in srgb, var(--primary) 4%, transparent);
 }
 
 .financial-tree-report .ag-row.fin-row-section .ag-cell {
