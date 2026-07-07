@@ -97,8 +97,8 @@ export function FinancialTreeTable({
   return (
     <div className="financial-tree-table">
       {equationCheck && !equationCheck.isBalanced && (
-        <Alert variant="destructive" className="mb-4 border-amber-500/50 bg-amber-500/5 text-foreground">
-          <AlertTriangle className="h-4 w-4" />
+        <Alert className="mb-4 border-l-4 border-l-[var(--newa-semantic-warning)] bg-[var(--newa-alert-warning-bg)] text-[var(--newa-text-primary)]">
+          <AlertTriangle className="h-4 w-4 text-[var(--newa-semantic-warning)]" />
           <AlertTitle>Bilanțul nu se închide</AlertTitle>
           <AlertDescription className="space-y-3">
             <p>
@@ -113,7 +113,7 @@ export function FinancialTreeTable({
               <li>Datorii incomplete sau semn greșit (442, 512 credit, 121 mixt)</li>
             </ul>
             {reportType === 'balance_sheet' && (
-              <Button variant="outline" size="sm" onClick={() => setDiagnosticOpen(true)}>
+              <Button variant="outline" size="sm" className="h-8 rounded-[40px]" onClick={() => setDiagnosticOpen(true)}>
                 Vezi detalii diferență
               </Button>
             )}
