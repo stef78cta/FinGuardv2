@@ -556,7 +556,7 @@ const RapoarteFinanciare = () => {
             </TabsContent>
 
             <TabsContent value="pl">
-              <Card className="p-6">
+              <Card className="p-6 rounded-[20px]">
                 <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">
                   CONTUL DE PROFIT ȘI PIERDERE
                 </h3>
