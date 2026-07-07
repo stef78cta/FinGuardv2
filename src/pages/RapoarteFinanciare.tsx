@@ -510,11 +510,11 @@ const RapoarteFinanciare = () => {
             </TabsList>
 
             <TabsContent value="bilant">
-              <Card className="p-6">
+              <Card className="p-6 rounded-[20px] card-accent-indigo">
                 <div className="mb-4 border-b pb-3">
                   <h3 className="text-lg font-bold text-foreground">Bilanț contabil</h3>
                   {statementsData.balanceSheet?.statement && selectedBalance && (
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="label-micro mt-1">
                       {activeCompany?.name}
                       {' · '}
                       {format(new Date(statementsData.balanceSheet.statement.period_start), 'dd.MM.yyyy')}
