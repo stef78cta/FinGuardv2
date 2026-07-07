@@ -12,7 +12,7 @@
   --ag-row-border-color: color-mix(in srgb, var(--border) 60%, transparent);
   --ag-header-background-color: color-mix(in srgb, var(--muted) 45%, transparent);
   --ag-header-foreground-color: var(--muted-foreground);
-  --ag-row-hover-color: color-mix(in srgb, var(--muted) 35%, transparent);
+  --ag-row-hover-color: color-mix(in srgb, var(--primary) 8%, transparent);
 }
 
 .financial-tree-report .ag-root-wrapper {
@@ -97,10 +97,15 @@
   justify-content: flex-end;
 }
 
+/* Report-like letter spacing for improved readability */
+.financial-tree-report .ag-cell {
+  letter-spacing: 0.02em;
+}
+
 /* Negative amounts emphasised in red; !important beats row-level colors */
 .financial-tree-report .ag-cell.ag-cell-negative,
 .financial-tree-report .ag-cell.fin-value-negative {
-  color: #dc2626 !important;
+  color: hsl(var(--destructive)) !important;
 }
 
 .financial-tree-report .ag-cell.fin-value-zero {
@@ -116,7 +121,7 @@
 
 /* Row hierarchy emphasis (discreet, no strong colors) */
 .financial-tree-report .ag-row.fin-row-section {
-  background: color-mix(in srgb, var(--muted) 30%, transparent);
+  background: color-mix(in srgb, var(--primary) 4%, transparent);
 }
 
 .financial-tree-report .ag-row.fin-row-section .ag-cell {
@@ -141,7 +146,7 @@
 }
 
 .financial-tree-report .ag-row.fin-row-warning {
-  background: hsl(45 93% 47% / 0.08);
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
 }
 
 /* Keep pinned hierarchy column above horizontally scrolled columns */

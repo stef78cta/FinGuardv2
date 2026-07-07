@@ -316,7 +316,7 @@ const RapoarteFinanciare = () => {
           </p>
         </div>
 
-        <Card className="p-6 mb-6">
+        <Card className="p-6 mb-6 rounded-[20px]">
           <div className="space-y-4">
             <div>
               <Label htmlFor="balance-select" className="text-sm font-semibold mb-2 block">
@@ -382,10 +382,10 @@ const RapoarteFinanciare = () => {
         </p>
       </div>
 
-      <Card className="p-4 mb-6">
+      <Card className="p-4 mb-6 rounded-[20px]">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <div className="flex-1 max-w-md">
-            <Label className="text-xs text-muted-foreground mb-1 block">Balanță selectată</Label>
+            <Label className="label-micro mb-1 block">Balanță selectată</Label>
             <Select value={selectedBalanta} onValueChange={setSelectedBalanta}>
               <SelectTrigger>
                 <SelectValue />
@@ -406,8 +406,7 @@ const RapoarteFinanciare = () => {
           <div className="flex flex-wrap gap-2">
             {!hasStatements ? (
               <Button
-                size="sm"
-                className="btn-primary"
+                className="btn-primary h-9 rounded-[40px]"
                 onClick={handleGenerate}
                 disabled={isReportLoading}
               >
@@ -421,7 +420,7 @@ const RapoarteFinanciare = () => {
             ) : (
               <Button
                 variant="outline"
-                size="sm"
+                className="h-9 rounded-[40px]"
                 onClick={() => setRegenerateDialogOpen(true)}
                 disabled={isReportLoading}
               >
@@ -430,24 +429,24 @@ const RapoarteFinanciare = () => {
               </Button>
             )}
 
-            <Button variant="outline" size="sm" onClick={() => void refresh()} disabled={isReportLoading}>
+            <Button variant="outline" className="h-9 rounded-[40px]" onClick={() => void refresh()} disabled={isReportLoading}>
               <RefreshCw className={cn('w-4 h-4 mr-2', statementsLoading && 'animate-spin')} />
               Refresh
             </Button>
 
-            <Button variant="outline" size="sm" onClick={handlePrint} disabled={!hasStatements}>
+            <Button variant="outline" className="h-9 rounded-[40px]" onClick={handlePrint} disabled={!hasStatements}>
               <Printer className="w-4 h-4 mr-2" />
               Print
             </Button>
-            <Button variant="outline" size="sm" onClick={handleExportExcel} disabled={!hasStatements}>
+            <Button variant="outline" className="h-9 rounded-[40px]" onClick={handleExportExcel} disabled={!hasStatements}>
               <FileSpreadsheet className="w-4 h-4 mr-2" />
               Excel
             </Button>
-            <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={!hasStatements}>
+            <Button variant="outline" className="h-9 rounded-[40px]" onClick={handleExportPDF} disabled={!hasStatements}>
               <FileText className="w-4 h-4 mr-2" />
               PDF
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)} disabled={!hasStatements}>
+            <Button variant="outline" className="h-9 rounded-[40px]" onClick={() => setEmailDialogOpen(true)} disabled={!hasStatements}>
               <Mail className="w-4 h-4 mr-2" />
               Email
             </Button>
@@ -489,24 +488,33 @@ const RapoarteFinanciare = () => {
       ) : hasStatements ? (
         <div id="report-content">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-6 w-full md:w-auto">
-              <TabsTrigger value="bilant" className="flex items-center gap-2">
+            <TabsList className="mb-6 w-full md:w-auto bg-transparent border-b border-border rounded-none p-0 h-auto">
+              <TabsTrigger
+                value="bilant"
+                className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground px-4 py-2.5"
+              >
                 Bilanț
               </TabsTrigger>
-              <TabsTrigger value="pl" className="flex items-center gap-2">
+              <TabsTrigger
+                value="pl"
+                className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground px-4 py-2.5"
+              >
                 Profit & Pierdere
               </TabsTrigger>
-              <TabsTrigger value="cashflow" className="flex items-center gap-2">
+              <TabsTrigger
+                value="cashflow"
+                className="flex items-center gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground px-4 py-2.5"
+              >
                 Cash Flow
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="bilant">
-              <Card className="p-6">
+              <Card className="p-6 rounded-[20px] card-accent-indigo">
                 <div className="mb-4 border-b pb-3">
                   <h3 className="text-lg font-bold text-foreground">Bilanț contabil</h3>
                   {statementsData.balanceSheet?.statement && selectedBalance && (
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="label-micro mt-1">
                       {activeCompany?.name}
                       {' · '}
                       {format(new Date(statementsData.balanceSheet.statement.period_start), 'dd.MM.yyyy')}
@@ -548,7 +556,7 @@ const RapoarteFinanciare = () => {
             </TabsContent>
 
             <TabsContent value="pl">
-              <Card className="p-6">
+              <Card className="p-6 rounded-[20px]">
                 <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">
                   CONTUL DE PROFIT ȘI PIERDERE
                 </h3>
@@ -582,7 +590,7 @@ const RapoarteFinanciare = () => {
             </TabsContent>
 
             <TabsContent value="cashflow">
-              <Card className="p-6">
+              <Card className="p-6 rounded-[20px]">
                 <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">
                   SITUAȚIA FLUXURILOR DE NUMERAR
                 </h3>
