@@ -1,6 +1,6 @@
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { DayPicker, type ActiveModifiers, type DayPickerSingleProps } from "react-day-picker";
+import { DayPicker, type DayPickerSingleProps } from "react-day-picker";
 import { format, setMonth, setYear, startOfMonth } from "date-fns";
 import { ro, type Locale } from "date-fns/locale";
 
@@ -113,7 +113,7 @@ function AdvancedCalendar({
     const newDate = startOfMonth(setMonth(setYear(new Date(), displayYear), monthIndex));
     setDisplayMonth(newDate);
     if (monthPickerOnly) {
-      onSelect?.(newDate, newDate, {} as ActiveModifiers, new MouseEvent("click"));
+      (onSelect as ((day: Date | undefined) => void) | undefined)?.(newDate);
       return;
     }
     setViewMode("day");
