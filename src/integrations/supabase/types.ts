@@ -1377,21 +1377,64 @@ export type Database = {
       }
     }
     Functions: {
-      assert_mappings_complete_for_import: {
-        Args: { _import_id: string }
+      _apply_report_sign: {
+        Args: { _amount: number; _sign: string }
+        Returns: number
+      }
+      _map_cf_section:
+        | {
+            Args: {
+              _direction: string
+              _report_area: string
+              _rule_section: string
+              _section_l1: string
+              _section_l2: string
+            }
+            Returns: string
+          }
+        | { Args: { _section: string }; Returns: string }
+      _sld_is_section_child: {
+        Args: {
+          _child_l1: string
+          _child_l2: string
+          _child_l3: string
+          _child_l4: string
+          _parent_l1: string
+          _parent_l2: string
+          _parent_l3: string
+          _parent_l4: string
+        }
         Returns: boolean
       }
-      can_access_financial_statement: {
-        Args: { _statement_id: string; _user_id: string }
+      _tb_closing_balance: {
+        Args: {
+          _account_type: string
+          _credit: number
+          _debit: number
+          _normal_balance: string
+        }
+        Returns: number
+      }
+      _tb_period_activity: {
+        Args: {
+          _account_type: string
+          _credit: number
+          _debit: number
+          _normal_balance: string
+        }
+        Returns: number
+      }
+      assert_mappings_complete_for_import: {
+        Args: { _import_id: string }
         Returns: boolean
       }
       auto_map_import_from_chart: {
         Args: { _import_id: string }
         Returns: number
       }
-      generate_financial_statements_from_import: {
-        Args: { _import_id: string }
-        Returns: Json
+      can_access_financial_statement: {
+        Args: { _statement_id: string; _user_id: string }
+        Returns: boolean
       }
       can_access_import: {
         Args: { _import_id: string; _user_id: string }
@@ -1415,6 +1458,10 @@ export type Database = {
       create_company_with_member: {
         Args: { p_cui: string; p_name: string; p_user_id: string }
         Returns: string
+      }
+      generate_financial_statements_from_import: {
+        Args: { _import_id: string }
+        Returns: Json
       }
       get_accounts_paginated: {
         Args: { _import_id: string; _limit?: number; _offset?: number }
