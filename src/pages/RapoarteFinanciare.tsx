@@ -316,7 +316,7 @@ const RapoarteFinanciare = () => {
           </p>
         </div>
 
-        <Card className="p-6 mb-6 rounded-[20px]">
+        <Card className="p-6 mb-6 rounded-[20px] w-fit">
           <div className="space-y-4">
             <div>
               <Label htmlFor="balance-select" className="text-sm font-semibold mb-2 block">
