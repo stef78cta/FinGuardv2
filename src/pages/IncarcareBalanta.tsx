@@ -1,12 +1,11 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Upload, FileSpreadsheet, Info, Calendar as CalendarIcon, FileCheck, X, Download, Eye, Trash2, ChevronDown, FileX, Building2, Loader2, AlertCircle, AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
+import { Upload, FileSpreadsheet, Info, FileCheck, X, Download, Eye, Trash2, ChevronDown, FileX, Building2, Loader2, AlertCircle, AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import { usePageUiState } from '@/hooks/usePageUiState';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { AdvancedCalendar } from '@/components/ui/advanced-calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { BalanceMonthPicker } from '@/components/app/BalanceMonthPicker';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
@@ -539,46 +538,25 @@ const IncarcareBalanta = () => {
 
         {/* Month Picker Section */}
         <div className="p-5 2xl:p-8 border-b">
-          <div className="max-w-xs 2xl:max-w-sm">
-            <Label htmlFor="balance-month" className="text-sm font-semibold mb-2 block">
-              Luna balanței <span className="text-destructive">*</span>
-            </Label>
-            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-              <PopoverTrigger asChild>
-                <Button id="balance-month" variant="outline" className={cn("w-full justify-start text-left font-normal", !balanceMonth && "text-muted-foreground", monthError && "border-destructive")}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {balanceMonth ? format(balanceMonth, "MMMM yyyy", {
-                  locale: ro
-                }) : "Selectează luna"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <AdvancedCalendar 
-                  selected={balanceMonth} 
-                  onSelect={date => {
-                    handleBalanceMonthChange(date);
-                    setCalendarOpen(false);
-                  }} 
-                  monthPickerOnly
-                  defaultViewMode="month"
-                  enableDrillDown 
-                  enableDecadeView 
-                  yearRange={{ from: 2000, to: 2050 }}
-                  locale={ro} 
-                  className="pointer-events-auto" 
-                />
-              </PopoverContent>
-            </Popover>
-            {monthError && <p className="text-xs text-destructive mt-1">Luna balanței este obligatorie</p>}
-            {calculatedPeriod && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Perioada contabilă va fi calculată automat:{' '}
-                {format(new Date(calculatedPeriod.period_start), 'dd.MM.yyyy', { locale: ro })}
-                {' – '}
-                {format(new Date(calculatedPeriod.period_end), 'dd.MM.yyyy', { locale: ro })}
-              </p>
-            )}
-          </div>
+          <BalanceMonthPicker
+            value={balanceMonth}
+            onChange={handleBalanceMonthChange}
+            required
+            error={monthError}
+            errorMessage={monthError ? 'Luna balanței este obligatorie' : undefined}
+            open={calendarOpen}
+            onOpenChange={setCalendarOpen}
+            helperText={
+              calculatedPeriod ? (
+                <>
+                  Perioada contabilă va fi calculată automat:{' '}
+                  {format(new Date(calculatedPeriod.period_start), 'dd.MM.yyyy', { locale: ro })}
+                  {' – '}
+                  {format(new Date(calculatedPeriod.period_end), 'dd.MM.yyyy', { locale: ro })}
+                </>
+              ) : undefined
+            }
+          />
         </div>
 
         {/* Specificații Tehnice - Help Callout Style */}

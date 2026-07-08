@@ -15,13 +15,19 @@ import {
   Loader2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { BalanceMonthPicker } from '@/components/app/BalanceMonthPicker';
 import { PageHeader } from '@/components/app/PageHeader';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { useBalante, BalanceWithAccounts } from '@/hooks/useBalante';
+import { useBalanceMonthSelection } from '@/hooks/useBalanceMonthSelection';
 import { useFinancialCalculations } from '@/hooks/useFinancialCalculations';
+import {
+  findPreviousBalance,
+} from '@/lib/balanceMonthSelection';
 
 interface KPIIndicator {
   label: string;
@@ -163,20 +169,29 @@ const KPIIndicatorCard = ({ indicator }: { indicator: KPIIndicator }) => {
 };
 
 const IndicatoriCheie = () => {
-  const { balances, loading, hasData, getLatestBalance, getAllBalancesWithAccounts, companyId } = useBalante();
-  const [latestBalance, setLatestBalance] = useState<BalanceWithAccounts | null>(null);
+  const { loading, hasData, getAllBalancesWithAccounts, companyId } = useBalante();
   const [allBalances, setAllBalances] = useState<BalanceWithAccounts[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const {
+    selectedMonth,
+    selectedBalanceId,
+    handleMonthChange: handleBalanceMonthChange,
+  } = useBalanceMonthSelection({ balances: allBalances });
 
-  const { kpiData } = useFinancialCalculations(latestBalance?.accounts || []);
+  const selectedBalance = useMemo(
+    () => allBalances.find((balance) => balance.id === selectedBalanceId) ?? null,
+    [allBalances, selectedBalanceId],
+  );
 
-  // Get previous period accounts for trend calculation (must be at top level for hooks)
-  const prevAccounts = useMemo(() => {
-    return allBalances.length >= 2 ? (allBalances[1]?.accounts || []) : [];
-  }, [allBalances]);
+  const { kpiData } = useFinancialCalculations(selectedBalance?.accounts || []);
 
-  // Calculate previous period KPIs - hook must be called unconditionally at top level
-  const { kpiData: previousKpiData } = useFinancialCalculations(prevAccounts);
+  const previousBalance = useMemo(() => {
+    if (!selectedBalance) return null;
+    const previous = findPreviousBalance(allBalances, selectedBalance);
+    return allBalances.find((balance) => balance.id === previous?.id) ?? null;
+  }, [allBalances, selectedBalance]);
+
+  const { kpiData: previousKpiData } = useFinancialCalculations(previousBalance?.accounts || []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -186,7 +201,6 @@ const IndicatoriCheie = () => {
       
       if (!hasData || !companyId) {
         setDataLoading(false);
-        setLatestBalance(null);
         setAllBalances([]);
         return;
       }
@@ -194,11 +208,7 @@ const IndicatoriCheie = () => {
       try {
         setDataLoading(true);
         console.log('[IndicatoriCheie] Loading data for company:', companyId);
-        const [latest, all] = await Promise.all([
-          getLatestBalance(),
-          getAllBalancesWithAccounts()
-        ]);
-        setLatestBalance(latest);
+        const all = await getAllBalancesWithAccounts();
         setAllBalances(all);
       } catch (error) {
         console.error('[IndicatoriCheie] Error loading data:', error);
@@ -208,13 +218,12 @@ const IndicatoriCheie = () => {
     };
 
     loadData();
-  }, [loading, hasData, companyId, getLatestBalance, getAllBalancesWithAccounts]);
+  }, [loading, hasData, companyId, getAllBalancesWithAccounts]);
 
-  // Return previous KPIs only if we have enough data
   const previousKPIs = useMemo(() => {
-    if (allBalances.length < 2) return null;
+    if (!previousBalance) return null;
     return previousKpiData;
-  }, [allBalances.length, previousKpiData]);
+  }, [previousBalance, previousKpiData]);
 
   // Build KPI indicators array from real data
   const kpiIndicators: KPIIndicator[] = useMemo(() => {
@@ -374,8 +383,15 @@ const IndicatoriCheie = () => {
     <div className="container-app">
       <PageHeader 
         title="Indicatori Cheie"
-        description="KPI-uri calculate din ultima balanță încărcată"
+        description="KPI-uri calculate din balanța selectată"
       />
+
+      <Card className="p-4 mb-6 rounded-[20px] w-fit">
+        <BalanceMonthPicker
+          value={selectedMonth}
+          onChange={handleBalanceMonthChange}
+        />
+      </Card>
 
       {categories.map((category) => {
         const categoryInfo = categoryLabels[category];

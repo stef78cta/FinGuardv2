@@ -110,7 +110,7 @@ export function validateBalancePeriod(result: BalancePeriodResult): void {
   }
 }
 
-function parseLocalDate(isoDate: string): Date {
+export function parseLocalDate(isoDate: string): Date {
   const [y, m, d] = isoDate.split('-').map(Number);
   if (!y || !m || !d) {
     throw new Error('Dată invalidă');

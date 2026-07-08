@@ -16,13 +16,6 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -41,14 +34,16 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { BalanceMonthPicker } from '@/components/app/BalanceMonthPicker';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useBalante, type BalanceAccount } from '@/hooks/useBalante';
+import { useBalanceMonthSelection } from '@/hooks/useBalanceMonthSelection';
 import { useCompanyContext } from '@/contexts/CompanyContext';
 import { useGeneratedFinancialStatements } from '@/hooks/useGeneratedFinancialStatements';
 import { useStatementLineDefinitions } from '@/hooks/useStatementLineDefinitions';
@@ -129,14 +124,17 @@ function StatementTable<T extends { description: string | null; amount: number; 
 const RapoarteFinanciare = () => {
   const { activeCompany } = useCompanyContext();
   const { balances, loading, hasData, getBalanceAccounts } = useBalante();
-  const [selectedBalanta, setSelectedBalanta] = useState<string>('');
+  const {
+    selectedMonth,
+    selectedBalanceId: selectedBalanta,
+    selectedBalance,
+    handleMonthChange: handleBalanceMonthChange,
+  } = useBalanceMonthSelection({ balances });
   const [activeTab, setActiveTab] = useState<string>('bilant');
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState('');
   const [trialBalanceAccounts, setTrialBalanceAccounts] = useState<BalanceAccount[]>([]);
-
-  const selectedBalance = balances.find((b) => b.id === selectedBalanta);
 
   const {
     loading: statementsLoading,
@@ -306,47 +304,6 @@ const RapoarteFinanciare = () => {
     );
   }
 
-  if (!selectedBalanta) {
-    return (
-      <div className="container-app">
-        <div className="page-header">
-          <h1 className="page-title">Rapoarte Financiare</h1>
-          <p className="page-description">
-            Selectați o balanță pentru a vizualiza situațiile financiare generate
-          </p>
-        </div>
-
-        <Card className="p-6 mb-6 rounded-[20px] w-fit min-w-[560px] mx-auto">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="balance-select" className="text-sm font-semibold mb-2 block">
-                Selectați balanța de referință
-              </Label>
-              <Select value={selectedBalanta} onValueChange={setSelectedBalanta}>
-                <SelectTrigger id="balance-select" className="w-full">
-                  <SelectValue placeholder="Alegeți o balanță" />
-                </SelectTrigger>
-                <SelectContent>
-                  {balances.map((balance) => (
-                    <SelectItem key={balance.id} value={balance.id}>
-                      <div className="flex items-center gap-2">
-                        <FileSpreadsheet className="w-4 h-4 text-primary" />
-                        <span>{balance.source_file_name}</span>
-                        <span className="text-muted-foreground text-xs">
-                          ({format(new Date(balance.period_end), 'dd.MM.yyyy')})
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
   const incomeGroups = statementsData.incomeStatement
     ? groupIncomeStatementLines(statementsData.incomeStatement.lines)
     : [];
@@ -384,24 +341,11 @@ const RapoarteFinanciare = () => {
 
       <Card className="p-4 mb-6 rounded-[20px]">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-          <div className="flex-1 max-w-md">
-            <Label className="label-micro mb-1 block">Balanță selectată</Label>
-            <Select value={selectedBalanta} onValueChange={setSelectedBalanta}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {balances.map((balance) => (
-                  <SelectItem key={balance.id} value={balance.id}>
-                    <div className="flex items-center gap-2">
-                      <FileSpreadsheet className="w-4 h-4 text-primary" />
-                      <span>{balance.source_file_name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <BalanceMonthPicker
+            value={selectedMonth}
+            onChange={handleBalanceMonthChange}
+            containerClassName="flex-1 max-w-md"
+          />
 
           <div className="flex flex-wrap gap-2">
             {!hasStatements ? (

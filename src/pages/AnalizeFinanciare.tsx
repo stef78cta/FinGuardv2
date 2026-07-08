@@ -9,8 +9,11 @@ import {
   Loader2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { BalanceMonthPicker } from '@/components/app/BalanceMonthPicker';
 import { PageHeader } from '@/components/app/PageHeader';
 import { ChartCard } from '@/components/app/ChartCard';
+import { Card } from '@/components/ui/card';
+import { useBalanceMonthSelection } from '@/hooks/useBalanceMonthSelection';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -56,6 +59,11 @@ const AnalizeFinanciare = () => {
   const [allBalances, setAllBalances] = useState<BalanceWithAccounts[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('venituri');
+  const {
+    selectedMonth,
+    selectedBalance,
+    handleMonthChange: handleBalanceMonthChange,
+  } = useBalanceMonthSelection({ balances: allBalances.length > 0 ? allBalances : balances });
 
   useEffect(() => {
     const loadData = async () => {
@@ -132,16 +140,32 @@ const AnalizeFinanciare = () => {
     }));
   }, [financialDataByPeriod]);
 
-  // Expense breakdown (from latest balance)
+  const selectedPeriodData = useMemo(() => {
+    if (financialDataByPeriod.length === 0) {
+      return undefined;
+    }
+
+    if (!selectedBalance) {
+      return financialDataByPeriod[financialDataByPeriod.length - 1];
+    }
+
+    return (
+      financialDataByPeriod.find(
+        (period) => period.period === selectedBalance.period_end,
+      ) ?? financialDataByPeriod[financialDataByPeriod.length - 1]
+    );
+  }, [financialDataByPeriod, selectedBalance]);
+
+  // Expense breakdown (from selected balance month)
   const expenseBreakdown = useMemo(() => {
-    if (financialDataByPeriod.length === 0) return [];
-    const latest = financialDataByPeriod[financialDataByPeriod.length - 1];
+    if (!selectedPeriodData) return [];
+    const latest = selectedPeriodData;
     return [
       { name: 'Materii prime', value: latest.cheltuieli.materiale, color: COLORS[0] },
       { name: 'Personal', value: latest.cheltuieli.personal, color: COLORS[1] },
       { name: 'Alte cheltuieli', value: latest.cheltuieli.altele, color: COLORS[2] },
     ].filter(e => e.value > 0);
-  }, [financialDataByPeriod]);
+  }, [selectedPeriodData]);
 
   // Profit margins
   const profitMargins = useMemo(() => {
@@ -239,6 +263,13 @@ const AnalizeFinanciare = () => {
         title="Analize Financiare"
         description="Analize detaliate ale performanței financiare și structurii veniturilor/cheltuielilor"
       />
+
+      <Card className="p-4 mb-6 rounded-[20px] w-fit">
+        <BalanceMonthPicker
+          value={selectedMonth}
+          onChange={handleBalanceMonthChange}
+        />
+      </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="w-full flex-wrap md:flex-nowrap md:w-auto">
