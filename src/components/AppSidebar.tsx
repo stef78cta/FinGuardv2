@@ -38,7 +38,7 @@ const menuItems = [
   { title: 'Analize financiare', url: '/app/analize-financiare', icon: TrendingUp },
   { title: 'Indicatori cheie', url: '/app/indicatori-cheie', icon: Target },
   { title: 'Analize comparative', url: '/app/analize-comparative', icon: GitCompare },
-  { title: 'Alte analize', url: '/app/alte-analize', icon: BarChart3 },
+  { title: 'Analiza consolidată', url: '/app/alte-analize', icon: BarChart3 },
   { title: 'Previziuni bugetare', url: '/app/previziuni-bugetare', icon: Calendar },
 ];
 
