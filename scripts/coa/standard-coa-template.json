@@ -4760,7 +4760,7 @@
       "normal_balance": null,
       "report_sign": "calculated",
       "is_leaf_for_calculation": false,
-      "formula_or_rule": "Datorii pe termen scurt + datorii pe termen lung + capital propriu și quasi-capital",
+      "formula_or_rule": "Datorii pe termen scurt + Datorii pe termen lung + Total capital propriu și quasi-capital",
       "notes": null
     },
     {

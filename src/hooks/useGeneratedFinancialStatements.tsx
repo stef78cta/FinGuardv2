@@ -24,6 +24,7 @@ export interface GeneratedFinancialStatementsData {
   incomeStatement: StatementWithLines<IncomeStatementLineRow> | null;
   cashFlow: StatementWithLines<CashFlowLineRow> | null;
   reportId: string | null;
+  reportStatus: 'completed' | 'unreconciled' | 'generating' | 'error' | null;
 }
 
 export interface UseGeneratedFinancialStatementsReturn {
@@ -41,6 +42,7 @@ const EMPTY_DATA: GeneratedFinancialStatementsData = {
   incomeStatement: null,
   cashFlow: null,
   reportId: null,
+  reportStatus: null,
 };
 
 /**
@@ -109,7 +111,7 @@ export const useGeneratedFinancialStatements = (
           : Promise.resolve({ data: [] as CashFlowLineRow[], error: null }),
         supabase
           .from('reports')
-          .select('id')
+          .select('id, status')
           .eq('company_id', companyId)
           .filter('metadata->>source_import_id', 'eq', importId)
           .order('generated_at', { ascending: false })
@@ -132,6 +134,7 @@ export const useGeneratedFinancialStatements = (
           ? { statement: cfStatement, lines: cfLinesResult.data ?? [] }
           : null,
         reportId: reportResult.data?.id ?? null,
+        reportStatus: (reportResult.data?.status as GeneratedFinancialStatementsData['reportStatus']) ?? null,
       });
     } catch (err) {
       console.error('[useGeneratedFinancialStatements] Fetch error:', err);

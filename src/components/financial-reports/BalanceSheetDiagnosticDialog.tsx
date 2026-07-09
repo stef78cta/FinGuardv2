@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import type { BalanceSheetEquationCheck } from '@/types/financialTree';
 import type { BalanceSheetDiagnosticSummary } from '@/utils/balanceSheetDiagnostic';
+import type { ReportReconciliationResult } from '@/utils/financialReportReconciliation';
 import { formatFinancialValue } from '@/utils/formatFinancialValue';
 
 interface BalanceSheetDiagnosticDialogProps {
@@ -17,6 +18,7 @@ interface BalanceSheetDiagnosticDialogProps {
   equation: BalanceSheetEquationCheck;
   diagnostic: BalanceSheetDiagnosticSummary | null;
   diagnosticLoading: boolean;
+  reconciliation?: ReportReconciliationResult | null;
   currency?: string;
 }
 
@@ -29,6 +31,7 @@ export function BalanceSheetDiagnosticDialog({
   equation,
   diagnostic,
   diagnosticLoading,
+  reconciliation = null,
   currency = 'RON',
 }: BalanceSheetDiagnosticDialogProps) {
   return (
@@ -42,6 +45,32 @@ export function BalanceSheetDiagnosticDialog({
         </DialogHeader>
 
         <div className="space-y-6">
+          {reconciliation && (
+            <section className="rounded-lg border p-4 bg-muted/30">
+              <h4 className="font-semibold mb-3">
+                Status reconciliere:{' '}
+                <span className={reconciliation.isValid ? 'text-emerald-600' : 'text-destructive'}>
+                  {reconciliation.isValid ? 'Raport valid' : 'Raport nereconciliat'}
+                </span>
+              </h4>
+              <ul className="space-y-2 text-sm">
+                {reconciliation.checks.map((check) => (
+                  <li key={check.id} className="flex items-start gap-2">
+                    <span className={check.passed ? 'text-emerald-600' : 'text-destructive'}>
+                      {check.passed ? '✓' : '✗'}
+                    </span>
+                    <span>
+                      {check.label}
+                      {check.detail ? (
+                        <span className="text-muted-foreground"> — {check.detail}</span>
+                      ) : null}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           <section className="rounded-lg border p-4 bg-muted/30">
             <h4 className="font-semibold mb-3">Ecuație bilanț</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
@@ -91,6 +120,14 @@ export function BalanceSheetDiagnosticDialog({
                   <Badge variant="outline" className="border-amber-500 text-amber-700">
                     {diagnostic.wrongSignCount} semn suspect
                   </Badge>
+                )}
+                {diagnostic.bifunctionalRouteIssueCount > 0 && (
+                  <Badge variant="destructive">
+                    {diagnostic.bifunctionalRouteIssueCount} bifuncționale incomplete
+                  </Badge>
+                )}
+                {diagnostic.notInReportCount > 0 && (
+                  <Badge variant="destructive">{diagnostic.notInReportCount} neincluse în raport</Badge>
                 )}
               </div>
               <div className="overflow-x-auto rounded-lg border">

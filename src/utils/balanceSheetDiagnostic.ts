@@ -19,7 +19,26 @@ export type DiagnosticIssueType =
   | 'wrong_sign_activ'
   | 'wrong_sign_pasiv'
   | 'contra_adjustment_note'
-  | 'duplicate_mapping';
+  | 'duplicate_mapping'
+  | 'not_in_report'
+  | 'bifunctional_incomplete_routes'
+  | 'bifunctional_missing_route';
+
+/** Tipuri de problemă care invalidează raportul oficial. */
+export const BLOCKING_DIAGNOSTIC_TYPES: ReadonlySet<DiagnosticIssueType> = new Set([
+  'unmapped',
+  'not_in_report',
+  'missing_functional_type',
+  'technical_both_sides',
+  'bifunctional_incomplete_routes',
+  'bifunctional_missing_route',
+]);
+
+export interface BalanceSheetReportLeaf {
+  lineKey: string;
+  accountCode: string;
+  reportArea: string | null;
+}
 
 export type DiagnosticSeverity = 'error' | 'warning' | 'info';
 
@@ -44,9 +63,69 @@ export interface BalanceSheetDiagnosticSummary {
   wrongSignCount: number;
   missingFunctionalCount: number;
   technicalErrorCount: number;
+  notInReportCount: number;
+  bifunctionalRouteIssueCount: number;
+  /** Conturi cu sold ≠ 0 incluse complet în raport (fără issue blocant). */
+  includedAccountCount: number;
+  /** Raportul oficial poate fi considerat valid. */
+  isReportValid: boolean;
+  blockingIssueCount: number;
   tbAccountsWithBalance: number;
   totalMappedNet: number;
   possibleCauses: string[];
+}
+
+/**
+ * Găsește linia de bilanț (leaf) care corespunde unui cod din planul de conturi,
+ * folosind aceeași regulă ca pipeline-ul SQL: cel mai lung prefix potrivit.
+ */
+export function findBalanceSheetLineKey(
+  coaCode: string,
+  leaves: BalanceSheetReportLeaf[],
+): BalanceSheetReportLeaf | null {
+  const matches = leaves
+    .filter(
+      (leaf) => coaCode === leaf.accountCode || coaCode.startsWith(`${leaf.accountCode}`),
+    )
+    .sort((a, b) => b.accountCode.length - a.accountCode.length);
+  return matches[0] ?? null;
+}
+
+/** Frunze SLD care corespund unui cod din plan (cel mai lung prefix). */
+export function findBalanceSheetLeavesForCode(
+  coaCode: string,
+  leaves: BalanceSheetReportLeaf[],
+): BalanceSheetReportLeaf[] {
+  const matches = leaves.filter(
+    (leaf) => coaCode === leaf.accountCode || coaCode.startsWith(`${leaf.accountCode}`),
+  );
+  const longestLen = Math.max(0, ...matches.map((m) => m.accountCode.length));
+  return matches.filter((m) => m.accountCode.length === longestLen);
+}
+
+/**
+ * Pentru conturi bifuncționale, verifică dacă există ruta SLD potrivită soldului curent
+ * (debit → Active, credit → Pasiv), replicând logica din pipeline-ul SQL.
+ */
+function validateBifunctionalRoutes(
+  coaCode: string,
+  side: RawBalanceSide,
+  leaves: BalanceSheetReportLeaf[],
+): DiagnosticIssueType | null {
+  const matchingLeaves = findBalanceSheetLeavesForCode(coaCode, leaves);
+  if (matchingLeaves.length === 0) return 'not_in_report';
+
+  const hasActive = matchingLeaves.some((l) => l.reportArea === 'Active');
+  const hasPassive = matchingLeaves.some((l) => l.reportArea === 'Pasive');
+
+  if (!hasActive || !hasPassive) {
+    return 'bifunctional_incomplete_routes';
+  }
+
+  if (side === 'debit' && !hasActive) return 'bifunctional_missing_route';
+  if (side === 'credit' && !hasPassive) return 'bifunctional_missing_route';
+
+  return null;
 }
 
 /**
@@ -116,6 +195,7 @@ export interface MappedAccountInfo {
 export function analyzeBalanceSheetMapping(
   accounts: BalanceAccount[],
   mappings: MappedAccountInfo[],
+  reportLeaves: BalanceSheetReportLeaf[] = [],
 ): BalanceSheetDiagnosticSummary {
   const mappedByTbId = new Map<string, MappedAccountInfo[]>();
   for (const m of mappings) {
@@ -126,6 +206,7 @@ export function analyzeBalanceSheetMapping(
 
   const issues: BalanceSheetDiagnosticIssue[] = [];
   let totalMappedNet = 0;
+  let includedAccountCount = 0;
 
   for (const acc of accounts) {
     const side = getRawBalanceSide(acc);
@@ -165,9 +246,9 @@ export function analyzeBalanceSheetMapping(
       issues.push({
         ...base,
         type: 'unmapped',
-        severity: 'warning',
+        severity: 'error',
         functionalType: null,
-        message: 'Cont cu sold, fără mapare în planul de conturi / linii raport',
+        message: 'Cont cu sold, fără mapare în planul de conturi — raportul este invalid până la mapare',
       });
       continue;
     }
@@ -188,27 +269,70 @@ export function analyzeBalanceSheetMapping(
 
     const functionalType = normalizeFunctionalType(mapped[0]?.functionalType);
     const mappedTo = mapped[0]?.chartAccountCode;
+    let accountBlocked = false;
 
-    // 4) Funcțiune lipsă în planul de conturi.
+    // 4) Acoperire în șablonul bilanțului.
+    if (reportLeaves.length > 0) {
+      if (functionalType === 'bifunctional') {
+        const routeIssue = validateBifunctionalRoutes(mappedTo ?? code, side, reportLeaves);
+        if (routeIssue) {
+          accountBlocked = true;
+          issues.push({
+            ...base,
+            type: routeIssue,
+            severity: 'error',
+            functionalType,
+            mappedTo,
+            message:
+              routeIssue === 'bifunctional_incomplete_routes'
+                ? 'Cont bifuncțional fără rute SLD complete (activ + pasiv) — raport invalid'
+                : routeIssue === 'bifunctional_missing_route'
+                  ? `Cont bifuncțional fără rută SLD pentru sold ${side === 'debit' ? 'debitor (Active)' : 'creditor (Pasive)'}`
+                  : 'Cont mapat, dar fără linie leaf în șablonul bilanțului',
+          });
+        }
+      } else {
+        const reportLine = findBalanceSheetLineKey(mappedTo ?? code, reportLeaves);
+        if (!reportLine) {
+          accountBlocked = true;
+          issues.push({
+            ...base,
+            type: 'not_in_report',
+            severity: 'error',
+            functionalType,
+            mappedTo,
+            message:
+              'Cont mapat în planul de conturi, dar fără linie leaf în șablonul bilanțului — soldul nu intră în raport',
+          });
+        }
+      }
+    }
+
+    // 5) Funcțiune lipsă în planul de conturi.
     if (!functionalType) {
+      accountBlocked = true;
       issues.push({
         ...base,
         type: 'missing_functional_type',
-        severity: 'warning',
+        severity: 'error',
         functionalType: null,
         mappedTo,
         message:
-          'Funcțiunea contului (activ/pasiv/bifuncțional) nu este definită în planul de conturi — completați functional_type',
+          'Funcțiunea contului (activ/pasiv/bifuncțional) nu este definită — raport invalid până la completare',
       });
       continue;
     }
 
-    // 5) Cont bifuncțional: poate avea sold pe oricare parte. NICIODATĂ eroare de semn.
+    if (!accountBlocked) {
+      includedAccountCount += 1;
+    }
+
+    // 6) Cont bifuncțional: poate avea sold pe oricare parte. NICIODATĂ eroare de semn.
     if (functionalType === 'bifunctional') {
       continue;
     }
 
-    // 6) Cont rectificativ / de ajustare: soldul „inversat” este normal.
+    // 7) Cont rectificativ / de ajustare: soldul „inversat” este normal.
     if (isContraOrAdjustment(code)) {
       const inverted =
         (functionalType === 'activ' && side === 'credit') ||
@@ -227,7 +351,7 @@ export function analyzeBalanceSheetMapping(
       continue;
     }
 
-    // 7) Cont activ cu sold creditor.
+    // 8) Cont activ cu sold creditor.
     if (functionalType === 'activ' && side === 'credit') {
       issues.push({
         ...base,
@@ -241,7 +365,7 @@ export function analyzeBalanceSheetMapping(
       continue;
     }
 
-    // 8) Cont pasiv cu sold debitor.
+    // 9) Cont pasiv cu sold debitor.
     if (functionalType === 'pasiv' && side === 'debit') {
       issues.push({
         ...base,
@@ -261,8 +385,17 @@ export function analyzeBalanceSheetMapping(
   const wrongSignCount = issues.filter(
     (i) => i.type === 'wrong_sign_activ' || i.type === 'wrong_sign_pasiv',
   ).length;
+  const notInReportCount = issues.filter((i) => i.type === 'not_in_report').length;
+  const bifunctionalRouteIssueCount = issues.filter(
+    (i) => i.type === 'bifunctional_incomplete_routes' || i.type === 'bifunctional_missing_route',
+  ).length;
+  const blockingIssueCount = issues.filter((i) => BLOCKING_DIAGNOSTIC_TYPES.has(i.type)).length;
+  const isReportValid = blockingIssueCount === 0;
 
   const possibleCauses: string[] = [];
+  if (!isReportValid) {
+    possibleCauses.push('Raportul este marcat ca nereconciliat — există conturi relevante neincluse sau rutate incomplet.');
+  }
   if (technicalErrorCount > 0) {
     possibleCauses.push(`${technicalErrorCount} cont(uri) au sold simultan pe debit și credit (anomalie de import).`);
   }
@@ -274,6 +407,16 @@ export function analyzeBalanceSheetMapping(
   }
   if (wrongSignCount > 0) {
     possibleCauses.push(`${wrongSignCount} cont(uri) au sold pe partea opusă funcțiunii contabile.`);
+  }
+  if (notInReportCount > 0) {
+    possibleCauses.push(
+      `${notInReportCount} cont(uri) mapate nu au linie leaf în șablonul bilanțului și nu contribuie la raport.`,
+    );
+  }
+  if (bifunctionalRouteIssueCount > 0) {
+    possibleCauses.push(
+      `${bifunctionalRouteIssueCount} cont(uri) bifuncționale au rute SLD incomplete (lipsește activ sau pasiv).`,
+    );
   }
   if (!possibleCauses.length) {
     possibleCauses.push('Rezultatul exercițiului (121) poate să nu fie inclus complet în capitaluri.');
@@ -287,6 +430,11 @@ export function analyzeBalanceSheetMapping(
     wrongSignCount,
     missingFunctionalCount,
     technicalErrorCount,
+    notInReportCount,
+    bifunctionalRouteIssueCount,
+    includedAccountCount,
+    isReportValid,
+    blockingIssueCount,
     tbAccountsWithBalance: accounts.filter((a) => getRawBalanceSide(a) !== 'zero').length,
     totalMappedNet,
     possibleCauses,

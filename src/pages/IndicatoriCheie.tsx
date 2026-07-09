@@ -183,7 +183,10 @@ const IndicatoriCheie = () => {
     [allBalances, selectedBalanceId],
   );
 
-  const { kpiData } = useFinancialCalculations(selectedBalance?.accounts || []);
+  const { kpiData } = useFinancialCalculations(selectedBalance?.accounts || [], {
+    importId: selectedBalance?.id,
+    companyId,
+  });
 
   const previousBalance = useMemo(() => {
     if (!selectedBalance) return null;
@@ -191,7 +194,10 @@ const IndicatoriCheie = () => {
     return allBalances.find((balance) => balance.id === previous?.id) ?? null;
   }, [allBalances, selectedBalance]);
 
-  const { kpiData: previousKpiData } = useFinancialCalculations(previousBalance?.accounts || []);
+  const { kpiData: previousKpiData } = useFinancialCalculations(previousBalance?.accounts || [], {
+    importId: previousBalance?.id,
+    companyId,
+  });
 
   useEffect(() => {
     const loadData = async () => {

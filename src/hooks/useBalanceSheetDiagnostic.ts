@@ -4,6 +4,7 @@ import type { BalanceAccount } from '@/hooks/useBalante';
 import {
   analyzeBalanceSheetMapping,
   type BalanceSheetDiagnosticSummary,
+  type BalanceSheetReportLeaf,
   type MappedAccountInfo,
 } from '@/utils/balanceSheetDiagnostic';
 import { extractSupabaseErrorMessage } from '@/lib/storage/constants';
@@ -35,10 +36,11 @@ export function useBalanceSheetDiagnostic(
         return;
       }
 
-      const { data, error: fetchError } = await supabase
-        .from('account_mappings')
-        .select(
-          `
+      const [mappingsResult, leavesResult] = await Promise.all([
+        supabase
+          .from('account_mappings')
+          .select(
+            `
           trial_balance_account_id,
           chart_of_accounts (
             account_code,
@@ -46,11 +48,22 @@ export function useBalanceSheetDiagnostic(
             functional_type
           )
         `,
-        )
-        .in('trial_balance_account_id', tbIds)
-        .is('valid_to', null);
+          )
+          .in('trial_balance_account_id', tbIds)
+          .is('valid_to', null),
+        supabase
+          .from('statement_line_definitions')
+          .select('line_key, account_code, report_area')
+          .eq('statement_type', 'balance_sheet')
+          .eq('is_leaf_for_calculation', true)
+          .eq('is_active', true)
+          .not('account_code', 'is', null),
+      ]);
 
-      if (fetchError) throw fetchError;
+      if (mappingsResult.error) throw mappingsResult.error;
+      if (leavesResult.error) throw leavesResult.error;
+
+      const data = mappingsResult.data;
 
       const accountById = new Map(accounts.map((a) => [a.id, a]));
       const mappings: MappedAccountInfo[] = (data ?? []).flatMap((row) => {
@@ -73,7 +86,15 @@ export function useBalanceSheetDiagnostic(
         ];
       });
 
-      setSummary(analyzeBalanceSheetMapping(accounts, mappings));
+      const reportLeaves: BalanceSheetReportLeaf[] = (leavesResult.data ?? [])
+        .filter((row) => row.account_code)
+        .map((row) => ({
+          lineKey: row.line_key,
+          accountCode: row.account_code as string,
+          reportArea: row.report_area,
+        }));
+
+      setSummary(analyzeBalanceSheetMapping(accounts, mappings, reportLeaves));
     } catch (err) {
       console.error('[useBalanceSheetDiagnostic]', err);
       setError(extractSupabaseErrorMessage(err) || 'Eroare la diagnosticul mapărilor');

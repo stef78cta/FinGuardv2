@@ -78,9 +78,34 @@ describe('analyzeBalanceSheetMapping — funcțiunea contului vs soldul din bala
     expect(res.wrongSignCount).toBe(0);
   });
 
-  it('473 bifuncțional cu sold debitor NU este eroare de semn', () => {
+  it('473 bifuncțional cu sold debitor semnalează rute incomplete fără leaf activ', () => {
     const accounts = [acc('t1', '473', 'Decontări în curs de clarificare', 'debit')];
-    const res = analyzeBalanceSheetMapping(accounts, [map('t1', '473', 'bifunctional')]);
+    const leaves = [{ lineKey: 'bs_1290', accountCode: '473', reportArea: 'Pasive' }];
+    const res = analyzeBalanceSheetMapping(accounts, [map('t1', '473', 'bifunctional')], leaves);
+    const issues = codeOf(res.issues, '473');
+    expect(issues).toHaveLength(1);
+    expect(issues[0].type).toBe('bifunctional_incomplete_routes');
+    expect(issues[0].severity).toBe('error');
+    expect(res.isReportValid).toBe(false);
+  });
+
+  it('473 bifuncțional cu sold debitor NU este eroare când există ambele rute', () => {
+    const accounts = [acc('t1', '473', 'Decontări în curs de clarificare', 'debit')];
+    const leaves = [
+      { lineKey: 'bs_615', accountCode: '473', reportArea: 'Active' },
+      { lineKey: 'bs_1290', accountCode: '473', reportArea: 'Pasive' },
+    ];
+    const res = analyzeBalanceSheetMapping(accounts, [map('t1', '473', 'bifunctional')], leaves);
+    expect(codeOf(res.issues, '473')).toHaveLength(0);
+    expect(res.isReportValid).toBe(true);
+  });
+
+  it('473 bifuncțional cu sold debitor NU este eroare de semn (legacy — acoperit de rute)', () => {
+    const accounts = [acc('t1', '473', 'Decontări în curs de clarificare', 'debit')];
+    const res = analyzeBalanceSheetMapping(accounts, [map('t1', '473', 'bifunctional')], [
+      { lineKey: 'bs_615', accountCode: '473', reportArea: 'Active' },
+      { lineKey: 'bs_1290', accountCode: '473', reportArea: 'Pasive' },
+    ]);
     expect(codeOf(res.issues, '473')).toHaveLength(0);
   });
 
@@ -162,11 +187,43 @@ describe('analyzeBalanceSheetMapping — funcțiunea contului vs soldul din bala
     expect(res.wrongSignCount).toBe(0);
   });
 
-  it('cont nemapat este semnalat ca unmapped', () => {
-    const accounts = [acc('t1', '4111', 'Clienți', 'debit')];
-    const res = analyzeBalanceSheetMapping(accounts, []);
-    const issues = codeOf(res.issues, '4111');
+  it('semnalează cont mapat fără linie leaf în șablonul bilanțului (ex. 4752)', () => {
+    const accounts = [acc('t1', '4752', 'Subvenții investiții', 'credit', 48_584_516.88)];
+    const mappings = [map('t1', '4752', 'pasiv')];
+    const leaves = [
+      { lineKey: 'bs_1430', accountCode: '4751', reportArea: 'Pasive' },
+    ];
+    const res = analyzeBalanceSheetMapping(accounts, mappings, leaves);
+    const issues = codeOf(res.issues, '4752');
     expect(issues).toHaveLength(1);
-    expect(issues[0].type).toBe('unmapped');
+    expect(issues[0].type).toBe('not_in_report');
+    expect(issues[0].severity).toBe('error');
+    expect(res.notInReportCount).toBe(1);
+    expect(res.isReportValid).toBe(false);
+  });
+
+  it('4452 activ cu sold debitor nu produce eroare de semn', () => {
+    const accounts = [acc('t1', '4452', 'Împrumuturi subvenții', 'debit', 21_222_767.85)];
+    const leaves = [{ lineKey: 'bs_296', accountCode: '4452', reportArea: 'Active' }];
+    const res = analyzeBalanceSheetMapping(
+      accounts,
+      [map('t1', '4452', 'activ')],
+      leaves,
+    );
+    expect(codeOf(res.issues, '4452')).toHaveLength(0);
+  });
+
+  it('4511 bifuncțional cu sold debitor nu produce eroare când există leaf activ', () => {
+    const accounts = [acc('t1', '4511', 'Decontări afiliate', 'debit', 8_090_605.52)];
+    const leaves = [
+      { lineKey: 'bs_606', accountCode: '4511', reportArea: 'Active' },
+      { lineKey: 'bs_1295', accountCode: '4511', reportArea: 'Pasive' },
+    ];
+    const res = analyzeBalanceSheetMapping(
+      accounts,
+      [map('t1', '4511', 'bifunctional')],
+      leaves,
+    );
+    expect(codeOf(res.issues, '4511')).toHaveLength(0);
   });
 });

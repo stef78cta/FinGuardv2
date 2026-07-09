@@ -486,6 +486,7 @@ const RapoarteFinanciare = () => {
                       companyId={activeCompany?.id ?? null}
                       importId={selectedBalanta}
                       trialBalanceAccounts={trialBalanceAccounts}
+                      reportStatus={statementsData.reportStatus}
                       currency={balanceSheetCurrency}
                       definitions={balanceSheetDefinitions}
                       currentLines={statementsData.balanceSheet.lines}

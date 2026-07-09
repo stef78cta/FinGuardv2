@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ShieldAlert } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import type { BalanceAccount } from '@/hooks/useBalante';
@@ -17,6 +17,7 @@ import {
   applyParentChildValidation,
   checkBalanceSheetEquation,
 } from '@/utils/financialTreeValidation';
+import { evaluateReportReconciliation } from '@/utils/financialReportReconciliation';
 import { formatFinancialValue } from '@/utils/formatFinancialValue';
 import { FinancialTreeReportTable } from '@/components/financial/FinancialTreeReportTable';
 
@@ -25,6 +26,7 @@ interface FinancialTreeTableProps {
   companyId: string | null;
   importId?: string | null;
   trialBalanceAccounts?: BalanceAccount[];
+  reportStatus?: 'completed' | 'unreconciled' | 'generating' | 'error' | null;
   /** Kept for compatibility; not displayed in table values. */
   currency?: string;
   definitions: StatementLineDefinitionRow[];
@@ -50,6 +52,7 @@ export function FinancialTreeTable({
   reportType,
   importId = null,
   trialBalanceAccounts = [],
+  reportStatus = null,
   currency = 'RON',
   definitions,
   currentLines,
@@ -86,6 +89,15 @@ export function FinancialTreeTable({
     return checkBalanceSheetEquation(rowData);
   }, [reportType, rowData]);
 
+  const reconciliation = useMemo(() => {
+    if (reportType !== 'balance_sheet') return null;
+    return evaluateReportReconciliation(diagnosticSummary, equationCheck);
+  }, [reportType, diagnosticSummary, equationCheck]);
+
+  const showUnreconciledBanner =
+    reportType === 'balance_sheet' &&
+    (reportStatus === 'unreconciled' || reconciliation?.isValid === false);
+
   if (definitions.length === 0) {
     return (
       <p className="text-sm text-muted-foreground py-8 text-center">
@@ -96,6 +108,35 @@ export function FinancialTreeTable({
 
   return (
     <div className="financial-tree-table">
+      {showUnreconciledBanner && (
+        <Alert className="mb-4 border-l-4 border-l-destructive bg-destructive/5 text-[var(--newa-text-primary)]">
+          <ShieldAlert className="h-4 w-4 text-destructive" />
+          <AlertTitle>Raport nereconciliat / incomplet</AlertTitle>
+          <AlertDescription className="space-y-3">
+            <p>
+              Bilanțul oficial <strong>nu este valid</strong> — există conturi relevante neincluse,
+              nemapate sau bifuncționale rutate incomplet. Nu utilizați valorile pentru decizii până la
+              remediere.
+            </p>
+            {reconciliation && reconciliation.blockingReasons.length > 0 && (
+              <ul className="list-disc pl-5 text-sm text-muted-foreground">
+                {reconciliation.blockingReasons.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 rounded-[40px]"
+              onClick={() => setDiagnosticOpen(true)}
+            >
+              Vezi diagnostic complet
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {equationCheck && !equationCheck.isBalanced && (
         <Alert className="mb-4 border-l-4 border-l-[var(--newa-semantic-warning)] bg-[var(--newa-alert-warning-bg)] text-[var(--newa-text-primary)]">
           <AlertTriangle className="h-4 w-4 text-[var(--newa-semantic-warning)]" />
@@ -128,6 +169,7 @@ export function FinancialTreeTable({
           equation={equationCheck}
           diagnostic={diagnosticSummary}
           diagnosticLoading={diagnosticLoading}
+          reconciliation={reconciliation}
           currency={currency}
         />
       )}

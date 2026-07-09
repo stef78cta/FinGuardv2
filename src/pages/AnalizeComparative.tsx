@@ -40,7 +40,7 @@ interface ComparisonRow {
 }
 
 const AnalizeComparative = () => {
-  const { balances, loading, hasData, getBalanceAccounts } = useBalante();
+  const { balances, loading, hasData, getBalanceAccounts, companyId } = useBalante();
   const [balance1Id, setBalance1Id] = useState<string>('');
   const [balance2Id, setBalance2Id] = useState<string>('');
   const [balance1Data, setBalance1Data] = useState<BalanceWithAccounts | null>(null);
@@ -84,8 +84,14 @@ const AnalizeComparative = () => {
     loadBalanceData();
   }, [balance1Id, balance2Id, balances, getBalanceAccounts]);
 
-  const { bilantData: bilant1, profitPierdereData: pl1 } = useFinancialCalculations(balance1Data?.accounts || []);
-  const { bilantData: bilant2, profitPierdereData: pl2 } = useFinancialCalculations(balance2Data?.accounts || []);
+  const { bilantData: bilant1, profitPierdereData: pl1 } = useFinancialCalculations(balance1Data?.accounts || [], {
+    importId: balance1Id || null,
+    companyId,
+  });
+  const { bilantData: bilant2, profitPierdereData: pl2 } = useFinancialCalculations(balance2Data?.accounts || [], {
+    importId: balance2Id || null,
+    companyId,
+  });
 
   // Generate comparison data
   const bilantComparison = useMemo((): ComparisonRow[] => {
