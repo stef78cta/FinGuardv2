@@ -9,6 +9,7 @@
 // one-time input. Re-run only when the template changes.
 
 import { writeFileSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { readXlsxSheet } from './lib/xlsx-lite.mjs';
@@ -251,6 +252,11 @@ const template = {
 };
 
 writeFileSync(join(__dirname, 'standard-coa-template.json'), JSON.stringify(template, null, 2), 'utf8');
+
+// Post-procesare: conturi operaționale + functional_type din tip_cont
+for (const script of ['sync-operational-gaps.mjs', 'merge-functional-types.mjs']) {
+  execSync(`node ${join(__dirname, script)}`, { stdio: 'inherit', cwd: repoRoot });
+}
 
 // ---------------------------------------------------------------------------
 // Generate seed migration

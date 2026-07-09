@@ -1,0 +1,66 @@
+account_code;account_name;closing_debit;closing_credit;economic_net;economic_side;coa_code;account_type;functional_type;report_line;inclusion;issue_type;notes
+1012;CAPITAL SUBSCRIS VARSAT;0;90000;-90000;credit;1012;equity;pasiv;bs_1560;included;;
+1061;REZERVE LEGALE;0;18000;-18000;credit;1061;equity;pasiv;bs_1470;included;;
+1171;REZULTATUL REPORTAT - PROFITUL NEREP./ PIREDERE NEACOP.;0;28642989.99;-28642989.99;credit;1171;equity;bifunctional;bs_1510;included;equity_routed_ok;
+1174;REZULTATUL REPORTAT DIN CORECTAREA ERORILOR CONTAB.;251000;0;251000;debit;1174;equity;bifunctional;bs_1520;included;equity_routed_ok;
+121;PROFIT SI PIERDERE;0;3722504.03;-3722504.03;credit;121;equity;bifunctional;bs_1450;included;equity_routed_ok;
+1621;CREDITE BANCARE PE TERMEN LUNG;0;34957390.99;-34957390.99;credit;1621;liability;pasiv;bs_1330;included;;
+167;ALTE IMPRUMUTURI SI DATORII ASIMILATE;0;10178379.71;-10178379.71;credit;167;liability;pasiv;bs_1340;included;;
+205;CONCESIUNI, BREVETE, LICENTE, MARCI COMERCIALE;24867.69;0;24867.69;debit;205;asset;activ;bs_35;included;;
+2071;FOND COMERCIAL POZITIV;55083.92;0;55083.92;debit;2071;asset;activ;bs_38;included;;
+208;ALTE IMOBILIZARI NECORPORALE;461794.14;0;461794.14;debit;208;asset;activ;bs_40;included;;
+2111;TERENURI;983756.91;0;983756.91;debit;2111;asset;activ;bs_140;included;;
+212;CONSTRUCTII;34684538.66;0;34684538.66;debit;212;asset;activ;bs_150;included;;
+2131;ECHIPAMENTE TEHNOLOGICE (MASINI,UTILAJE);6027745.93;0;6027745.93;debit;2131;asset;activ;bs_170;included;;
+2132;APARATE SI INSTALATII DE MASURA, CONTROL SI REGLARE;5102556.2;0;5102556.2;debit;2132;asset;activ;bs_180;included;;
+2133;MIJLOACE DE TRANSPORT;12849861.05;0;12849861.05;debit;2133;asset;activ;bs_190;included;;
+214;MOBILIER, APARATURA BIROTICA, ALTE ACTIVE CORPORALE;305308.31;0;305308.31;debit;214;asset;activ;bs_200;included;;
+231;IMOBILIZARI CORPORALE IN CURS DE EXECUTIE;27094838.23;0;27094838.23;debit;231;asset;activ;bs_210;included;;
+261;ACTIUNI DETINUTE LA ENTITATILE AFILIATE;50;0;50;debit;261;asset;activ;bs_95;included;;
+2678;ALTE CREANTE IMOBILIZATE;3035347.75;0;3035347.75;debit;2678;asset;activ;bs_290;included;;
+2805;AMORT. CONCESIUNI, BREVETE, LICENTE, MARCI COMERCIALE;0;16368.5;-16368.5;credit;2805;asset;pasiv;bs_55;included;contra_normal;Cont rectificativ — sold pe partea opusă poate fi normal
+2807;AMORT.  FONDULUI COMERCIAL;0;26623.91;-26623.91;credit;2807;asset;pasiv;bs_65;included;contra_normal;Cont rectificativ — sold pe partea opusă poate fi normal
+2808;AMORT. ALTOR  IMOB. NECORPORALE;0;302146.83;-302146.83;credit;2808;asset;pasiv;bs_70;included;contra_normal;Cont rectificativ — sold pe partea opusă poate fi normal
+2812;AMORT. CONSTRUCTIILOR;0;1378142.29;-1378142.29;credit;2812;asset;pasiv;bs_240;included;contra_normal;Cont rectificativ — sold pe partea opusă poate fi normal
+2813;AMORT. INSTALATIILOR, MIJ. DE TRANSPORT;0;8109525.63;-8109525.63;credit;2813;asset;pasiv;bs_250;included;contra_normal;Cont rectificativ — sold pe partea opusă poate fi normal
+2814;AMORT. ALTOR IMOBILIZARI CORPORALE;0;70089.24;-70089.24;credit;2814;asset;pasiv;bs_260;included;contra_normal;Cont rectificativ — sold pe partea opusă poate fi normal
+301;MATERII PRIME;15944.08;0;15944.08;debit;301;asset;activ;bs_330;included;;
+3021;MATERIALE AUXILIARE;13561.83;0;13561.83;debit;3021;asset;activ;bs_350;included;;
+3022;COMBUSTIBILI;4189.2;0;4189.2;debit;3022;asset;activ;bs_360;included;;
+346;PRODUSE REZIDUALE;69676;0;69676;debit;346;asset;activ;bs_450;included;;
+357;MARFURI AFLATE LA TERTI;1451388.5;0;1451388.5;debit;357;asset;activ;bs_481;included;;
+371;MARFURI;92126.03;0;92126.03;debit;371;asset;activ;bs_480;included;;
+378;DIFERENTE DE PRET LA MARFURI;0;19427.81;-19427.81;credit;378;asset;bifunctional;bs_482;included;dual_routed_ok;
+381;AMBALAJE;335.92;0;335.92;debit;381;asset;activ;bs_483;included;;
+401;FURNIZORI;0;14473692.05;-14473692.05;credit;401;liability;pasiv;bs_1230;included;;
+4091;FURNIZORI — DEBITORI PT. CUMPARARI DE BUNURI (STOCURI);2696414.71;0;2696414.71;debit;4091;asset;activ;bs_520;included;;
+4092;FURNIZORI — DEBITORI PT. PRESTARI DE SERVICII;490313.42;0;490313.42;debit;4092;asset;activ;bs_530;included;;
+4093;AVANSURI ACORDATE PENTRU IMOBILIZARI CORPORALE;830720.79;0;830720.79;debit;4093;asset;activ;bs_215;included;;
+4111;CLIENTI;8087401.51;0;8087401.51;debit;4111;asset;activ;bs_550;included;;
+418;CLIENTI - FACTURI DE INTOCMIT;434055.5;0;434055.5;debit;418;asset;activ;bs_580;included;;
+419;CLIENTI - CREDITORI;0;5152321.47;-5152321.47;credit;419;liability;pasiv;bs_1270;included;;
+421;PERSONAL - SALARII DATORATE;0;648851;-648851;credit;421;liability;pasiv;bs_830;included;;
+427;RETINERI DIN SALARII DATORATE TERTILOR;0;42380.26;-42380.26;credit;427;liability;pasiv;bs_850;included;;
+4315;CONTR. DE ASIGURARI SOCIALE;0;584112;-584112;credit;4315;liability;pasiv;bs_990;included;;
+4316;CONTR. DE ASIGURARI SOCIALE DE SANATATE;0;243944;-243944;credit;4316;liability;pasiv;bs_1000;included;;
+436;CONTR. ASIGURATORIE DE MUNCA;0;73933;-73933;credit;436;liability;pasiv;bs_1010;included;;
+4382;ALTE CREANTE SOCIALE;99085;0;99085;debit;4382;asset;activ;bs_1070;included;;
+4423;TVA DE PLATA;0;498893.22;-498893.22;credit;4423;liability;pasiv;bs_1110;included;;
+4428;TVA NEEXIGIBILA;94662.78;0;94662.78;debit;4428;liability;bifunctional;bs_1150;included;dual_routed_ok;
+444;IMPOZITUL PE VENITURI DE NATURA SALARIILOR;0;152663;-152663;credit;444;liability;pasiv;bs_1160;included;;
+4452;IMPRUMUTURI NERAMBURSABILE CU CARACTER DE SUBVENTII;45070035.56;0;45070035.56;debit;4452;asset;activ;bs_296;included;;
+446;ALTE IMPOZITE, TAXE SI VARSAMINTE ASIMILATE;0;4172;-4172;credit;446;liability;pasiv;bs_1170;included;;
+447;FONDURI SPECIALE TAXE SI VARSAMINTE ASIMILATE;0;47209.32;-47209.32;credit;447;liability;pasiv;bs_1180;included;;
+4481;ALTE DATORII FATA DE BUGETUL STATULUI;0;971352;-971352;credit;4481;liability;pasiv;bs_1200;included;;
+4511;DECONTARI INTRE ENTITATILE AFILIATE;113000;0;113000;debit;4511;liability;bifunctional;bs_606;included;dual_routed_ok;
+4551;ACTIONARI/ASOCIATI - CONTURI CURENTE;0;7921.03;-7921.03;credit;4551;liability;bifunctional;bs_1285;included;dual_routed_ok;
+461;DEBITORI DIVERSI;14263345.15;0;14263345.15;debit;461;asset;activ;bs_600;included;;
+471;CHELTUIELI INREGISTRATE IN AVANS;333791.61;0;333791.61;debit;471;asset;activ;bs_610;included;;
+473;DECONTARI DIN OPERATIUNI IN CURS DE CLARIFICARE;0;315247.34;-315247.34;credit;473;liability;bifunctional;bs_1290;included;dual_routed_ok;
+4752;IMPRUMUTURI NERAMB. CU CARACTER DE SUBVENTII PT. INVESTITII;0;49530000;-49530000;credit;4752;liability;pasiv;bs_1435;included;;
+5121;CONTURI LA BANCA IN LEI;288573.73;0;288573.73;debit;5121;asset;activ;bs_690;included;;
+5124;CONTURI LA BANCA IN VALUTA;49585.21;0;49585.21;debit;5124;asset;activ;bs_700;included;;
+5125;SUME IN CURS DE DECONTARE;1840.46;0;1840.46;debit;5125;asset;activ;bs_701;included;;
+5191;CREDITE BANCARE PE TERMEN SCURT;0;5076400;-5076400;credit;5191;liability;pasiv;bs_910;included;;
+5311;CASA IN LEI;38644.84;0;38644.84;debit;5311;asset;activ;bs_720;included;;
+5328;ALTE VALORI;-60760;0;-60760;credit;5328;asset;activ;bs_760;included;;

@@ -80,7 +80,7 @@ export function evaluateReportReconciliation(
   const bifunctionalIssues = diagnostic?.bifunctionalRouteIssueCount ?? 0;
   checks.push({
     id: 'bifunctional_routes',
-    label: 'Conturi bifuncționale cu rute complete (activ + pasiv)',
+    label: 'Conturi bifuncționale cu rute complete (după tipul contului)',
     passed: bifunctionalIssues === 0,
     detail:
       bifunctionalIssues > 0

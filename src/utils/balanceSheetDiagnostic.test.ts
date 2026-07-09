@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   analyzeBalanceSheetMapping,
+  getEconomicBalanceSide,
   type MappedAccountInfo,
 } from '@/utils/balanceSheetDiagnostic';
 import type { BalanceAccount } from '@/hooks/useBalante';
@@ -37,19 +38,23 @@ function map(
   tbAccountId: string,
   code: string,
   functionalType: 'activ' | 'pasiv' | 'bifunctional' | null,
+  accountType: string | null = null,
 ): MappedAccountInfo {
   return {
     tbAccountId,
     accountCode: code,
     accountName: code,
     chartAccountCode: code,
-    chartAccountType: null,
+    chartAccountType: accountType,
     functionalType,
   };
 }
 
 const codeOf = (issues: ReturnType<typeof analyzeBalanceSheetMapping>['issues'], code: string) =>
   issues.filter((i) => i.accountCode === code);
+
+const errorsOf = (issues: ReturnType<typeof analyzeBalanceSheetMapping>['issues'], code: string) =>
+  codeOf(issues, code).filter((i) => i.severity === 'error');
 
 describe('analyzeBalanceSheetMapping — funcțiunea contului vs soldul din balanță', () => {
   it('4091 activ cu sold debitor NU este eroare', () => {
@@ -96,7 +101,7 @@ describe('analyzeBalanceSheetMapping — funcțiunea contului vs soldul din bala
       { lineKey: 'bs_1290', accountCode: '473', reportArea: 'Pasive' },
     ];
     const res = analyzeBalanceSheetMapping(accounts, [map('t1', '473', 'bifunctional')], leaves);
-    expect(codeOf(res.issues, '473')).toHaveLength(0);
+    expect(errorsOf(res.issues, '473')).toHaveLength(0);
     expect(res.isReportValid).toBe(true);
   });
 
@@ -106,13 +111,112 @@ describe('analyzeBalanceSheetMapping — funcțiunea contului vs soldul din bala
       { lineKey: 'bs_615', accountCode: '473', reportArea: 'Active' },
       { lineKey: 'bs_1290', accountCode: '473', reportArea: 'Pasive' },
     ]);
-    expect(codeOf(res.issues, '473')).toHaveLength(0);
+    expect(errorsOf(res.issues, '473')).toHaveLength(0);
   });
 
   it('1174 bifuncțional cu sold debitor NU este eroare de pasiv', () => {
     const accounts = [acc('t1', '1174', 'Rezultat reportat corectare erori', 'debit')];
-    const res = analyzeBalanceSheetMapping(accounts, [map('t1', '1174', 'bifunctional')]);
-    expect(codeOf(res.issues, '1174')).toHaveLength(0);
+    const leaves = [{ lineKey: 'bs_1520', accountCode: '1174', reportArea: 'Pasive' }];
+    const res = analyzeBalanceSheetMapping(
+      accounts,
+      [map('t1', '1174', 'bifunctional', 'equity')],
+      leaves,
+    );
+    expect(errorsOf(res.issues, '1174')).toHaveLength(0);
+    expect(res.isReportValid).toBe(true);
+  });
+
+  it('1174 bifuncțional fără linie Pasive este eroare blocantă', () => {
+    const accounts = [acc('t1', '1174', 'Rezultat reportat corectare erori', 'debit')];
+    const leaves = [{ lineKey: 'bs_x', accountCode: '1174', reportArea: 'Active' }];
+    const res = analyzeBalanceSheetMapping(
+      accounts,
+      [map('t1', '1174', 'bifunctional', 'equity')],
+      leaves,
+    );
+    expect(codeOf(res.issues, '1174')[0]?.type).toBe('bifunctional_incomplete_routes');
+    expect(res.isReportValid).toBe(false);
+  });
+
+  it('4411 cu closing_credit negativ are sold economic debitor', () => {
+    const account: BalanceAccount = {
+      id: 't1',
+      import_id: 'imp-1',
+      account_code: '4411',
+      account_name: 'Impozit pe profit',
+      opening_debit: 0,
+      opening_credit: 0,
+      debit_turnover: 0,
+      credit_turnover: 0,
+      total_sume_debitoare: 0,
+      total_sume_creditoare: 0,
+      closing_debit: 0,
+      closing_credit: -185_461,
+    };
+    expect(getEconomicBalanceSide(account)).toBe('debit');
+  });
+
+  it('4411 bifuncțional cu sold economic debitor necesită rută Active', () => {
+    const account: BalanceAccount = {
+      id: 't1',
+      import_id: 'imp-1',
+      account_code: '4411',
+      account_name: 'Impozit pe profit',
+      opening_debit: 0,
+      opening_credit: 0,
+      debit_turnover: 0,
+      credit_turnover: 0,
+      total_sume_debitoare: 0,
+      total_sume_creditoare: 0,
+      closing_debit: 0,
+      closing_credit: -185_461,
+    };
+    const leaves = [{ lineKey: 'bs_1090', accountCode: '4411', reportArea: 'Pasive' }];
+    const res = analyzeBalanceSheetMapping(
+      [account],
+      [map('t1', '4411', 'bifunctional', 'liability')],
+      leaves,
+    );
+    expect(codeOf(res.issues, '4411')[0]?.type).toBe('bifunctional_incomplete_routes');
+  });
+
+  it('4411 bifuncțional cu ambele rute NU este eroare', () => {
+    const account: BalanceAccount = {
+      id: 't1',
+      import_id: 'imp-1',
+      account_code: '4411',
+      account_name: 'Impozit pe profit',
+      opening_debit: 0,
+      opening_credit: 0,
+      debit_turnover: 0,
+      credit_turnover: 0,
+      total_sume_debitoare: 0,
+      total_sume_creditoare: 0,
+      closing_debit: 0,
+      closing_credit: -185_461,
+    };
+    const leaves = [
+      { lineKey: 'bs_1085', accountCode: '4411', reportArea: 'Active' },
+      { lineKey: 'bs_1090', accountCode: '4411', reportArea: 'Pasive' },
+    ];
+    const res = analyzeBalanceSheetMapping(
+      [account],
+      [map('t1', '4411', 'bifunctional', 'liability')],
+      leaves,
+    );
+    expect(errorsOf(res.issues, '4411')).toHaveLength(0);
+  });
+
+  it('2805 cu sold creditor (contra-activ pasiv) NU este eroare de semn', () => {
+    const accounts = [acc('t1', '2805', 'Amortizare concesiuni', 'credit', 21_203.9)];
+    const leaves = [{ lineKey: 'bs_55', accountCode: '2805', reportArea: 'Active' }];
+    const res = analyzeBalanceSheetMapping(
+      accounts,
+      [map('t1', '2805', 'pasiv')],
+      leaves,
+    );
+    expect(codeOf(res.issues, '2805').filter((i) => i.severity === 'error')).toHaveLength(0);
+    expect(res.wrongSignCount).toBe(0);
   });
 
   it('121 bifuncțional cu sold debitor (pierdere) NU este eroare de pasiv', () => {
@@ -224,6 +328,6 @@ describe('analyzeBalanceSheetMapping — funcțiunea contului vs soldul din bala
       [map('t1', '4511', 'bifunctional')],
       leaves,
     );
-    expect(codeOf(res.issues, '4511')).toHaveLength(0);
+    expect(errorsOf(res.issues, '4511')).toHaveLength(0);
   });
 });

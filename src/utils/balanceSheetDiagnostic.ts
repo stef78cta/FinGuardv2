@@ -22,7 +22,9 @@ export type DiagnosticIssueType =
   | 'duplicate_mapping'
   | 'not_in_report'
   | 'bifunctional_incomplete_routes'
-  | 'bifunctional_missing_route';
+  | 'bifunctional_missing_route'
+  | 'pnl_closing_balance'
+  | 'bifunctional_routed_ok';
 
 /** Tipuri de problemă care invalidează raportul oficial. */
 export const BLOCKING_DIAGNOSTIC_TYPES: ReadonlySet<DiagnosticIssueType> = new Set([
@@ -65,6 +67,7 @@ export interface BalanceSheetDiagnosticSummary {
   technicalErrorCount: number;
   notInReportCount: number;
   bifunctionalRouteIssueCount: number;
+  pnlClosingBalanceCount: number;
   /** Conturi cu sold ≠ 0 incluse complet în raport (fără issue blocant). */
   includedAccountCount: number;
   /** Raportul oficial poate fi considerat valid. */
@@ -73,6 +76,23 @@ export interface BalanceSheetDiagnosticSummary {
   tbAccountsWithBalance: number;
   totalMappedNet: number;
   possibleCauses: string[];
+}
+
+/**
+ * Sold economic net = closing_debit - closing_credit.
+ * Folosit pentru routing conturi bifuncționale (ex. 4411 cu closing_credit negativ).
+ */
+export function getEconomicBalanceSide(acc: BalanceAccount): RawBalanceSide {
+  const net = netClosingBalance(acc);
+  if (Math.abs(net) <= 0.01) return 'zero';
+  return net > 0 ? 'debit' : 'credit';
+}
+
+/**
+ * Conturi bifuncționale de capital propriu: rămân în Pasive cu semn +/-.
+ */
+function isEquityBifunctional(accountType: string | null | undefined): boolean {
+  return accountType === 'equity';
 }
 
 /**
@@ -104,16 +124,24 @@ export function findBalanceSheetLeavesForCode(
 }
 
 /**
- * Pentru conturi bifuncționale, verifică dacă există ruta SLD potrivită soldului curent
- * (debit → Active, credit → Pasiv), replicând logica din pipeline-ul SQL.
+ * Pentru conturi bifuncționale, verifică rutele SLD:
+ * - capital propriu (equity): o singură rută Pasive cu report_sign +/-;
+ * - creanțe/datorii: rute duale Active + Pasive, după soldul economic net.
  */
 function validateBifunctionalRoutes(
   coaCode: string,
-  side: RawBalanceSide,
+  economicSide: RawBalanceSide,
   leaves: BalanceSheetReportLeaf[],
+  accountType: string | null | undefined,
 ): DiagnosticIssueType | null {
   const matchingLeaves = findBalanceSheetLeavesForCode(coaCode, leaves);
   if (matchingLeaves.length === 0) return 'not_in_report';
+
+  if (isEquityBifunctional(accountType)) {
+    const hasPassive = matchingLeaves.some((l) => l.reportArea === 'Pasive');
+    if (!hasPassive) return 'bifunctional_incomplete_routes';
+    return null;
+  }
 
   const hasActive = matchingLeaves.some((l) => l.reportArea === 'Active');
   const hasPassive = matchingLeaves.some((l) => l.reportArea === 'Pasive');
@@ -122,8 +150,8 @@ function validateBifunctionalRoutes(
     return 'bifunctional_incomplete_routes';
   }
 
-  if (side === 'debit' && !hasActive) return 'bifunctional_missing_route';
-  if (side === 'credit' && !hasPassive) return 'bifunctional_missing_route';
+  if (economicSide === 'debit' && !hasActive) return 'bifunctional_missing_route';
+  if (economicSide === 'credit' && !hasPassive) return 'bifunctional_missing_route';
 
   return null;
 }
@@ -210,7 +238,8 @@ export function analyzeBalanceSheetMapping(
 
   for (const acc of accounts) {
     const side = getRawBalanceSide(acc);
-    if (side === 'zero') continue;
+    const economicSide = getEconomicBalanceSide(acc);
+    if (side === 'zero' && economicSide === 'zero') continue;
 
     const net = netClosingBalance(acc);
     const closingDebit = acc.closing_debit || 0;
@@ -271,10 +300,29 @@ export function analyzeBalanceSheetMapping(
     const mappedTo = mapped[0]?.chartAccountCode;
     let accountBlocked = false;
 
+    const c1 = code[0];
+    if ((c1 === '6' || c1 === '7') && economicSide !== 'zero') {
+      issues.push({
+        ...base,
+        type: 'pnl_closing_balance',
+        severity: 'warning',
+        functionalType: normalizeFunctionalType(mapped[0]?.functionalType),
+        mappedTo,
+        message:
+          'Sold final nenul pe cont de venit/cheltuială — verificați închiderea exercițiului (121)',
+      });
+      continue;
+    }
+
     // 4) Acoperire în șablonul bilanțului.
     if (reportLeaves.length > 0) {
       if (functionalType === 'bifunctional') {
-        const routeIssue = validateBifunctionalRoutes(mappedTo ?? code, side, reportLeaves);
+        const routeIssue = validateBifunctionalRoutes(
+          mappedTo ?? code,
+          economicSide,
+          reportLeaves,
+          mapped[0]?.chartAccountType,
+        );
         if (routeIssue) {
           accountBlocked = true;
           issues.push({
@@ -285,9 +333,11 @@ export function analyzeBalanceSheetMapping(
             mappedTo,
             message:
               routeIssue === 'bifunctional_incomplete_routes'
-                ? 'Cont bifuncțional fără rute SLD complete (activ + pasiv) — raport invalid'
+                ? isEquityBifunctional(mapped[0]?.chartAccountType)
+                  ? 'Cont bifuncțional de capital propriu fără linie Pasive în SLD — raport invalid'
+                  : 'Cont bifuncțional fără rute SLD complete (activ + pasiv) — raport invalid'
                 : routeIssue === 'bifunctional_missing_route'
-                  ? `Cont bifuncțional fără rută SLD pentru sold ${side === 'debit' ? 'debitor (Active)' : 'creditor (Pasive)'}`
+                  ? `Cont bifuncțional fără rută SLD pentru sold economic ${economicSide === 'debit' ? 'debitor (Active)' : 'creditor (Pasive)'}`
                   : 'Cont mapat, dar fără linie leaf în șablonul bilanțului',
           });
         }
@@ -329,6 +379,18 @@ export function analyzeBalanceSheetMapping(
 
     // 6) Cont bifuncțional: poate avea sold pe oricare parte. NICIODATĂ eroare de semn.
     if (functionalType === 'bifunctional') {
+      if (!accountBlocked && reportLeaves.length > 0) {
+        issues.push({
+          ...base,
+          type: 'bifunctional_routed_ok',
+          severity: 'info',
+          functionalType,
+          mappedTo,
+          message: isEquityBifunctional(mapped[0]?.chartAccountType)
+            ? 'Cont bifuncțional de capital propriu — rutat în Pasive cu semn +/-'
+            : `Cont bifuncțional rutat corect pentru sold economic ${economicSide}`,
+        });
+      }
       continue;
     }
 
@@ -389,6 +451,7 @@ export function analyzeBalanceSheetMapping(
   const bifunctionalRouteIssueCount = issues.filter(
     (i) => i.type === 'bifunctional_incomplete_routes' || i.type === 'bifunctional_missing_route',
   ).length;
+  const pnlClosingBalanceCount = issues.filter((i) => i.type === 'pnl_closing_balance').length;
   const blockingIssueCount = issues.filter((i) => BLOCKING_DIAGNOSTIC_TYPES.has(i.type)).length;
   const isReportValid = blockingIssueCount === 0;
 
@@ -413,9 +476,14 @@ export function analyzeBalanceSheetMapping(
       `${notInReportCount} cont(uri) mapate nu au linie leaf în șablonul bilanțului și nu contribuie la raport.`,
     );
   }
+  if (pnlClosingBalanceCount > 0) {
+    possibleCauses.push(
+      `${pnlClosingBalanceCount} cont(uri) P&L (clase 6/7) au sold final nenul — verificați închiderea la 121.`,
+    );
+  }
   if (bifunctionalRouteIssueCount > 0) {
     possibleCauses.push(
-      `${bifunctionalRouteIssueCount} cont(uri) bifuncționale au rute SLD incomplete (lipsește activ sau pasiv).`,
+      `${bifunctionalRouteIssueCount} cont(uri) bifuncționale au rute SLD incomplete (capital propriu: Pasive; creanțe/datorii: activ + pasiv).`,
     );
   }
   if (!possibleCauses.length) {
@@ -432,6 +500,7 @@ export function analyzeBalanceSheetMapping(
     technicalErrorCount,
     notInReportCount,
     bifunctionalRouteIssueCount,
+    pnlClosingBalanceCount,
     includedAccountCount,
     isReportValid,
     blockingIssueCount,
