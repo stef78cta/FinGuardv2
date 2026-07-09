@@ -93,30 +93,26 @@ const isAccountInRange = (code: string, start: string, end: string): boolean => 
 
 const startsWith = (code: string, prefix: string): boolean => code.startsWith(prefix);
 
-// Get closing balance (debit - credit or credit - debit based on account class)
-const getClosingBalance = (acc: BalanceAccount): number => {
-  const debit = acc.closing_debit || 0;
-  const credit = acc.closing_credit || 0;
-  const classNum = getAccountClass(acc.account_code);
-  
-  // Active accounts (classes 2, 3, 5, 6): balance is debit
-  // Passive accounts (classes 1, 4-payables, 7): balance is credit
-  if (['2', '3', '5', '6'].includes(classNum)) {
-    return debit - credit;
-  }
-  return credit - debit;
-};
+// -----------------------------------------------------------------------------
+// Citire SOLD BRUT din balanță.
+//
+// Soldul este strict o valoare din balanță (closing_debit / closing_credit).
+// NU se deduce funcțiunea contului din prima cifră a codului. Partea soldului
+// care contează pentru o secțiune de raport este determinată de secțiunea în
+// care este agregat contul (activ vs pasiv/capitaluri), NU de clasa contului.
+// -----------------------------------------------------------------------------
 
-const getOpeningBalance = (acc: BalanceAccount): number => {
-  const debit = acc.opening_debit || 0;
-  const credit = acc.opening_credit || 0;
-  const classNum = getAccountClass(acc.account_code);
-  
-  if (['2', '3', '5', '6'].includes(classNum)) {
-    return debit - credit;
-  }
-  return credit - debit;
-};
+/** Soldul final pe partea de DEBIT (debit - credit). Pozitiv = sold debitor. */
+const debitClosing = (acc: BalanceAccount): number =>
+  (acc.closing_debit || 0) - (acc.closing_credit || 0);
+
+/** Soldul final pe partea de CREDIT (credit - debit). Pozitiv = sold creditor. */
+const creditClosing = (acc: BalanceAccount): number =>
+  (acc.closing_credit || 0) - (acc.closing_debit || 0);
+
+/** Soldul inițial pe partea de DEBIT (debit - credit). */
+const debitOpening = (acc: BalanceAccount): number =>
+  (acc.opening_debit || 0) - (acc.opening_credit || 0);
 
 export const useFinancialCalculations = (accounts: BalanceAccount[]) => {
   const bilantData = useMemo((): BilantData => {
@@ -135,49 +131,50 @@ export const useFinancialCalculations = (accounts: BalanceAccount[]) => {
       };
     }
 
-    // Active imobilizate
+    // Active imobilizate — secțiuni de activ: se citește soldul pe partea de debit.
     const corporale = accounts
       .filter(a => startsWith(a.account_code, '21'))
-      .reduce((sum, a) => sum + Math.abs(getClosingBalance(a)), 0);
+      .reduce((sum, a) => sum + Math.abs(debitClosing(a)), 0);
     
     const necorporale = accounts
       .filter(a => startsWith(a.account_code, '20'))
-      .reduce((sum, a) => sum + Math.abs(getClosingBalance(a)), 0);
+      .reduce((sum, a) => sum + Math.abs(debitClosing(a)), 0);
     
     const financiare = accounts
       .filter(a => startsWith(a.account_code, '26') || startsWith(a.account_code, '27'))
-      .reduce((sum, a) => sum + Math.abs(getClosingBalance(a)), 0);
+      .reduce((sum, a) => sum + Math.abs(debitClosing(a)), 0);
 
-    // Active circulante
+    // Active circulante — secțiuni de activ.
     const stocuri = accounts
       .filter(a => getAccountClass(a.account_code) === '3')
-      .reduce((sum, a) => sum + Math.abs(getClosingBalance(a)), 0);
+      .reduce((sum, a) => sum + Math.abs(debitClosing(a)), 0);
     
     const creante = accounts
       .filter(a => startsWith(a.account_code, '41') || startsWith(a.account_code, '46'))
-      .reduce((sum, a) => sum + Math.abs(getClosingBalance(a)), 0);
+      .reduce((sum, a) => sum + Math.abs(debitClosing(a)), 0);
     
     const casaBanci = accounts
       .filter(a => getAccountClass(a.account_code) === '5')
-      .reduce((sum, a) => sum + Math.abs(getClosingBalance(a)), 0);
+      .reduce((sum, a) => sum + Math.abs(debitClosing(a)), 0);
 
-    // Capitaluri proprii
+    // Capitaluri proprii — secțiuni de pasiv: se citește soldul pe partea de credit.
     const capitalSocial = accounts
       .filter(a => startsWith(a.account_code, '101'))
-      .reduce((sum, a) => sum + Math.abs(getClosingBalance(a)), 0);
+      .reduce((sum, a) => sum + Math.abs(creditClosing(a)), 0);
     
     const rezerve = accounts
       .filter(a => startsWith(a.account_code, '106') || startsWith(a.account_code, '107'))
-      .reduce((sum, a) => sum + Math.abs(getClosingBalance(a)), 0);
+      .reduce((sum, a) => sum + Math.abs(creditClosing(a)), 0);
     
+    // 121 este bifuncțional: sold creditor = profit (+), sold debitor = pierdere (-).
     const profitPierdere = accounts
       .filter(a => startsWith(a.account_code, '121'))
-      .reduce((sum, a) => sum + getClosingBalance(a), 0);
+      .reduce((sum, a) => sum + creditClosing(a), 0);
 
-    // Datorii
+    // Datorii — secțiuni de pasiv.
     const termenLung = accounts
       .filter(a => startsWith(a.account_code, '16'))
-      .reduce((sum, a) => sum + Math.abs(getClosingBalance(a)), 0);
+      .reduce((sum, a) => sum + Math.abs(creditClosing(a)), 0);
     
     const termenScurt = accounts
       .filter(a => 
@@ -186,7 +183,7 @@ export const useFinancialCalculations = (accounts: BalanceAccount[]) => {
         startsWith(a.account_code, '44') ||
         startsWith(a.account_code, '45')
       )
-      .reduce((sum, a) => sum + Math.abs(getClosingBalance(a)), 0);
+      .reduce((sum, a) => sum + Math.abs(creditClosing(a)), 0);
 
     const imobilizateSubtotal = corporale + necorporale + financiare;
     const circulanteSubtotal = stocuri + creante + casaBanci;
@@ -309,10 +306,10 @@ export const useFinancialCalculations = (accounts: BalanceAccount[]) => {
       };
     }
 
-    // Cash accounts (5xx)
+    // Cash accounts (5xx) — trezorerie: sold pe partea de debit.
     const cashAccounts = accounts.filter(a => getAccountClass(a.account_code) === '5');
-    const numerarInceput = cashAccounts.reduce((sum, a) => sum + getOpeningBalance(a), 0);
-    const numerarSfarsit = cashAccounts.reduce((sum, a) => sum + getClosingBalance(a), 0);
+    const numerarInceput = cashAccounts.reduce((sum, a) => sum + debitOpening(a), 0);
+    const numerarSfarsit = cashAccounts.reduce((sum, a) => sum + debitClosing(a), 0);
 
     // Operational - estimated from turnovers
     const incasariClienti = accounts

@@ -237,6 +237,7 @@ export type Database = {
           account_code: string
           account_name: string
           account_type: string
+          functional_type: string | null
           company_id: string
           created_at: string
           id: string
@@ -249,6 +250,7 @@ export type Database = {
           account_code: string
           account_name: string
           account_type: string
+          functional_type?: string | null
           company_id: string
           created_at?: string
           id?: string
@@ -261,6 +263,7 @@ export type Database = {
           account_code?: string
           account_name?: string
           account_type?: string
+          functional_type?: string | null
           company_id?: string
           created_at?: string
           id?: string
@@ -291,6 +294,7 @@ export type Database = {
           account_code: string
           account_name: string
           account_type: string
+          functional_type: string | null
           is_postable: boolean
           parent_code: string | null
           sort_order: number
@@ -299,6 +303,7 @@ export type Database = {
           account_code: string
           account_name: string
           account_type: string
+          functional_type?: string | null
           is_postable?: boolean
           parent_code?: string | null
           sort_order?: number
@@ -307,6 +312,7 @@ export type Database = {
           account_code?: string
           account_name?: string
           account_type?: string
+          functional_type?: string | null
           is_postable?: boolean
           parent_code?: string | null
           sort_order?: number

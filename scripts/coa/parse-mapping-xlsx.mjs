@@ -72,6 +72,20 @@ function classifyAccountType(code, normalBalance, reportArea) {
   return null;
 }
 
+/**
+ * Derives the Romanian accounting FUNCTION of the account
+ * (activ / pasiv / bifunctional) from the `account_balance_type` column of the
+ * mapping sheet (debit / credit / mixed). This is a SEPARATE concept from the
+ * balance side found in a trial balance; it belongs to the chart of accounts.
+ */
+function deriveFunctionalType(accountBalanceType) {
+  const v = String(accountBalanceType || '').trim().toLowerCase();
+  if (v === 'debit') return 'activ';
+  if (v === 'credit') return 'pasiv';
+  if (v === 'mixed' || v === 'mixt') return 'bifunctional';
+  return null;
+}
+
 /** Maps a cash-flow row to a section + direction for cash_flow_mapping_rules. */
 function cfSectionDirection(row) {
   const area = row.report_area || '';
@@ -177,6 +191,9 @@ for (const r of rows) {
           account_code: code,
           account_name: r.account_name || displayName,
           account_type: accType,
+          // Funcțiunea contabilă (activ/pasiv/bifunctional) din coloana
+          // account_balance_type; separată de account_type de raportare.
+          functional_type: deriveFunctionalType(r.account_balance_type),
           parent_code: (r.parent_code && numericCode(r.parent_code)) ? r.parent_code.trim() : null,
           is_postable: rowType === 'ACCOUNT_LEAF',
           sort_order: sort,
@@ -254,6 +271,12 @@ let sql = `-- ==================================================================
 
 BEGIN;
 
+-- Coloana functiunii contabile (activ/pasiv/bifunctional). Auto-continut, ca
+-- seed-ul sa functioneze indiferent de ordinea migrarilor.
+ALTER TABLE public.chart_of_accounts_template
+    ADD COLUMN IF NOT EXISTS functional_type TEXT
+        CHECK (functional_type IN ('activ', 'pasiv', 'bifunctional'));
+
 -- Idempotenta: reincarca datele globale
 DELETE FROM public.statement_line_definitions WHERE company_id IS NULL;
 DELETE FROM public.cash_flow_mapping_rules     WHERE company_id IS NULL;
@@ -266,9 +289,9 @@ DELETE FROM public.kpi_definitions
 
 // chart_of_accounts_template
 sql += `-- chart_of_accounts_template (${coaRows.length} conturi standard, deduplicate)\n`;
-sql += `INSERT INTO public.chart_of_accounts_template (account_code, account_name, account_type, parent_code, is_postable, sort_order) VALUES\n`;
+sql += `INSERT INTO public.chart_of_accounts_template (account_code, account_name, account_type, functional_type, parent_code, is_postable, sort_order) VALUES\n`;
 sql += coaRows
-  .map((a) => `(${q(a.account_code)}, ${q(a.account_name)}, ${q(a.account_type)}, ${q(a.parent_code)}, ${qb(a.is_postable)}, ${qn(a.sort_order)})`)
+  .map((a) => `(${q(a.account_code)}, ${q(a.account_name)}, ${q(a.account_type)}, ${q(a.functional_type)}, ${q(a.parent_code)}, ${qb(a.is_postable)}, ${qn(a.sort_order)})`)
   .join(',\n');
 sql += `;\n\n`;
 

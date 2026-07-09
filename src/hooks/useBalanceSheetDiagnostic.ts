@@ -42,7 +42,8 @@ export function useBalanceSheetDiagnostic(
           trial_balance_account_id,
           chart_of_accounts (
             account_code,
-            account_type
+            account_type,
+            functional_type
           )
         `,
         )
@@ -54,7 +55,11 @@ export function useBalanceSheetDiagnostic(
       const accountById = new Map(accounts.map((a) => [a.id, a]));
       const mappings: MappedAccountInfo[] = (data ?? []).flatMap((row) => {
         const acc = accountById.get(row.trial_balance_account_id);
-        const coa = row.chart_of_accounts as { account_code: string; account_type: string | null } | null;
+        const coa = row.chart_of_accounts as {
+          account_code: string;
+          account_type: string | null;
+          functional_type: string | null;
+        } | null;
         if (!acc || !coa) return [];
         return [
           {
@@ -63,6 +68,7 @@ export function useBalanceSheetDiagnostic(
             accountName: acc.account_name,
             chartAccountCode: coa.account_code,
             chartAccountType: coa.account_type,
+            functionalType: coa.functional_type,
           },
         ];
       });

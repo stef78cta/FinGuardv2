@@ -62,10 +62,11 @@ function decodeEntities(s) {
 
 function parseSharedStrings(xml) {
   const out = [];
-  const si = /<si>([\s\S]*?)<\/si>/g;
+  // Acceptă și prefixul de namespace `x:` (unele fișiere .xlsx îl folosesc).
+  const si = /<(?:x:)?si>([\s\S]*?)<\/(?:x:)?si>/g;
   let m;
   while ((m = si.exec(xml)) !== null) {
-    const tRe = /<t[^>]*>([\s\S]*?)<\/t>/g;
+    const tRe = /<(?:x:)?t[^>]*>([\s\S]*?)<\/(?:x:)?t>/g;
     let t;
     let s = '';
     while ((t = tRe.exec(m[1])) !== null) s += t[1];
@@ -82,11 +83,12 @@ function colToNum(col) {
 
 function parseSheet(xml, shared) {
   const rows = [];
-  const rowRe = /<row[^>]*\br="(\d+)"[^>]*>([\s\S]*?)<\/row>/g;
+  // Acceptă și prefixul de namespace `x:` pe row/c/v/t.
+  const rowRe = /<(?:x:)?row[^>]*\br="(\d+)"[^>]*>([\s\S]*?)<\/(?:x:)?row>/g;
   let rm;
   while ((rm = rowRe.exec(xml)) !== null) {
     const cells = {};
-    const cellRe = /<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;
+    const cellRe = /<(?:x:)?c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/(?:x:)?c>)/g;
     let cm;
     while ((cm = cellRe.exec(rm[2])) !== null) {
       const attrs = cm[1];
@@ -95,11 +97,11 @@ function parseSheet(xml, shared) {
       if (!rMatch) continue;
       const col = colToNum(rMatch[1]);
       let val = '';
-      const vMatch = /<v>([\s\S]*?)<\/v>/.exec(content);
+      const vMatch = /<(?:x:)?v>([\s\S]*?)<\/(?:x:)?v>/.exec(content);
       if (/t="s"/.test(attrs) && vMatch) {
         val = shared[parseInt(vMatch[1], 10)] || '';
       } else if (/t="(str|inlineStr)"/.test(attrs)) {
-        const isM = /<t[^>]*>([\s\S]*?)<\/t>/.exec(content);
+        const isM = /<(?:x:)?t[^>]*>([\s\S]*?)<\/(?:x:)?t>/.exec(content);
         val = isM ? decodeEntities(isM[1]) : vMatch ? vMatch[1] : '';
       } else if (vMatch) {
         val = vMatch[1];

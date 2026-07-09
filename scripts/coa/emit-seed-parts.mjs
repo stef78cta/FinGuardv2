@@ -50,11 +50,12 @@ emit(
 // 01 - chart_of_accounts_template
 {
   const vals = t.chart_of_accounts
-    .map((a) => `(${q(a.account_code)}, ${q(a.account_name)}, ${q(a.account_type)}, ${q(a.parent_code)}, ${qb(a.is_postable)}, ${qn(a.sort_order)})`)
+    .map((a) => `(${q(a.account_code)}, ${q(a.account_name)}, ${q(a.account_type)}, ${q(a.functional_type)}, ${q(a.parent_code)}, ${qb(a.is_postable)}, ${qn(a.sort_order)})`)
     .join(',\n');
   emit(
     '01_coa_template.sql',
-    `INSERT INTO public.chart_of_accounts_template (account_code, account_name, account_type, parent_code, is_postable, sort_order) VALUES\n${vals};\n`
+    `ALTER TABLE public.chart_of_accounts_template ADD COLUMN IF NOT EXISTS functional_type TEXT CHECK (functional_type IN ('activ','pasiv','bifunctional'));\n` +
+      `INSERT INTO public.chart_of_accounts_template (account_code, account_name, account_type, functional_type, parent_code, is_postable, sort_order) VALUES\n${vals};\n`
   );
 }
 
