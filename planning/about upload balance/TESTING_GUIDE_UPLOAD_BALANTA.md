@@ -1,6 +1,8 @@
 # 🧪 Ghid Testare Upload Balanță - finguardv2
 
-**Versiune:** v2.1 (format 10 coloane A–J)  
+> **⚠️ Actualizare iulie 2026 (v3.0) — suport DUAL format.** Aplicația acceptă **două formate standard de balanță: 8 coloane (A–H) și 10 coloane (A–J)**, detectate automat per import (alegere manuală pentru cazuri ambigue). Testul „format vechi 8 coloane respins" a fost **inversat**: formatul 8 coloane este acum acceptat. Sursa curentă: `ce_verificari_se_fac_la_upload_baanta.md`.
+
+**Versiune:** v3.0 (dual format 8/10 coloane); anterior v2.1 (doar 10 coloane A–J)  
 **Data:** Iunie 2026  
 **Scop:** Suită completă de teste pentru validarea implementării upload balanță
 
@@ -346,12 +348,14 @@ export AGGREGATE_DUPLICATES=true
 
 ---
 
-### Test V4e: Format vechi 8 coloane ❌
+### Test V4e: Format 8 coloane ✅ (v3.0 — acceptat)
 
-**Input:** `balanta_format_vechi_8_coloane.xlsx` (doar A–H, G/H = SF)  
-**Așteptat:** Eroare blocking `EXCEL_LEGACY_8_COLUMN_FORMAT`  
-**Mesaj:** structura veche cu 8 coloane nu mai este acceptată  
+**Input:** `balanta_format_8_coloane.xlsx` (A–H, G/H = SF)  
+**Așteptat:** Import **acceptat**, format detectat `8_COLUMNS`; `total_sume_*` calculate automat (SI + rulaj).  
+**Mesaj UX:** „Format detectat: balanță 8 coloane…"  
 **Status:** [ ]
+
+> Notă v3.0: eroarea `EXCEL_LEGACY_8_COLUMN_FORMAT` a fost eliminată; formatul 8 coloane nu mai este respins.
 
 ---
 
@@ -564,18 +568,19 @@ export AGGREGATE_DUPLICATES=true
 
 ### Code:
 
-- [ ] `npm test` trece (13 teste parser 10 coloane)
-- [ ] Fișiere fixture Excel actualizate la format A–J
+- [ ] `npm test` trece (teste parser dual 8/10 coloane)
+- [ ] Fișiere fixture Excel pentru ambele formate (A–H și A–J)
 - [ ] Hook folosește bucket canonical (`BALANCE_STORAGE_BUCKET` din constants)
-- [ ] Edge Function aliniată cu parser client (10 coloane + formule G/H)
-- [ ] Validări blocking în `excel-parser.ts` v2.1
-- [ ] UI ghid upload afișează 10 coloane
+- [ ] Edge Function aliniată cu parser client (detectare + normalizare dual-format)
+- [ ] Validări blocking în `excel-parser.ts` v3.0
+- [ ] UI ghid upload afișează ambele formate (8 și 10 coloane)
 
 ### Funcțional:
 
-- [ ] Upload balanță validă (10 coloane) → SUCCESS
-- [ ] Upload format vechi 8 coloane → ERROR `EXCEL_LEGACY_8_COLUMN_FORMAT`
-- [ ] Upload cu total_sume G/H greșit → ERROR blocking
+- [ ] Upload balanță validă 10 coloane → SUCCESS (format detectat `10_COLUMNS`)
+- [ ] Upload balanță validă 8 coloane → SUCCESS (format detectat `8_COLUMNS`, total_sume calculate)
+- [ ] Upload fișier ambiguu (9 coloane) → dialog alegere manuală format
+- [ ] Upload cu total_sume G/H greșit (10 coloane) → ERROR blocking
 - [ ] Upload balanță dezechilibrată → ERROR cu detalii
 - [ ] Upload cu warnings → PERMIS cu avertizare
 - [ ] Download fișier original → SUCCESS

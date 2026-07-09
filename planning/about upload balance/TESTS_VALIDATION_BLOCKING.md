@@ -1,10 +1,12 @@
 # 🧪 TESTE PENTRU VALIDĂRI BLOCKING
 
+> **⚠️ Actualizare iulie 2026 (v3.0) — suport DUAL format.** Aplicația acceptă **două formate standard de balanță: 8 coloane (A–H) și 10 coloane (A–J)**. Formatul este detectat automat per import; în caz de ambiguitate utilizatorul poate selecta manual formatul. Afirmațiile despre acceptarea **exclusivă** a formatului 10 coloane sau respingerea formatului 8 coloane (`EXCEL_LEGACY_8_COLUMN_FORMAT`) sunt **depășite**. Sursa curentă: `ce_verificari_se_fac_la_upload_baanta.md`.
+
 ## Overview
 
 Acest document descrie testele pentru validarea fluxului de upload balanță cu validări blocking.
 
-**Versiune parser:** v2.1 — format **10 coloane A–J** (iunie 2026)
+**Versiune parser:** v3.0 — **dual format 8/10 coloane** (iulie 2026); anterior v2.1 (doar 10 coloane A–J).
 
 **Implementare automată:** `src/lib/excel-parser.test.ts` (Vitest, 13 teste) — rulează cu `npm test`.
 

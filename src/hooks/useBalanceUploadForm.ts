@@ -3,6 +3,7 @@ import { startOfMonth } from 'date-fns';
 import { toast } from 'sonner';
 import {
   parseExcelFile,
+  type BalanceExcelFormat,
   type ParsedAccount,
   type ParseResult,
   type ValidationWarning,
@@ -110,6 +111,7 @@ export function useBalanceUploadForm() {
   const [balanceRows, setBalanceRows] = useState<ParsedAccount[]>([]);
   const [duplicateAccounts, setDuplicateAccounts] = useState<string[]>([]);
   const [accountsCount, setAccountsCount] = useState(0);
+  const [forcedFormat, setForcedFormat] = useState<BalanceExcelFormat | undefined>();
 
   /**
    * Curăță toată starea temporară a formularului de upload.
@@ -132,6 +134,7 @@ export function useBalanceUploadForm() {
     setBalanceRows([]);
     setDuplicateAccounts([]);
     setAccountsCount(0);
+    setForcedFormat(undefined);
 
     if (options && 'keepBalanceMonth' in options) {
       setBalanceMonth(options.keepBalanceMonth);
@@ -219,6 +222,34 @@ export function useBalanceUploadForm() {
     [applyParseResult, balanceMonth, resetUploadState],
   );
 
+  /**
+   * Re-parsează fișierul curent cu un format ales manual de utilizator (caz ambiguu).
+   * Nu resetează starea (păstrează fișierul); dacă alegerea contrazice structura,
+   * parserul întoarce o eroare clară.
+   */
+  const applyForcedFormat = useCallback(
+    async (format: BalanceExcelFormat) => {
+      if (!uploadedFile) return;
+
+      setForcedFormat(format);
+      setUploadStatus('parsing');
+      const generation = uploadGenerationRef.current;
+
+      try {
+        const parseResult = await parseExcelFile(uploadedFile, { forcedFormat: format });
+        applyParseResult(parseResult, uploadedFile, generation);
+      } catch (error) {
+        if (generation !== uploadGenerationRef.current) return;
+
+        console.error('[useBalanceUploadForm] Forced-format parse error:', error);
+        setUploadStatus('error');
+        setUploadErrorMessage('Eroare la parsarea fișierului Excel.');
+        toast.error('Eroare la parsarea fișierului Excel.');
+      }
+    },
+    [applyParseResult, uploadedFile],
+  );
+
   const handleRemoveFile = useCallback(() => {
     resetUploadState(balanceMonth ? { keepBalanceMonth: balanceMonth } : undefined);
   }, [balanceMonth, resetUploadState]);
@@ -277,6 +308,14 @@ export function useBalanceUploadForm() {
     uploadStatus === 'uploading' ||
     uploadStatus === 'parsing';
 
+  /** Formatul rezolvat pentru fișierul curent (null dacă parsarea a fost blocată). */
+  const detectedFormat = parsedData?.format ?? null;
+
+  /** true dacă parsarea a eșuat pentru că structura e ambiguă (necesită alegere manuală). */
+  const isAmbiguousFormat = (parsedData?.blockingErrors ?? []).some(
+    (err) => err.code === 'EXCEL_AMBIGUOUS_FORMAT',
+  );
+
   return {
     fileInputRef,
     balanceMonth,
@@ -297,6 +336,10 @@ export function useBalanceUploadForm() {
     balanceRows,
     duplicateAccounts,
     accountsCount,
+    detectedFormat,
+    isAmbiguousFormat,
+    forcedFormat,
+    applyForcedFormat,
     isUploadFormDirty,
     resetUploadState,
     handleBalanceMonthChange,

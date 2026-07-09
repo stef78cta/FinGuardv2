@@ -18,6 +18,8 @@ export interface BalanceImport {
   status: 'draft' | 'processing' | 'validated' | 'completed' | 'error';
   created_at: string;
   processed_at: string | null;
+  /** Formatul balanței detectat la import (8 sau 10 coloane). Poate lipsi la importuri vechi. */
+  balance_format?: '8_COLUMNS' | '10_COLUMNS' | null;
 }
 
 /**

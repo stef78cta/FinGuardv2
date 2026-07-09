@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import type { BlockingError, ParseResult, ParsedAccount } from '@/lib/excel-parser';
+import type { BalanceExcelFormat, BlockingError, ParseResult, ParsedAccount } from '@/lib/excel-parser';
 import {
   TRIAL_BALANCE_IMPORTS_FALLBACK,
   TRIAL_BALANCE_IMPORTS_TABLE,
@@ -118,7 +118,8 @@ export function formatBlockingValidationErrors(parseResult: ParseResult): string
 
     if (
       (err.code === 'EXCEL_INVALID_COLUMN_COUNT' ||
-        err.code === 'EXCEL_LEGACY_8_COLUMN_FORMAT' ||
+        err.code === 'EXCEL_AMBIGUOUS_FORMAT' ||
+        err.code === 'EXCEL_FORCED_FORMAT_MISMATCH' ||
         err.code === 'EXCEL_MISSING_REQUIRED_COLUMNS') &&
       err.details
     ) {
@@ -302,7 +303,8 @@ function normalizeAccountBalances(account: ParsedAccount): ParsedAccount {
  */
 export async function processAccountsClientSide(
   importId: string,
-  accounts: ParsedAccount[]
+  accounts: ParsedAccount[],
+  format?: BalanceExcelFormat | null,
 ): Promise<void> {
   const deduplicatedAccounts = aggregateDuplicateAccounts(accounts).map(normalizeAccountBalances);
 
@@ -342,13 +344,18 @@ export async function processAccountsClientSide(
     }
   }
 
+  const completedUpdate: Record<string, unknown> = {
+    status: 'completed',
+    processed_at: new Date().toISOString(),
+    error_message: null,
+  };
+  if (format) {
+    completedUpdate.balance_format = format;
+  }
+
   const { error: updateError } = await supabase
     .from(TRIAL_BALANCE_IMPORTS_TABLE)
-    .update({
-      status: 'completed',
-      processed_at: new Date().toISOString(),
-      error_message: null,
-    })
+    .update(completedUpdate)
     .eq('id', importId);
 
   if (updateError) {
@@ -362,6 +369,7 @@ export async function processAccountsClientSide(
 export async function processImport(
   importId: string,
   parsedAccounts: ParsedAccount[],
+  format?: BalanceExcelFormat | null,
   callbacks?: {
     onProgress?: (percent: number) => void;
     onStatusChange?: (status: ImportStatus) => void;
@@ -396,7 +404,7 @@ export async function processImport(
   } catch (edgeError) {
     console.warn('[processImport] Edge Function failed, using client-side fallback:', edgeError);
 
-    await processAccountsClientSide(importId, parsedAccounts);
+    await processAccountsClientSide(importId, parsedAccounts, format);
     callbacks?.onProgress?.(100);
   }
 }

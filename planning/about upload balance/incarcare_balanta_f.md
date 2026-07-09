@@ -1,5 +1,7 @@
 # Documentație: Încărcare Balanță de Verificare - Finguard v2
 
+> **⚠️ Actualizare iulie 2026 (v3.0) — suport DUAL format.** Aplicația acceptă **două formate standard de balanță: 8 coloane (A–H) și 10 coloane (A–J)**, detectate automat per import (alegere manuală pentru cazuri ambigue). Acest document (v1.8) este **istoric**; pentru starea curentă a validărilor și mapping-ului vezi `ce_verificari_se_fac_la_upload_baanta.md`.
+
 **Versiune:** 1.8  
 **Data:** 28 ianuarie 2026  
 **Scop:** Documentație completă a procedurii de încărcare, procesare și validare a balanței de verificare

@@ -4,19 +4,20 @@ import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 
 /**
  * Edge Function: parse-balanta
- * 
- * Procesează fișiere Excel cu balanțe de verificare
- * 
- * SECURITY PATCHES (v1.5-v1.8):
+ *
+ * Procesează fișiere Excel cu balanțe de verificare în DOUĂ formate standard:
+ *   - 8 coloane (A–H): Cont, Denumire, SI D, SI C, Rulaj D, Rulaj C, SF D, SF C
+ *   - 10 coloane (A–J): + Total sume debitoare/creditoare în G/H, SF în I/J
+ *
+ * Logica de detectare/normalizare este IDENTICĂ cu parserul client (src/lib/excel-parser.ts).
+ * Formatul este preluat din `trial_balance_imports.balance_format` (setat de client la insert)
+ * și folosit ca format forțat; dacă lipsește, se detectează automat.
+ *
+ * SECURITY PATCHES (v1.5-v1.8) — păstrate:
  * - v1.8: verify_jwt = true (config.toml)
- * - v1.7: CORS whitelist (nu wildcard)
- * - v1.7: File size check ÎNAINTE de download
- * - v1.6: XLSX resource limits (sheets, rows, columns, timeout)
- * - v1.5: Rate limiting DB-based (nu in-memory)
- * - v1.5: process_import_accounts RPC (idempotență)
- * - v1.4: Handler explicit OPTIONS
- * - v1.3: Retry-After header la 429
- * - v1.1: parseNumber fix + comentarii corecte
+ * - v1.7: CORS whitelist, file size check înainte de download
+ * - v1.6: XLSX resource limits
+ * - v1.5: Rate limiting DB-based + process_import_accounts RPC (idempotență)
  */
 
 // =============================================================================
@@ -47,10 +48,15 @@ const MAX_NUMERIC_VALUE = 999_999_999_999.99;
 /** Minimum allowed numeric value */
 const MIN_NUMERIC_VALUE = -999_999_999_999.99;
 
-/** Număr coloane obligatorii A–J */
-const EXPECTED_COLUMN_COUNT = 10;
-const LAST_COLUMN_INDEX = EXPECTED_COLUMN_COUNT - 1;
+/** Index ultima coloană (0-based) pentru fiecare format */
+const LAST_COLUMN_INDEX_8 = 7; // H
+const LAST_COLUMN_INDEX_10 = 9; // J
 const CONTROL_THRESHOLD = 0.01;
+
+const COLUMN_STRUCTURE_LABEL_8 =
+  "Cont, Denumire, SI Debit, SI Credit, Rulaj D, Rulaj C, SF Debit, SF Credit";
+const COLUMN_STRUCTURE_LABEL_10 =
+  "Cont, Denumire, SI Debit, SI Credit, Rulaj D, Rulaj C, Total sume debitoare, Total sume creditoare, SF Debit, SF Credit";
 
 /** Maximum allowed accounts in a single file */
 const MAX_ACCOUNTS = 10_000;
@@ -58,6 +64,13 @@ const MAX_ACCOUNTS = 10_000;
 /** Bucket Storage canonical pentru balanțe */
 const BALANCE_STORAGE_BUCKET = "balante";
 
+type BalanceExcelFormat = "8_COLUMNS" | "10_COLUMNS";
+type BalanceFormatDetection = BalanceExcelFormat | "AMBIGUOUS" | "INVALID";
+
+const FORMAT_COLUMN_COUNT: Record<BalanceExcelFormat, number> = {
+  "8_COLUMNS": 8,
+  "10_COLUMNS": 10,
+};
 
 // =============================================================================
 // SECURITY: CORS Configuration (v1.7 - aligned with config.toml)
@@ -71,16 +84,9 @@ const ALLOWED_ORIGINS = [
   "https://www.finguard.ro",
 ];
 
-/**
- * Generates CORS headers with origin validation.
- * Only allows requests from whitelisted origins.
- * 
- * @param requestOrigin - The origin header from the incoming request
- * @returns CORS headers object
- */
 function getCorsHeaders(requestOrigin: string | null): Record<string, string> {
-  const origin = requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin) 
-    ? requestOrigin 
+  const origin = requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin)
+    ? requestOrigin
     : ALLOWED_ORIGINS[0];
 
   return {
@@ -136,6 +142,7 @@ function aggregateDuplicateAccounts(accounts: ParsedAccount[]): ParsedAccount[] 
 
 interface ParseResult {
   success: boolean;
+  detectedFormat: BalanceExcelFormat | null;
   accounts: ParsedAccount[];
   totals: {
     opening_debit: number;
@@ -155,26 +162,39 @@ function isBlankCell(value: unknown): boolean {
   return String(value).trim() === "";
 }
 
-function normalizeRowToTenColumns(row: unknown[] | undefined): unknown[] {
-  const normalized = [...(row ?? [])].slice(0, EXPECTED_COLUMN_COUNT);
-  while (normalized.length < EXPECTED_COLUMN_COUNT) {
-    normalized.push(undefined);
-  }
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+function normalizeRowToFormat(row: unknown[] | undefined, format: BalanceExcelFormat): unknown[] {
+  const count = FORMAT_COLUMN_COUNT[format];
+  const normalized = [...(row ?? [])].slice(0, count);
+  while (normalized.length < count) normalized.push(undefined);
   return normalized;
 }
 
-function getWorksheetMaxColumnIndex(worksheet: XLSX.WorkSheet): number {
-  const ref = worksheet["!ref"];
-  if (!ref) return -1;
-  const range = XLSX.utils.decode_range(ref);
-  return range.e.c;
+/** Cel mai mare index de coloană cu date reale, pe toate rândurile (inclusiv header). */
+function getDataMaxColumnIndex(jsonData: unknown[][]): number {
+  let max = -1;
+  for (const row of jsonData) {
+    if (!row) continue;
+    for (let i = row.length - 1; i >= 0; i--) {
+      if (!isBlankCell(row[i])) {
+        if (i > max) max = i;
+        break;
+      }
+    }
+  }
+  return max;
 }
 
-function hasExtraColumnsBeyondJ(row: unknown[]): boolean {
-  for (let i = EXPECTED_COLUMN_COUNT; i < row.length; i++) {
-    if (!isBlankCell(row[i])) return true;
-  }
-  return false;
+/** Detectează formatul balanței pe baza numărului de coloane populate. */
+function detectBalanceFormat(maxColIndex: number): BalanceFormatDetection {
+  if (maxColIndex < 0) return "INVALID";
+  if (maxColIndex > LAST_COLUMN_INDEX_10) return "INVALID";
+  if (maxColIndex <= LAST_COLUMN_INDEX_8) return "8_COLUMNS";
+  if (maxColIndex === LAST_COLUMN_INDEX_10) return "10_COLUMNS";
+  return "AMBIGUOUS"; // exact 9 coloane (până la I)
 }
 
 function applyBalanceControlCheck(
@@ -189,247 +209,254 @@ function applyBalanceControlCheck(
   return null;
 }
 
-
 // =============================================================================
 // SECURITY: Input Validation & Sanitization
 // =============================================================================
 
-/**
- * Sanitizes a string value from Excel cells.
- * Removes potentially dangerous characters and limits length.
- */
 function sanitizeString(value: unknown): string {
   if (value === null || value === undefined) return "";
-  
+
   let strValue = String(value);
-  
+
   if (strValue.length > MAX_CELL_LENGTH) {
     strValue = strValue.substring(0, MAX_CELL_LENGTH);
   }
-  
-  // Remove formula injection (=, +, -, @, tab, CR)
+
   strValue = strValue.replace(/^[=+\-@\t\r]+/, "");
-  
-  // Remove control characters except common whitespace
   // eslint-disable-next-line no-control-regex
   strValue = strValue.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
-  
+
   return strValue.trim();
 }
 
 /**
- * Parses and validates a numeric value from Excel cells.
- * 
- * v1.1: CORECTARE parseNumber - suportă AMBELE formate:
- * - Format RO: 1.234,56 (punct = mii, virgulă = zecimale)
- * - Format US: 1,234.56 (virgulă = mii, punct = zecimale)
- * 
- * STRATEGIE:
- * - Dacă string conține AMBELE (punct ȘI virgulă):
- *   → Ultimul caracter determină formatul
- *   → Exemplu: "1.234,56" → RO (virgulă e ultima)
- *   → Exemplu: "1,234.56" → US (punct e ultimul)
- * - Dacă string conține DOAR virgulă: presupune RO (zecimale)
- * - Dacă string conține DOAR punct: presupune US (zecimale)
- * 
- * v1.3: LOGGING pentru cazuri ambigue (detectare erori formatare)
- * 
- * @param value - Raw cell value from Excel
- * @param rowContext - Optional context for logging (row number)
- * @returns Validated numeric value, or 0 if invalid
+ * Parses and validates a numeric value from Excel cells (format RO și US).
  */
 function parseNumber(value: unknown, rowContext?: number): number {
   if (value === null || value === undefined || value === "") return 0;
-  
-  // Direct number - validate range
+
   if (typeof value === "number") {
     if (!Number.isFinite(value)) return 0;
     if (value > MAX_NUMERIC_VALUE || value < MIN_NUMERIC_VALUE) return 0;
     return Math.round(value * 100) / 100;
   }
-  
-  // Handle string values
+
   const strValue = String(value).trim();
-  
-  // Length check to prevent ReDoS
+
   if (strValue.length > 50) return 0;
-  
-  // Only allow digits, spaces, dots, commas, and minus
   if (!/^-?[\d\s.,]+$/.test(strValue)) return 0;
-  
-  // Detect format based on positions of dot and comma
-  const lastDotIndex = strValue.lastIndexOf('.');
-  const lastCommaIndex = strValue.lastIndexOf(',');
-  
+
+  const lastDotIndex = strValue.lastIndexOf(".");
+  const lastCommaIndex = strValue.lastIndexOf(",");
+
   let normalized: string;
-  
+
   if (lastDotIndex > -1 && lastCommaIndex > -1) {
-    // AMBELE prezente → ultimul determină formatul
     if (lastCommaIndex > lastDotIndex) {
-      // Format RO: punct = mii, virgulă = zecimale
-      // Exemplu: "1.234,56" → 1234.56
-      normalized = strValue
-        .replace(/\s/g, '')  // Remove spaces
-        .replace(/\./g, '')  // Remove dots (thousands)
-        .replace(',', '.');  // Comma to dot (decimals)
-      
-      // v1.3: Log pentru detectare pattern suspect
+      normalized = strValue.replace(/\s/g, "").replace(/\./g, "").replace(",", ".");
       if (strValue.match(/\d{1,3},\d{3}/) && rowContext) {
         console.warn(`[Row ${rowContext}] Possible US format treated as RO: "${strValue}" → ${normalized}`);
       }
     } else {
-      // Format US: virgulă = mii, punct = zecimale
-      // Exemplu: "1,234.56" → 1234.56
-      normalized = strValue
-        .replace(/\s/g, '')  // Remove spaces
-        .replace(/,/g, '');  // Remove commas (thousands)
+      normalized = strValue.replace(/\s/g, "").replace(/,/g, "");
     }
   } else if (lastCommaIndex > -1) {
-    // DOAR virgulă → presupune RO (zecimale)
-    // Exemplu: "1234,56" → 1234.56
-    normalized = strValue
-      .replace(/\s/g, '')
-      .replace(',', '.');
+    normalized = strValue.replace(/\s/g, "").replace(",", ".");
   } else {
-    // DOAR punct SAU niciun separator → presupune US (zecimale)
-    // Exemplu: "1234.56" → 1234.56
-    normalized = strValue.replace(/\s/g, '');
+    normalized = strValue.replace(/\s/g, "");
   }
-  
+
   const num = parseFloat(normalized);
-  
-  // Validate the result
+
   if (!Number.isFinite(num)) return 0;
   if (num > MAX_NUMERIC_VALUE || num < MIN_NUMERIC_VALUE) return 0;
-  
+
   return Math.round(num * 100) / 100;
 }
 
 /**
- * Parses an Excel file with strict resource limits and validation.
- * 
- * v1.6: RESOURCE EXHAUSTION PROTECTION
- * - MAX_SHEETS: 10 foi
- * - MAX_ROWS_PER_SHEET: 20,000 rânduri
- * - MAX_COLUMNS: 30 coloane
- * - PARSE_TIMEOUT_MS: 30 secunde (incomplet, Date.now() check în buclă)
- * 
- * v1.1: parseNumber cu logging pentru debugging
- * 
- * @param arrayBuffer - The Excel file as an ArrayBuffer
- * @returns ParseResult with accounts, totals, and any errors
+ * Construiește un cont canonic dintr-un rând normalizat, în funcție de format.
+ * - 10 coloane: G/H → total_sume, I/J → sold final.
+ * - 8 coloane: G/H → sold final; total_sume calculate intern (SI + rulaj).
  */
-function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
+function buildAccount(row: unknown[], format: BalanceExcelFormat, rowContext: number): ParsedAccount {
+  const account_code = sanitizeString(row[0]);
+  const account_name = sanitizeString(row[1]);
+  const opening_debit = parseNumber(row[2], rowContext);
+  const opening_credit = parseNumber(row[3], rowContext);
+  const debit_turnover = parseNumber(row[4], rowContext);
+  const credit_turnover = parseNumber(row[5], rowContext);
+
+  if (format === "10_COLUMNS") {
+    return {
+      account_code,
+      account_name,
+      opening_debit,
+      opening_credit,
+      debit_turnover,
+      credit_turnover,
+      total_sume_debitoare: parseNumber(row[6], rowContext),
+      total_sume_creditoare: parseNumber(row[7], rowContext),
+      closing_debit: parseNumber(row[8], rowContext),
+      closing_credit: parseNumber(row[9], rowContext),
+    };
+  }
+
+  const closing_debit = parseNumber(row[6], rowContext);
+  const closing_credit = parseNumber(row[7], rowContext);
+
+  return {
+    account_code,
+    account_name,
+    opening_debit,
+    opening_credit,
+    debit_turnover,
+    credit_turnover,
+    total_sume_debitoare: round2(opening_debit + debit_turnover),
+    total_sume_creditoare: round2(opening_credit + credit_turnover),
+    closing_debit,
+    closing_credit,
+  };
+}
+
+function emptyTotals() {
+  return {
+    opening_debit: 0,
+    opening_credit: 0,
+    debit_turnover: 0,
+    credit_turnover: 0,
+    closing_debit: 0,
+    closing_credit: 0,
+  };
+}
+
+/**
+ * Parses an Excel file with strict resource limits and validation (dual-format).
+ *
+ * @param arrayBuffer - fișierul Excel
+ * @param forcedFormat - format preluat din DB (setat de client); dacă lipsește → auto-detect
+ */
+function parseExcelFile(arrayBuffer: ArrayBuffer, forcedFormat?: BalanceExcelFormat | null): ParseResult {
   const startTime = Date.now();
-  
+
   try {
-    // v1.6: Verificare timeout (pre-parse)
-    if (Date.now() - startTime > PARSE_TIMEOUT_MS) {
-      throw new Error('Parse timeout exceeded (pre-parse check)');
-    }
-    
-    // Parse workbook with security options
-    const workbook = XLSX.read(arrayBuffer, { 
+    const workbook = XLSX.read(arrayBuffer, {
       type: "array",
       cellDates: false,
       cellNF: false,
-      cellFormula: false, // SECURITY: Disable formula parsing
+      cellFormula: false,
     });
-    
-    // v1.6: Verificare număr foi
+
     if (workbook.SheetNames.length > MAX_SHEETS) {
       throw new Error(`Prea multe foi în fișier (max ${MAX_SHEETS})`);
     }
-    
+
     const firstSheetName = workbook.SheetNames[0];
     if (!firstSheetName) {
       return {
         success: false,
+        detectedFormat: null,
         accounts: [],
-        totals: { opening_debit: 0, opening_credit: 0, debit_turnover: 0, credit_turnover: 0, closing_debit: 0, closing_credit: 0 },
+        totals: emptyTotals(),
         accountsCount: 0,
         error: "Fișierul Excel nu conține foi de lucru",
+        errorCode: "EXCEL_NO_SHEETS",
       };
     }
-    
+
     const worksheet = workbook.Sheets[firstSheetName];
-    
-    // v1.6: Verificare dimensiuni foi (post-parse guard)
-    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
-    
+    const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
+
     if (range.e.r > MAX_ROWS_PER_SHEET) {
       throw new Error(`Prea multe rânduri în foi (max ${MAX_ROWS_PER_SHEET})`);
     }
-    
     if (range.e.c > MAX_COLUMNS) {
       throw new Error(`Prea multe coloane în foi (max ${MAX_COLUMNS})`);
     }
-    
-    // Convert to JSON
+
     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as unknown[][];
-    
+
     if (jsonData.length < 2) {
       return {
         success: false,
+        detectedFormat: null,
         accounts: [],
-        totals: { opening_debit: 0, opening_credit: 0, debit_turnover: 0, credit_turnover: 0, closing_debit: 0, closing_credit: 0 },
+        totals: emptyTotals(),
         accountsCount: 0,
         error: "Fișierul nu conține date suficiente",
         errorCode: "EXCEL_INSUFFICIENT_DATA",
       };
     }
 
-    const maxColIndex = getWorksheetMaxColumnIndex(worksheet);
+    const maxColIndex = getDataMaxColumnIndex(jsonData);
+    const detection = detectBalanceFormat(maxColIndex);
 
-    if (maxColIndex <= 7) {
+    // Rezolvă formatul: forțat (din DB) validat față de structură, altfel auto-detect.
+    let format: BalanceExcelFormat;
+
+    if (maxColIndex > LAST_COLUMN_INDEX_10) {
       return {
         success: false,
+        detectedFormat: null,
         accounts: [],
-        totals: { opening_debit: 0, opening_credit: 0, debit_turnover: 0, credit_turnover: 0, closing_debit: 0, closing_credit: 0 },
+        totals: emptyTotals(),
         accountsCount: 0,
-        error: 'Balanta de verificare trebuie sa contina exclusiv 10 coloane : Cont, Denumire, SI Debit, SI Credit, Rulaj Debitor , Rulaj Creditor , Total sume debitoare , Total sume creditoare, SF Debit , SF Credit',
-        errorCode: "EXCEL_LEGACY_8_COLUMN_FORMAT",
+        error: "Fișierul conține date peste coloana J. Sunt acceptate doar formatele standard cu 8 coloane sau 10 coloane.",
+        errorCode: "EXCEL_INVALID_COLUMN_COUNT",
       };
     }
 
-    if (maxColIndex < LAST_COLUMN_INDEX) {
-      return {
-        success: false,
-        accounts: [],
-        totals: { opening_debit: 0, opening_credit: 0, debit_turnover: 0, credit_turnover: 0, closing_debit: 0, closing_credit: 0 },
-        accountsCount: 0,
-        error: `Fișierul nu conține toate coloanele obligatorii A–J (${COLUMN_STRUCTURE_LABEL}).`,
-        errorCode: "EXCEL_MISSING_REQUIRED_COLUMNS",
-      };
-    }
-
-    for (let i = 0; i < jsonData.length; i++) {
-      const row = jsonData[i];
-      if (!row || row.length === 0) continue;
-      if (i !== 0 && isBlankCell(row[0])) continue;
-      if (hasExtraColumnsBeyondJ(row)) {
+    if (forcedFormat) {
+      if (forcedFormat === "8_COLUMNS" && maxColIndex > LAST_COLUMN_INDEX_8) {
         return {
           success: false,
+          detectedFormat: null,
           accounts: [],
-          totals: { opening_debit: 0, opening_credit: 0, debit_turnover: 0, credit_turnover: 0, closing_debit: 0, closing_credit: 0 },
+          totals: emptyTotals(),
           accountsCount: 0,
-          error: `Fișierul nu respectă structura de ${EXPECTED_COLUMN_COUNT} coloane. Rândul ${i + 1} conține date dincolo de coloana J.`,
-          errorCode: "EXCEL_INVALID_COLUMN_COUNT",
+          error: "Format 8 coloane forțat, dar fișierul conține date dincolo de coloana H.",
+          errorCode: "EXCEL_FORCED_FORMAT_MISMATCH",
         };
       }
+      if (forcedFormat === "10_COLUMNS" && maxColIndex < LAST_COLUMN_INDEX_10) {
+        return {
+          success: false,
+          detectedFormat: null,
+          accounts: [],
+          totals: emptyTotals(),
+          accountsCount: 0,
+          error: "Format 10 coloane forțat, dar fișierul nu conține coloanele I/J.",
+          errorCode: "EXCEL_FORCED_FORMAT_MISMATCH",
+        };
+      }
+      format = forcedFormat;
+    } else if (detection === "AMBIGUOUS") {
+      return {
+        success: false,
+        detectedFormat: null,
+        accounts: [],
+        totals: emptyTotals(),
+        accountsCount: 0,
+        error: "Nu am putut determina automat formatul balanței (structură ambiguă cu 9 coloane).",
+        errorCode: "EXCEL_AMBIGUOUS_FORMAT",
+      };
+    } else if (detection === "INVALID") {
+      return {
+        success: false,
+        detectedFormat: null,
+        accounts: [],
+        totals: emptyTotals(),
+        accountsCount: 0,
+        error: `Structura fișierului nu corespunde nici formatului de 8 coloane (${COLUMN_STRUCTURE_LABEL_8}), nici formatului de 10 coloane (${COLUMN_STRUCTURE_LABEL_10}).`,
+        errorCode: "EXCEL_INVALID_COLUMN_COUNT",
+      };
+    } else {
+      format = detection;
     }
 
     const accounts: ParsedAccount[] = [];
-    const totals = {
-      opening_debit: 0,
-      opening_credit: 0,
-      debit_turnover: 0,
-      credit_turnover: 0,
-      closing_debit: 0,
-      closing_credit: 0,
-    };
-
-    const totalSumErrors: string[] = [];
+    const totals = emptyTotals();
+    const rowMismatchErrors: string[] = [];
 
     for (let i = 1; i < jsonData.length; i++) {
       if (i % 1000 === 0 && Date.now() - startTime > PARSE_TIMEOUT_MS) {
@@ -437,7 +464,7 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
         break;
       }
 
-      const row = normalizeRowToTenColumns(jsonData[i]);
+      const row = normalizeRowToFormat(jsonData[i], format);
 
       if (row.every(isBlankCell)) continue;
       if (isBlankCell(row[0])) continue;
@@ -448,38 +475,28 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
       const accountName = sanitizeString(row[1]);
       if (accountName.length > 200) continue;
 
-      const account: ParsedAccount = {
-        account_code: accountCode,
-        account_name: accountName,
-        opening_debit: parseNumber(row[2], i),
-        opening_credit: parseNumber(row[3], i),
-        debit_turnover: parseNumber(row[4], i),
-        credit_turnover: parseNumber(row[5], i),
-        total_sume_debitoare: parseNumber(row[6], i),
-        total_sume_creditoare: parseNumber(row[7], i),
-        closing_debit: parseNumber(row[8], i),
-        closing_credit: parseNumber(row[9], i),
-      };
+      const account = buildAccount(row, format, i);
 
-      // Identitate per rând: (SF Debit − SF Credit) = (Total Sume Debit − Total Sume Credit).
-      // Adevărată indiferent dacă rulajele sunt lunare sau cumulate. NU exclude rândul din totaluri.
-      const netFromTotals = Math.round((account.total_sume_debitoare - account.total_sume_creditoare) * 100) / 100;
-      const netFromClosing = Math.round((account.closing_debit - account.closing_credit) * 100) / 100;
-
-      if (Math.abs(netFromTotals - netFromClosing) > CONTROL_THRESHOLD) {
-        totalSumErrors.push(
-          `Rândul ${i + 1}, cont ${accountCode}: sold final net (${netFromClosing}) ≠ Total Sume Debit − Total Sume Credit (${netFromTotals})`,
-        );
+      // Validare specifică 10 coloane: (SF D − SF C) = (Total Sume D − Total Sume C).
+      // La 8 coloane, total_sume sunt derivate din SI + rulaj → verificarea nu se aplică.
+      if (format === "10_COLUMNS") {
+        const netFromTotals = round2(account.total_sume_debitoare - account.total_sume_creditoare);
+        const netFromClosing = round2(account.closing_debit - account.closing_credit);
+        if (Math.abs(netFromTotals - netFromClosing) > CONTROL_THRESHOLD) {
+          rowMismatchErrors.push(
+            `Rândul ${i + 1}, cont ${accountCode}: sold final net (${netFromClosing}) ≠ Total Sume Debit − Total Sume Credit (${netFromTotals})`,
+          );
+        }
       }
 
       if (accountCode.startsWith("6") &&
         (Math.abs(account.closing_debit) > CONTROL_THRESHOLD || Math.abs(account.closing_credit) > CONTROL_THRESHOLD)) {
-        totalSumErrors.push(`Rândul ${i + 1}, cont ${accountCode}: clasa 6 cu sold final nenul`);
+        rowMismatchErrors.push(`Rândul ${i + 1}, cont ${accountCode}: clasa 6 cu sold final nenul`);
       }
 
       if (accountCode.startsWith("7") &&
         (Math.abs(account.closing_debit) > CONTROL_THRESHOLD || Math.abs(account.closing_credit) > CONTROL_THRESHOLD)) {
-        totalSumErrors.push(`Rândul ${i + 1}, cont ${accountCode}: clasa 7 cu sold final nenul`);
+        rowMismatchErrors.push(`Rândul ${i + 1}, cont ${accountCode}: clasa 7 cu sold final nenul`);
       }
 
       accounts.push(account);
@@ -497,13 +514,14 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
       }
     }
 
-    if (totalSumErrors.length > 0) {
+    if (rowMismatchErrors.length > 0) {
       return {
         success: false,
+        detectedFormat: format,
         accounts: [],
         totals,
         accountsCount: 0,
-        error: `${totalSumErrors.length} rând(uri) cu neconcordanțe contabile. ${totalSumErrors.slice(0, 3).join("; ")}`,
+        error: `${rowMismatchErrors.length} rând(uri) cu neconcordanțe contabile. ${rowMismatchErrors.slice(0, 3).join("; ")}`,
         errorCode: "BALANCE_CLOSING_MISMATCH_DETECTED",
       };
     }
@@ -511,6 +529,7 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
     if (accounts.length === 0) {
       return {
         success: false,
+        detectedFormat: format,
         accounts: [],
         totals,
         accountsCount: 0,
@@ -519,12 +538,12 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
       };
     }
 
-    totals.opening_debit = Math.round(totals.opening_debit * 100) / 100;
-    totals.opening_credit = Math.round(totals.opening_credit * 100) / 100;
-    totals.debit_turnover = Math.round(totals.debit_turnover * 100) / 100;
-    totals.credit_turnover = Math.round(totals.credit_turnover * 100) / 100;
-    totals.closing_debit = Math.round(totals.closing_debit * 100) / 100;
-    totals.closing_credit = Math.round(totals.closing_credit * 100) / 100;
+    totals.opening_debit = round2(totals.opening_debit);
+    totals.opening_credit = round2(totals.opening_credit);
+    totals.debit_turnover = round2(totals.debit_turnover);
+    totals.credit_turnover = round2(totals.credit_turnover);
+    totals.closing_debit = round2(totals.closing_debit);
+    totals.closing_credit = round2(totals.closing_credit);
 
     const controlErrors = [
       applyBalanceControlCheck(totals.opening_debit, totals.opening_credit, "Total Sold inițial Debit ≠ Credit"),
@@ -535,6 +554,7 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
     if (controlErrors.length > 0) {
       return {
         success: false,
+        detectedFormat: format,
         accounts: [],
         totals,
         accountsCount: 0,
@@ -545,6 +565,7 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
 
     return {
       success: true,
+      detectedFormat: format,
       accounts,
       totals,
       accountsCount: accounts.length,
@@ -553,8 +574,9 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
     console.error("Error parsing Excel:", error);
     return {
       success: false,
+      detectedFormat: null,
       accounts: [],
-      totals: { opening_debit: 0, opening_credit: 0, debit_turnover: 0, credit_turnover: 0, closing_debit: 0, closing_credit: 0 },
+      totals: emptyTotals(),
       accountsCount: 0,
       error: `Eroare la parsarea fișierului: ${error instanceof Error ? error.message : "Unknown error"}`,
     };
@@ -568,15 +590,11 @@ function parseExcelFile(arrayBuffer: ArrayBuffer): ParseResult {
 const handler = async (req: Request): Promise<Response> => {
   const requestOrigin = req.headers.get("Origin");
   const corsHeaders = getCorsHeaders(requestOrigin);
-  
-  // v1.4: Handler explicit OPTIONS (CORS preflight)
+
   if (req.method === "OPTIONS") {
-    return new Response(null, { 
-      status: 204,
-      headers: corsHeaders 
-    });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
-  
+
   if (req.method !== "POST") {
     return new Response(
       JSON.stringify({ error: "Method not allowed" }),
@@ -593,50 +611,37 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Create Supabase client with SERVICE_ROLE (pentru RPC privilegiate)
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verify user token (folosim getUser pentru validare JWT)
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    
+
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: "Invalid token" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    
-    // v1.5: SECURITY - Rate limiting DB-based (nu in-memory)
+
     const { data: rateLimitAllowed, error: rateLimitError } = await supabaseAdmin.rpc('check_rate_limit', {
       p_user_id: user.id,
       p_resource_type: 'import',
       p_max_requests: 10,
-      p_window_seconds: 3600, // 1 hour window
+      p_window_seconds: 3600,
     });
-    
-    // v1.4: Fail-closed strategy (eroare DB → refuz)
+
     if (rateLimitError || !rateLimitAllowed) {
-      // v1.3: Retry-After header (seconds until reset)
       return new Response(
-        JSON.stringify({ 
-          error: "Too many requests. Please try again later.",
-          retryAfter: 3600 // v1.3: seconds
-        }),
-        { 
-          status: 429, 
-          headers: { 
-            ...corsHeaders, 
-            "Content-Type": "application/json",
-            "Retry-After": "3600", // v1.3: Header standard
-          } 
+        JSON.stringify({ error: "Too many requests. Please try again later.", retryAfter: 3600 }),
+        {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json", "Retry-After": "3600" },
         }
       );
     }
 
-    // Get request body
     const { import_id } = await req.json();
 
     if (!import_id) {
@@ -646,11 +651,10 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // v1.7: Verifică file_size_bytes ÎNAINTE de download
-    // v1.9.2: FIX - Selectează source_file_url (nu file_name)
+    // v3.0: preia balance_format (setat de client la insert) pentru aliniere client/server.
     const { data: importRecord, error: importError } = await supabaseAdmin
       .from("trial_balance_imports")
-      .select("source_file_url, file_size_bytes, company_id")
+      .select("source_file_url, file_size_bytes, company_id, balance_format")
       .eq("id", import_id)
       .single();
 
@@ -661,14 +665,11 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // v1.7: CRITICĂ - Verificare size ÎNAINTE de download
     if (importRecord.file_size_bytes > MAX_FILE_SIZE_BYTES) {
-      // Update import cu eroare
-      // v1.9.2: FIX - status 'error' (nu 'failed' - nu e în ENUM)
       await supabaseAdmin
         .from("trial_balance_imports")
-        .update({ 
-          status: "error", 
+        .update({
+          status: "error",
           error_message: `Fișier prea mare (max ${MAX_FILE_SIZE_BYTES / 1024 / 1024}MB)`,
           internal_error_detail: `file_size_bytes: ${importRecord.file_size_bytes}`,
           internal_error_code: "FILE_TOO_LARGE"
@@ -681,20 +682,17 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Acum e safe să download (size e validat)
-    // v1.9.2: FIX - Folosește source_file_url pentru download
     const { data: fileData, error: downloadError } = await supabaseAdmin.storage
       .from(BALANCE_STORAGE_BUCKET)
       .download(importRecord.source_file_url);
 
     if (downloadError || !fileData) {
       console.error("Download error:", downloadError);
-      
-      // v1.9.2: FIX - status 'error' (nu 'failed')
+
       await supabaseAdmin
         .from("trial_balance_imports")
-        .update({ 
-          status: "error", 
+        .update({
+          status: "error",
           error_message: "Nu s-a putut descărca fișierul",
           internal_error_detail: downloadError?.message,
           internal_error_code: "DOWNLOAD_FAILED"
@@ -707,15 +705,13 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // v1.6: Verificare secundară post-download (defense-in-depth)
     if (fileData.size > MAX_FILE_SIZE_BYTES) {
       console.warn(`File size mismatch: DB=${importRecord.file_size_bytes}, actual=${fileData.size}`);
-      
-      // v1.9.2: FIX - status 'error' (nu 'failed')
+
       await supabaseAdmin
         .from("trial_balance_imports")
-        .update({ 
-          status: "error", 
+        .update({
+          status: "error",
           error_message: "Fișier prea mare după download",
           internal_error_detail: `actual_size: ${fileData.size}`,
           internal_error_code: "FILE_SIZE_MISMATCH"
@@ -728,16 +724,15 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Parse Excel file (cu resource limits v1.6)
     const arrayBuffer = await fileData.arrayBuffer();
-    const parseResult = parseExcelFile(arrayBuffer);
+    const forcedFormat = (importRecord.balance_format as BalanceExcelFormat | null) ?? undefined;
+    const parseResult = parseExcelFile(arrayBuffer, forcedFormat);
 
     if (!parseResult.success) {
-      // v1.9.2: FIX - status 'error' (nu 'failed')
       await supabaseAdmin
         .from("trial_balance_imports")
-        .update({ 
-          status: "error", 
+        .update({
+          status: "error",
           error_message: parseResult.error,
           internal_error_detail: parseResult.error,
           internal_error_code: parseResult.errorCode || "PARSE_FAILED"
@@ -750,7 +745,6 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Rezolvă public.users.id din auth.users.id (is_company_member folosește users.id)
     const { data: publicUser, error: publicUserError } = await supabaseAdmin
       .from("users")
       .select("id")
@@ -774,7 +768,6 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // v1.5: SECURITY - process_import_accounts RPC (idempotență + ownership)
     const accountsForInsert = aggregateDuplicateAccounts(parseResult.accounts);
     const accountsPayload = accountsForInsert.map((acc) => ({
       code: acc.account_code,
@@ -795,11 +788,11 @@ const handler = async (req: Request): Promise<Response> => {
         p_import_id: import_id,
         p_accounts: accountsPayload,
         p_requester_user_id: publicUser.id,
+        p_balance_format: parseResult.detectedFormat,
       }
     );
 
     if (processError || !processSuccess) {
-      // Error deja salvat în DB de funcție
       console.error("Process error:", processError);
 
       return new Response(
@@ -812,6 +805,7 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({
         success: true,
         accountsCount: parseResult.accountsCount,
+        detectedFormat: parseResult.detectedFormat,
         totals: parseResult.totals,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

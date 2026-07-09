@@ -1,5 +1,7 @@
 # 📊 Implementare Completă Upload Balanță - finguardv2
 
+> **⚠️ Actualizare iulie 2026 (v3.0) — suport DUAL format.** Aplicația acceptă acum **două formate standard de balanță: 8 coloane (A–H) și 10 coloane (A–J)**, detectate automat per import (alegere manuală pentru cazuri ambigue). Documentul de mai jos reflectă implementarea istorică (ian. 2026); pentru starea curentă vezi `ce_verificari_se_fac_la_upload_baanta.md`.
+
 **Data:** 29 Ianuarie 2026  
 **Versiune:** v1.4 Complete  
 **Status:** ✅ PRODUCTION READY

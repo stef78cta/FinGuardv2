@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { BalanceAccount, BalanceWithAccounts } from './useBalante';
+import { findPreviousBalance } from '@/lib/balanceMonthSelection';
 
 export interface KPIData {
   venituri: number;
@@ -90,9 +91,9 @@ export const useKPIs = (
     let previousProfit = 0;
     let previousCashFlow = 0;
 
-    if (allBalances.length > 1) {
-      const previousBalance = allBalances[1];
-      if (previousBalance.accounts) {
+    if (allBalances.length > 1 && latestBalance) {
+      const previousBalance = findPreviousBalance(allBalances, latestBalance);
+      if (previousBalance?.accounts) {
         previousVenituri = calculateRevenues(previousBalance.accounts);
         previousCheltuieli = calculateExpenses(previousBalance.accounts);
         previousProfit = previousVenituri - previousCheltuieli;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -16,12 +16,15 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '@/components/app/PageHeader';
+import { BalanceMonthPicker } from '@/components/app/BalanceMonthPicker';
 import { KPICard } from '@/components/app/KPICard';
 import { ChartCard } from '@/components/app/ChartCard';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, AreaChart, Area } from 'recharts';
 import { useBalante, BalanceWithAccounts } from '@/hooks/useBalante';
+import { useBalanceMonthSelection } from '@/hooks/useBalanceMonthSelection';
 import { useKPIs } from '@/hooks/useKPIs';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
@@ -36,12 +39,26 @@ const formatCurrency = (value: number): string => {
 };
 
 const Dashboard = () => {
-  const { balances, loading, hasData, getLatestBalance, getAllBalancesWithAccounts, companyId } = useBalante();
-  const [latestBalance, setLatestBalance] = useState<BalanceWithAccounts | null>(null);
+  const { balances, loading, hasData, getAllBalancesWithAccounts, companyId } = useBalante();
   const [allBalancesWithAccounts, setAllBalancesWithAccounts] = useState<BalanceWithAccounts[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const {
+    selectedMonth,
+    selectedBalanceId,
+    handleMonthChange: handleBalanceMonthChange,
+  } = useBalanceMonthSelection({
+    balances: allBalancesWithAccounts.length > 0 ? allBalancesWithAccounts : balances,
+  });
 
-  const { kpis, topAccounts, chartData, hasData: hasKPIData } = useKPIs(latestBalance, allBalancesWithAccounts);
+  const selectedBalance = useMemo(
+    () => allBalancesWithAccounts.find((balance) => balance.id === selectedBalanceId) ?? null,
+    [allBalancesWithAccounts, selectedBalanceId],
+  );
+
+  const { kpis, topAccounts, chartData } = useKPIs(
+    selectedBalance,
+    allBalancesWithAccounts,
+  );
 
   useEffect(() => {
     const loadData = async () => {
@@ -52,7 +69,6 @@ const Dashboard = () => {
       
       if (!hasData || !companyId) {
         setDataLoading(false);
-        setLatestBalance(null);
         setAllBalancesWithAccounts([]);
         return;
       }
@@ -61,15 +77,10 @@ const Dashboard = () => {
         setDataLoading(true);
         console.log('[Dashboard] Loading data for company:', companyId);
         
-        const [latest, allWithAccounts] = await Promise.all([
-          getLatestBalance(),
-          getAllBalancesWithAccounts(),
-        ]);
+        const allWithAccounts = await getAllBalancesWithAccounts();
         
-        console.log('[Dashboard] Loaded latest balance:', latest?.id, 'accounts:', latest?.accounts?.length);
         console.log('[Dashboard] Loaded all balances:', allWithAccounts.length);
         
-        setLatestBalance(latest);
         setAllBalancesWithAccounts(allWithAccounts);
       } catch (error) {
         console.error('[Dashboard] Error loading dashboard data:', error);
@@ -79,7 +90,7 @@ const Dashboard = () => {
     };
 
     loadData();
-  }, [loading, hasData, companyId, getLatestBalance, getAllBalancesWithAccounts]);
+  }, [loading, hasData, companyId, getAllBalancesWithAccounts]);
 
   const today = new Date();
   const formattedDate = today.toLocaleDateString('ro-RO', { 
@@ -136,6 +147,13 @@ const Dashboard = () => {
           </Link>
         }
       />
+
+      <Card className="p-4 mb-6 rounded-[20px] w-fit">
+        <BalanceMonthPicker
+          value={selectedMonth}
+          onChange={handleBalanceMonthChange}
+        />
+      </Card>
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4 2xl:gap-6 mb-6">
@@ -283,29 +301,29 @@ const Dashboard = () => {
             </Link>
           </div>
 
-          {/* Last Upload Widget */}
+          {/* Selected Balance Widget */}
           <div className="mt-6 pt-4 border-t border-border">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
               <Clock className="w-4 h-4" />
-              <span>Ultima balanță încărcată</span>
+              <span>Balanța selectată</span>
             </div>
             {isLoading ? (
               <Skeleton className="h-16 w-full" />
-            ) : latestBalance ? (
+            ) : selectedBalance ? (
               <div className="bg-muted rounded-lg p-3">
                 <p className="text-sm font-medium text-foreground truncate">
-                  {latestBalance.source_file_name}
+                  {selectedBalance.source_file_name}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {format(new Date(latestBalance.created_at), "d MMMM yyyy, HH:mm", { locale: ro })}
+                  {format(new Date(selectedBalance.created_at), "d MMMM yyyy, HH:mm", { locale: ro })}
                 </p>
                 <p className="text-xs text-primary mt-1">
-                  Perioada: {format(new Date(latestBalance.period_start), "MMM yyyy", { locale: ro })} - {format(new Date(latestBalance.period_end), "MMM yyyy", { locale: ro })}
+                  Perioada: {format(new Date(selectedBalance.period_start), "MMM yyyy", { locale: ro })} - {format(new Date(selectedBalance.period_end), "MMM yyyy", { locale: ro })}
                 </p>
               </div>
             ) : (
               <div className="bg-muted rounded-lg p-3 text-center">
-                <p className="text-sm text-muted-foreground">Nicio balanță încărcată</p>
+                <p className="text-sm text-muted-foreground">Selectează o lună cu balanță încărcată</p>
               </div>
             )}
           </div>
@@ -320,7 +338,7 @@ const Dashboard = () => {
               <div>
                 <h3 className="font-semibold text-foreground">Top 5 Conturi</h3>
                 <p className="text-sm text-muted-foreground mt-0.5">
-                  Cele mai importante conturi din ultima balanță
+                  Cele mai importante conturi din balanța selectată
                 </p>
               </div>
               <Link 

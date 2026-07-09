@@ -977,6 +977,7 @@ export type Database = {
       trial_balance_imports: {
         Row: {
           accounts_count: number | null
+          balance_format: string | null
           balance_month: string
           company_id: string
           created_at: string | null
@@ -999,6 +1000,7 @@ export type Database = {
         }
         Insert: {
           accounts_count?: number | null
+          balance_format?: string | null
           balance_month: string
           company_id: string
           created_at?: string | null
@@ -1021,6 +1023,7 @@ export type Database = {
         }
         Update: {
           accounts_count?: number | null
+          balance_format?: string | null
           balance_month?: string
           company_id?: string
           created_at?: string | null
@@ -1303,6 +1306,7 @@ export type Database = {
       trial_balance_imports_public: {
         Row: {
           accounts_count: number | null
+          balance_format: string | null
           balance_month: string | null
           company_id: string | null
           created_at: string | null
@@ -1322,6 +1326,7 @@ export type Database = {
         }
         Insert: {
           accounts_count?: number | null
+          balance_format?: string | null
           balance_month?: string | null
           company_id?: string | null
           created_at?: string | null
@@ -1341,6 +1346,7 @@ export type Database = {
         }
         Update: {
           accounts_count?: number | null
+          balance_format?: string | null
           balance_month?: string | null
           company_id?: string | null
           created_at?: string | null
@@ -1489,6 +1495,7 @@ export type Database = {
         Args: { _company_id: string }
         Returns: {
           accounts_count: number
+          balance_format: string
           balance_month: string
           created_at: string
           error_message: string
@@ -1540,6 +1547,7 @@ export type Database = {
           p_accounts: Json
           p_import_id: string
           p_requester_user_id: string
+          p_balance_format?: string
         }
         Returns: boolean
       }

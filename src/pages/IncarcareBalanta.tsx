@@ -110,6 +110,10 @@ const IncarcareBalanta = () => {
     duplicateAccounts,
     accountsCount,
     parsedData,
+    detectedFormat,
+    isAmbiguousFormat,
+    forcedFormat,
+    applyForcedFormat,
     handleBalanceMonthChange,
     handleFileSelect,
     handleRemoveFile,
@@ -223,6 +227,7 @@ const IncarcareBalanta = () => {
       const uploadResult = await uploadBalance(uploadedFile, balanceMonth, userData.id, {
         fiscalYearStartMonth: activeCompany.fiscal_year_start_month ?? 1,
         replaceExisting,
+        forcedFormat,
         callbacks: {
           onProgress: setUploadProgress,
           onPhase: (phase) => {
@@ -611,52 +616,67 @@ const IncarcareBalanta = () => {
                     <span className="text-sm text-muted-foreground">Max 10MB</span>
                   </div>
 
-                  {/* Coloane Obligatorii - Grid */}
-                  <div>
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                      Coloane obligatorii (A-H)
-                    </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
-                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">A</code>
-                        <span className="text-sm ml-1.5">Cont</span>
+                  {/* Formate acceptate: 8 și 10 coloane */}
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Aplicația acceptă <strong>două formate standard</strong> de balanță. Formatul este
+                      detectat automat după upload; în caz de ambiguitate poți alege manual formatul.
+                    </p>
+
+                    {/* Format 8 coloane */}
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                        Format 8 coloane (A–H)
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {[
+                          ['A', 'Cont'],
+                          ['B', 'Denumire'],
+                          ['C', 'SI Debit'],
+                          ['D', 'SI Credit'],
+                          ['E', 'Rulaj D'],
+                          ['F', 'Rulaj C'],
+                          ['G', 'SF Debit'],
+                          ['H', 'SF Credit'],
+                        ].map(([col, label]) => (
+                          <div key={`c8-${col}`} className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
+                            <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">{col}</code>
+                            <span className="text-sm ml-1.5">{label}</span>
+                          </div>
+                        ))}
                       </div>
-                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
-                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">B</code>
-                        <span className="text-sm ml-1.5">Denumire</span>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Coloanele Total sume nu există în fișier și sunt calculate automat (SI + rulaj).
+                      </p>
+                    </div>
+
+                    {/* Format 10 coloane */}
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                        Format 10 coloane (A–J)
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {[
+                          ['A', 'Cont'],
+                          ['B', 'Denumire'],
+                          ['C', 'SI Debit'],
+                          ['D', 'SI Credit'],
+                          ['E', 'Rulaj D'],
+                          ['F', 'Rulaj C'],
+                          ['G', 'Total sume debitoare'],
+                          ['H', 'Total sume creditoare'],
+                          ['I', 'SF Debit'],
+                          ['J', 'SF Credit'],
+                        ].map(([col, label]) => (
+                          <div key={`c10-${col}`} className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
+                            <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">{col}</code>
+                            <span className="text-sm ml-1.5">{label}</span>
+                          </div>
+                        ))}
                       </div>
-                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
-                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">C</code>
-                        <span className="text-sm ml-1.5">SI Debit</span>
-                      </div>
-                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
-                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">D</code>
-                        <span className="text-sm ml-1.5">SI Credit</span>
-                      </div>
-                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
-                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">E</code>
-                        <span className="text-sm ml-1.5">Rulaj D</span>
-                      </div>
-                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
-                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">F</code>
-                        <span className="text-sm ml-1.5">Rulaj C</span>
-                      </div>
-                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
-                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">G</code>
-                        <span className="text-sm ml-1.5">Total sume debitoare</span>
-                      </div>
-                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
-                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">H</code>
-                        <span className="text-sm ml-1.5">Total sume creditoare</span>
-                      </div>
-                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
-                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">I</code>
-                        <span className="text-sm ml-1.5">SF Debit</span>
-                      </div>
-                      <div className="bg-white/60 border border-[var(--newa-semantic-info)]/20 rounded-md px-3 py-2">
-                        <code className="font-mono text-xs font-semibold text-[var(--newa-semantic-info)]">J</code>
-                        <span className="text-sm ml-1.5">SF Credit</span>
-                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Total sume (G/H) sunt citite și validate din Excel; analiza lunară folosește rulajele E/F.
+                      </p>
                     </div>
                   </div>
 
@@ -692,11 +712,11 @@ const IncarcareBalanta = () => {
                       </li>
                       <li className="flex items-center gap-2 text-sm">
                         <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
-                        <span>Structură obligatorie: exact 10 coloane (A–J); formatul vechi cu 8 coloane nu mai este acceptat</span>
+                        <span>Două formate acceptate: 8 coloane (A–H) sau 10 coloane (A–J), detectate automat per import</span>
                       </li>
                       <li className="flex items-center gap-2 text-sm">
                         <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
-                        <span>Date dincolo de coloana J resping upload-ul; Total Sume (G/H) pot fi lunare sau cumulate — se verifică doar SF Debit − SF Credit = Total Sume D − Total Sume C</span>
+                        <span>Date dincolo de coloana J resping upload-ul; la 10 coloane se verifică SF Debit − SF Credit = Total Sume D − Total Sume C</span>
                       </li>
                       <li className="flex items-center gap-2 text-sm">
                         <CheckCircle2 className="w-4 h-4 text-[var(--newa-semantic-success)] flex-shrink-0" />
@@ -815,6 +835,9 @@ const IncarcareBalanta = () => {
                       duplicateAccounts={duplicateAccounts}
                       uploadErrorMessage={uploadErrorMessage}
                       isParsing={uploadStatus === 'parsing'}
+                      detectedFormat={detectedFormat}
+                      isAmbiguousFormat={isAmbiguousFormat}
+                      onSelectFormat={applyForcedFormat}
                     />
                   </div>
                 )}

@@ -1,5 +1,7 @@
 # ✅ FIX IMPLEMENTAT: Validări Blocking pentru Upload Balanță
 
+> **⚠️ Actualizare iulie 2026 (v3.0) — suport DUAL format.** Aplicația acceptă **două formate standard de balanță: 8 coloane (A–H) și 10 coloane (A–J)**, detectate automat per import (alegere manuală pentru cazuri ambigue). Codul `EXCEL_LEGACY_8_COLUMN_FORMAT` **a fost eliminat** — formatul 8 coloane nu mai este respins. Sursa curentă: `ce_verificari_se_fac_la_upload_baanta.md`.
+
 ## 📋 **REZUMAT PROBLEMĂ**
 
 **Problema raportată**: Upload-uri cu erori critice (total Debit ≠ Credit, conturi lipsă) erau procesate "cu succes" și persistate în DB, fără să fie respinse.
@@ -71,7 +73,7 @@ Toate verificările folosesc `applyBalanceControlCheck()` cu prag `CONTROL_THRES
 | `BALANCE_CONTROL_TOTAL_MISMATCH` | Total SF Debit = Total SF Credit |
 | `BALANCE_CONTROL_CLASS6_CLOSING_NOT_ZERO` | Conturi 6xx: SF Debit = SF Credit = 0 |
 | `BALANCE_CONTROL_CLASS7_CLOSING_NOT_ZERO` | Conturi 7xx: SF Debit = SF Credit = 0 |
-| `EXCEL_LEGACY_8_COLUMN_FORMAT` | Respinge format vechi A–H (8 coloane) |
+| ~~`EXCEL_LEGACY_8_COLUMN_FORMAT`~~ | **Eliminat (v3.0)** — formatul 8 coloane A–H este acum acceptat și detectat automat |
 | `EXCEL_MISSING_REQUIRED_COLUMNS` | Lipsesc coloane I/J din structura foii |
 | `EXCEL_INVALID_COLUMN_COUNT` | Exact 10 coloane A–J; respinge date în coloana K+ (celule goale C–J = 0) |
 | `BALANCE_ROW_CLOSING_MISMATCH` | (SF D − SF C) ≠ (Total Sume D − Total Sume C) (toleranță 0,01 RON) |

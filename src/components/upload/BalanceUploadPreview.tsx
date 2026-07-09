@@ -1,6 +1,7 @@
-import { AlertCircle, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, AlertTriangle, CheckCircle2, Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -10,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { ParsedAccount, ValidationWarning } from '@/lib/excel-parser';
+import type { BalanceExcelFormat, ParsedAccount, ValidationWarning } from '@/lib/excel-parser';
 import type { BalanceUploadTotals } from '@/hooks/useBalanceUploadForm';
 import { BALANCE_PREVIEW_ROW_LIMIT } from '@/hooks/useBalanceUploadForm';
 
@@ -24,7 +25,25 @@ interface BalanceUploadPreviewProps {
   duplicateAccounts: string[];
   uploadErrorMessage: string | null;
   isParsing: boolean;
+  /** Formatul detectat pentru fișierul curent (null când parsarea a fost blocată). */
+  detectedFormat: BalanceExcelFormat | null;
+  /** true când structura este ambiguă și necesită alegere manuală. */
+  isAmbiguousFormat: boolean;
+  /** Callback pentru alegerea manuală a formatului (cazuri ambigue). */
+  onSelectFormat: (format: BalanceExcelFormat) => void;
 }
+
+const FORMAT_LABEL: Record<BalanceExcelFormat, string> = {
+  '8_COLUMNS': 'balanță 8 coloane',
+  '10_COLUMNS': 'balanță 10 coloane',
+};
+
+const FORMAT_MESSAGE: Record<BalanceExcelFormat, string> = {
+  '8_COLUMNS':
+    'Pentru acest format, coloanele Total sume nu există în fișier. Aplicația le calculează automat din sold inițial + rulaj lunar. Coloanele G/H sunt interpretate ca sold final.',
+  '10_COLUMNS':
+    'Pentru acest format, coloanele Total sume (G/H) sunt citite din Excel și validate, dar analiza lunară folosește în continuare rulajele lunare din coloanele E/F. Soldul final este citit din I/J.',
+};
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('ro-RO', {
@@ -47,6 +66,9 @@ export function BalanceUploadPreview({
   duplicateAccounts,
   uploadErrorMessage,
   isParsing,
+  detectedFormat,
+  isAmbiguousFormat,
+  onSelectFormat,
 }: BalanceUploadPreviewProps) {
   if (isParsing) {
     return (
@@ -67,6 +89,11 @@ export function BalanceUploadPreview({
         <Badge variant={hasBlockingErrors ? 'destructive' : 'default'}>
           {accountsCount} conturi detectate
         </Badge>
+        {detectedFormat && (
+          <Badge variant="secondary" className="gap-1">
+            Format detectat: {FORMAT_LABEL[detectedFormat]}
+          </Badge>
+        )}
         {!hasBlockingErrors && accountsCount > 0 && (
           <Badge variant="outline" className="gap-1">
             <CheckCircle2 className="w-3 h-3" />
@@ -74,6 +101,35 @@ export function BalanceUploadPreview({
           </Badge>
         )}
       </div>
+
+      {isAmbiguousFormat && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Format ambiguu — alege manual</AlertTitle>
+          <AlertDescription>
+            <p className="mb-3">
+              Nu am putut determina automat formatul balanței. Selectează formatul fișierului
+              încărcat pentru a continua validarea.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" size="sm" variant="outline" onClick={() => onSelectFormat('8_COLUMNS')}>
+                Format 8 coloane (A–H)
+              </Button>
+              <Button type="button" size="sm" variant="outline" onClick={() => onSelectFormat('10_COLUMNS')}>
+                Format 10 coloane (A–J)
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {detectedFormat && !hasBlockingErrors && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertTitle>Format detectat: {FORMAT_LABEL[detectedFormat]}</AlertTitle>
+          <AlertDescription>{FORMAT_MESSAGE[detectedFormat]}</AlertDescription>
+        </Alert>
+      )}
 
       {uploadErrorMessage && (
         <Alert variant="destructive">

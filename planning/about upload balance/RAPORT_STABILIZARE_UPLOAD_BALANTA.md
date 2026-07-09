@@ -1,5 +1,7 @@
 # Raport Stabilizare Pipeline Upload Balanță — FinGuard v2
 
+> **⚠️ Actualizare iulie 2026 (v3.0) — suport DUAL format.** Pipeline-ul acceptă acum **două formate standard: 8 coloane (A–H) și 10 coloane (A–J)**, detectate automat per import. Afirmațiile despre „exact 10 coloane A–J" reflectă v2.1 și sunt **depășite**. Sursa curentă: `ce_verificari_se_fac_la_upload_baanta.md`.
+
 **Data:** 21 iunie 2026  
 **Scop:** Production-ready flow Excel → Storage → parse-balanta → DB → KPI
 
@@ -92,7 +94,7 @@
 ### Flux final (Production Ready)
 
 ```
-[UI] validare Excel (client: celule goale=0, **exact 10 coloane A–J**, identitate SF = Total Sume D − Total Sume C, blocking conturi/control totals)
+[UI] validare Excel (client: celule goale=0, **detectare format 8/10 coloane**, identitate SF = Total Sume D − Total Sume C doar la 10 coloane, blocking conturi/control totals)
   → [Storage] bucket `balante` / {company_id}/{timestamp}_file.xlsx
   → [DB] INSERT trial_balance_imports (status=processing, processing_started_at)
   → [Edge Fn] parse-balanta

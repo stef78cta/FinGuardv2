@@ -1,5 +1,7 @@
 # Raport consolidat — FinGuard v2
 
+> **⚠️ Actualizare iulie 2026 (v3.0) — suport DUAL format.** Aplicația acceptă **două formate standard de balanță: 8 coloane (A–H) și 10 coloane (A–J)**, detectate automat per import (alegere manuală pentru cazuri ambigue). Afirmațiile din tabelele de mai jos despre „10 coloane obligatorii" / „format vechi 8 coloane respins" sunt **depășite**. Sursa curentă: `ce_verificari_se_fac_la_upload_baanta.md`.
+
 **Sursă analiză:** 36 fișiere `.md` unice + verificare cod (`src/`, `supabase/migrations/`, `scripts/`)  
 **Data raportului:** 21 iunie 2026  
 **Versiune raport:** 2.0 (update post-stabilizare upload)  

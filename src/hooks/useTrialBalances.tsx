@@ -45,6 +45,8 @@ export interface TrialBalanceImport {
   file_size_bytes: number | null;
   created_at: string;
   processed_at: string | null;
+  /** Formatul balanței detectat la import (8 sau 10 coloane). Poate lipsi la importuri vechi. */
+  balance_format: '8_COLUMNS' | '10_COLUMNS' | null;
 }
 
 /**
@@ -149,6 +151,7 @@ export const useTrialBalances = (companyId: string | null) => {
           file_size_bytes: null,
           created_at: row.created_at as string,
           processed_at: row.processed_at as string | null,
+          balance_format: (row.balance_format as TrialBalanceImport['balance_format']) ?? null,
           total_closing_debit: Number(row.total_closing_debit) || 0,
           total_closing_credit: Number(row.total_closing_credit) || 0,
           accounts_count: Number(row.accounts_count) || 0,
@@ -195,6 +198,7 @@ export const useTrialBalances = (companyId: string | null) => {
     options?: {
       fiscalYearStartMonth?: number;
       replaceExisting?: boolean;
+      forcedFormat?: '8_COLUMNS' | '10_COLUMNS';
       callbacks?: UploadProgressCallbacks;
     }
   ): Promise<UploadBalanceResult> => {
@@ -210,7 +214,7 @@ export const useTrialBalances = (companyId: string | null) => {
     callbacks?.onPhase?.('validating');
     callbacks?.onProgress?.(10);
 
-    const parseResult = await parseExcelFile(file);
+    const parseResult = await parseExcelFile(file, { forcedFormat: options?.forcedFormat });
 
     if (!parseResult.ok) {
       const errorMessage = formatBlockingValidationErrors(parseResult);
@@ -251,6 +255,7 @@ export const useTrialBalances = (companyId: string | null) => {
         file_size_bytes: file.size,
         uploaded_by: userId,
         status: 'processing',
+        balance_format: parseResult.format,
       })
       .select(TRIAL_BALANCE_IMPORTS_SELECT_COLUMNS)
       .single();
@@ -268,7 +273,7 @@ export const useTrialBalances = (companyId: string | null) => {
     callbacks?.onProgress?.(50);
     callbacks?.onPhase?.('processing');
 
-    await processImport(importData.id, parseResult.accounts, {
+    await processImport(importData.id, parseResult.accounts, parseResult.format, {
       onProgress: callbacks?.onProgress,
       onStatusChange: (status) => {
         if (status === 'processing') {
@@ -473,7 +478,7 @@ export const useTrialBalances = (companyId: string | null) => {
       throw new Error(formatBlockingValidationErrors(parseResult));
     }
 
-    await processImport(importId, parseResult.accounts);
+    await processImport(importId, parseResult.accounts, parseResult.format);
 
     const statementsGeneration = companyId
       ? await generateFinancialStatementsForImport(companyId, importId)
