@@ -107,14 +107,14 @@ const PricingSection = () => {
           <div
             role="tablist"
             aria-label="Ciclu de facturare"
-            className="relative inline-flex items-center bg-[var(--newa-surface-canvas)] border border-[var(--newa-border-default)] rounded-[40px] p-1 shadow-sm"
+            className="relative inline-flex items-center bg-[var(--newa-surface-light)] border border-[var(--newa-border-default)] rounded-full p-1 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
           >
             <span
               aria-hidden="true"
-              className={`absolute top-1 bottom-1 rounded-[40px] bg-[var(--newa-brand-primary-dark)] shadow-md transition-all duration-300 ease-out ${
+              className={`absolute top-1 bottom-1 rounded-full bg-[var(--newa-brand-accent-indigo)] shadow-[0_4px_12px_rgba(99,102,241,0.35)] transition-all duration-300 ease-out ${
                 billing === 'monthly'
-                  ? 'left-1 right-[calc(50%+0px)]'
-                  : 'left-[calc(50%-0px)] right-1'
+                  ? 'left-1 right-[calc(50%+2px)]'
+                  : 'left-[calc(50%+2px)] right-1'
               }`}
             />
             <button
@@ -122,7 +122,7 @@ const PricingSection = () => {
               role="tab"
               aria-selected={billing === 'monthly'}
               onClick={() => setBilling('monthly')}
-              className={`relative z-10 px-5 py-2 text-sm font-semibold rounded-[40px] transition-colors duration-300 ${
+              className={`relative z-10 px-6 py-2 text-sm font-semibold rounded-full transition-colors duration-300 ${
                 billing === 'monthly'
                   ? 'text-[var(--newa-text-inverse)]'
                   : 'text-[var(--newa-text-secondary)] hover:text-[var(--newa-text-primary)]'
@@ -135,7 +135,7 @@ const PricingSection = () => {
               role="tab"
               aria-selected={billing === 'yearly'}
               onClick={() => setBilling('yearly')}
-              className={`relative z-10 px-5 py-2 text-sm font-semibold rounded-[40px] transition-colors duration-300 inline-flex items-center gap-2 ${
+              className={`relative z-10 px-6 py-2 text-sm font-semibold rounded-full transition-colors duration-300 inline-flex items-center gap-2 ${
                 billing === 'yearly'
                   ? 'text-[var(--newa-text-inverse)]'
                   : 'text-[var(--newa-text-secondary)] hover:text-[var(--newa-text-primary)]'
@@ -143,17 +143,18 @@ const PricingSection = () => {
             >
               Anual
               <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-[40px] ${
+                className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full transition-colors duration-300 ${
                   billing === 'yearly'
-                    ? 'bg-[var(--newa-brand-accent-emerald)]/20 text-[var(--newa-brand-accent-emerald)]'
+                    ? 'bg-[var(--newa-brand-accent-emerald)] text-[var(--newa-brand-primary-dark)]'
                     : 'bg-[var(--newa-brand-accent-emerald)]/15 text-[var(--newa-brand-accent-emerald)]'
                 }`}
               >
-                2 luni bonus
+                −2 luni
               </span>
             </button>
           </div>
         </div>
+
 
         {/* Single centered plan card */}
         <div className="flex justify-center">
