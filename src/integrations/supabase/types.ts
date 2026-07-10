@@ -237,9 +237,9 @@ export type Database = {
           account_code: string
           account_name: string
           account_type: string
-          functional_type: string | null
           company_id: string
           created_at: string
+          functional_type: string | null
           id: string
           is_postable: boolean
           is_system: boolean
@@ -250,9 +250,9 @@ export type Database = {
           account_code: string
           account_name: string
           account_type: string
-          functional_type?: string | null
           company_id: string
           created_at?: string
+          functional_type?: string | null
           id?: string
           is_postable?: boolean
           is_system?: boolean
@@ -263,9 +263,9 @@ export type Database = {
           account_code?: string
           account_name?: string
           account_type?: string
-          functional_type?: string | null
           company_id?: string
           created_at?: string
+          functional_type?: string | null
           id?: string
           is_postable?: boolean
           is_system?: boolean
@@ -1134,6 +1134,8 @@ export type Database = {
       active_trial_balance_imports: {
         Row: {
           accounts_count: number | null
+          balance_format: string | null
+          balance_month: string | null
           company_id: string | null
           created_at: string | null
           deleted_at: string | null
@@ -1152,6 +1154,8 @@ export type Database = {
         }
         Insert: {
           accounts_count?: never
+          balance_format?: string | null
+          balance_month?: string | null
           company_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -1170,6 +1174,8 @@ export type Database = {
         }
         Update: {
           accounts_count?: never
+          balance_format?: string | null
+          balance_month?: string | null
           company_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -1228,6 +1234,7 @@ export type Database = {
       trial_balance_imports_internal: {
         Row: {
           accounts_count: number | null
+          balance_format: string | null
           balance_month: string | null
           company_id: string | null
           created_at: string | null
@@ -1250,6 +1257,7 @@ export type Database = {
         }
         Insert: {
           accounts_count?: number | null
+          balance_format?: string | null
           balance_month?: string | null
           company_id?: string | null
           created_at?: string | null
@@ -1272,6 +1280,7 @@ export type Database = {
         }
         Update: {
           accounts_count?: number | null
+          balance_format?: string | null
           balance_month?: string | null
           company_id?: string | null
           created_at?: string | null
@@ -1418,13 +1427,28 @@ export type Database = {
         }
         Returns: boolean
       }
-      _tb_closing_balance: {
-        Args: {
-          _account_type: string
-          _credit: number
-          _debit: number
-          _normal_balance: string
-        }
+      _tb_closing_balance:
+        | {
+            Args: {
+              _account_type: string
+              _credit: number
+              _debit: number
+              _normal_balance: string
+            }
+            Returns: number
+          }
+        | {
+            Args: {
+              _account_type: string
+              _credit: number
+              _debit: number
+              _functional_type?: string
+              _normal_balance: string
+            }
+            Returns: number
+          }
+      _tb_economic_net: {
+        Args: { _credit: number; _debit: number }
         Returns: number
       }
       _tb_period_activity: {
@@ -1548,15 +1572,24 @@ export type Database = {
         }
         Returns: Json
       }
-      process_import_accounts: {
-        Args: {
-          p_accounts: Json
-          p_import_id: string
-          p_requester_user_id: string
-          p_balance_format?: string
-        }
-        Returns: boolean
-      }
+      process_import_accounts:
+        | {
+            Args: {
+              p_accounts: Json
+              p_import_id: string
+              p_requester_user_id: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_accounts: Json
+              p_balance_format?: string
+              p_import_id: string
+              p_requester_user_id: string
+            }
+            Returns: boolean
+          }
       retry_failed_import: {
         Args: { p_import_id: string; p_user_id: string }
         Returns: boolean
@@ -1566,6 +1599,10 @@ export type Database = {
         Returns: number
       }
       soft_delete_import: { Args: { _import_id: string }; Returns: boolean }
+      validate_balance_sheet_coverage: {
+        Args: { _import_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "user" | "admin" | "super_admin"
