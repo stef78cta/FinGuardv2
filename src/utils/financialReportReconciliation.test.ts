@@ -15,6 +15,7 @@ const baseSummary = (overrides: Partial<BalanceSheetDiagnosticSummary>): Balance
   blockingIssueCount: 0,
   tbAccountsWithBalance: 5,
   totalMappedNet: 0,
+  pnlClosingBalanceCount: 0,
   possibleCauses: [],
   ...overrides,
 });
