@@ -60,10 +60,10 @@ export function findBalanceForMonth(
 /**
  * Returnează balanța imediat anterioară celei curente, ordonată descrescător după lună.
  */
-export function findPreviousBalance(
-  balances: BalanceImport[],
+export function findPreviousBalance<T extends BalanceImport>(
+  balances: T[],
   currentBalance: BalanceImport,
-): BalanceImport | undefined {
+): T | undefined {
   const sortedByMonth = [...balances].sort(
     (a, b) => getBalanceMonthAsDate(b).getTime() - getBalanceMonthAsDate(a).getTime(),
   );
