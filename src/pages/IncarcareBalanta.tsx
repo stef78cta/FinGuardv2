@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Upload, FileSpreadsheet, Info, FileCheck, X, Download, Eye, Trash2, ChevronDown, FileX, Building2, Loader2, AlertCircle, AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
+import { Upload, FileSpreadsheet, Info, FileCheck, X, Download, Eye, Trash2, ChevronDown, FileX, Building2, Loader2, AlertCircle, AlertTriangle, CheckCircle2, RotateCcw } from 'lucide-react';
 import { usePageUiState } from '@/hooks/usePageUiState';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
@@ -14,7 +14,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -26,6 +25,7 @@ import { useBalanceUploadForm } from '@/hooks/useBalanceUploadForm';
 import { calculateBalancePeriodFromDate } from '@/lib/balancePeriod';
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { BalanceAccountsViewDialog } from '@/components/upload/BalanceAccountsViewDialog';
 import { BalanceUploadPreview } from '@/components/upload/BalanceUploadPreview';
 import { BALANCE_STORAGE_BUCKET, extractSupabaseErrorMessage } from '@/lib/storage/constants';
 import { isActiveBalanceExistsError } from '@/lib/balanceUploadErrors';
@@ -156,6 +156,13 @@ const IncarcareBalanta = () => {
   const [loadingAccounts, setLoadingAccounts] = useState(false);
   const [accountsPage, setAccountsPage] = useState(0);
   const [totalAccountsCount, setTotalAccountsCount] = useState(0);
+
+  /** Formatul balanței vizualizate — determină afișarea cu 8 sau 10 coloane în dialog. */
+  const viewingBalanceFormat = useMemo((): '8_COLUMNS' | '10_COLUMNS' => {
+    if (!selectedImportId) return '10_COLUMNS';
+    const imp = imports.find((item) => item.id === selectedImportId);
+    return imp?.balance_format === '8_COLUMNS' ? '8_COLUMNS' : '10_COLUMNS';
+  }, [selectedImportId, imports]);
 
   /**
    * Calculează totalurile din importsWithTotals (optimizat server-side).
@@ -1032,101 +1039,26 @@ const IncarcareBalanta = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* View Accounts Dialog cu Paginare - Optimizat pentru vizibilitate completă coloane */}
-      <Dialog open={viewDialogOpen} onOpenChange={open => {
-      setViewDialogOpen(open);
-      if (!open) {
-        setAccountsPage(0);
-        setViewingAccounts([]);
-        setTotalAccountsCount(0);
-      }
-    }}>
-        <DialogContent className="w-[95vw] max-w-[1400px] max-h-[85vh] overflow-hidden flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle>Conturi Balanță</DialogTitle>
-            <DialogDescription>
-              {totalAccountsCount > 0 ? <>
-                  Afișez {accountsPage * ACCOUNTS_PER_PAGE + 1} - {Math.min((accountsPage + 1) * ACCOUNTS_PER_PAGE, totalAccountsCount)} din {totalAccountsCount} conturi
-                </> : 'Lista conturilor din balanța selectată'}
-            </DialogDescription>
-          </DialogHeader>
-          
-          {loadingAccounts ? <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div> : <>
-              {/* Container cu scroll orizontal explicit pentru tabel */}
-              <div className="flex-1 overflow-hidden border rounded-md">
-                <div className="overflow-x-auto overflow-y-auto max-h-[calc(85vh-180px)]">
-                  <Table className="min-w-[1500px]">
-                    <TableHeader className="sticky top-0 bg-background z-10">
-                      <TableRow>
-                        <TableHead className="w-[80px] min-w-[80px]">Cont</TableHead>
-                        <TableHead className="min-w-[180px]">Denumire</TableHead>
-                        <TableHead className="text-right w-[120px] min-w-[120px] whitespace-nowrap">SI Debit</TableHead>
-                        <TableHead className="text-right w-[120px] min-w-[120px] whitespace-nowrap">SI Credit</TableHead>
-                        <TableHead className="text-right w-[130px] min-w-[130px] whitespace-nowrap">Rulaj D</TableHead>
-                        <TableHead className="text-right w-[130px] min-w-[130px] whitespace-nowrap">Rulaj C</TableHead>
-                        <TableHead className="text-right w-[130px] min-w-[130px] whitespace-nowrap">Tot. Debit</TableHead>
-                        <TableHead className="text-right w-[130px] min-w-[130px] whitespace-nowrap">Tot. Credit</TableHead>
-                        <TableHead className="text-right w-[120px] min-w-[120px] whitespace-nowrap">SF Debit</TableHead>
-                        <TableHead className="text-right w-[120px] min-w-[120px] whitespace-nowrap">SF Credit</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {viewingAccounts.map(account => <TableRow key={account.id}>
-                          <TableCell className="font-mono text-sm">{account.account_code}</TableCell>
-                          <TableCell className="max-w-[250px] truncate" title={account.account_name}>
-                            {account.account_name}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-sm whitespace-nowrap">
-                            {formatCurrency(account.opening_debit)}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-sm whitespace-nowrap">
-                            {formatCurrency(account.opening_credit)}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-sm whitespace-nowrap">
-                            {formatCurrency(account.debit_turnover)}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-sm whitespace-nowrap">
-                            {formatCurrency(account.credit_turnover)}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-sm whitespace-nowrap">
-                            {formatCurrency(account.total_sume_debitoare ?? 0)}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-sm whitespace-nowrap">
-                            {formatCurrency(account.total_sume_creditoare ?? 0)}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-sm whitespace-nowrap">
-                            {formatCurrency(account.closing_debit)}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-sm whitespace-nowrap">
-                            {formatCurrency(account.closing_credit)}
-                          </TableCell>
-                        </TableRow>)}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-              
-              {/* Controale paginare */}
-              {totalAccountsCount > ACCOUNTS_PER_PAGE && <div className="flex items-center justify-between pt-4 border-t">
-                  <p className="text-sm text-muted-foreground">
-                    Pagina {accountsPage + 1} din {Math.ceil(totalAccountsCount / ACCOUNTS_PER_PAGE)}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={handlePrevAccountsPage} disabled={accountsPage === 0 || loadingAccounts}>
-                      <ChevronLeft className="w-4 h-4 mr-1" />
-                      Anterior
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleNextAccountsPage} disabled={(accountsPage + 1) * ACCOUNTS_PER_PAGE >= totalAccountsCount || loadingAccounts}>
-                      Următor
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Button>
-                  </div>
-                </div>}
-            </>}
-        </DialogContent>
-      </Dialog>
+      <BalanceAccountsViewDialog
+        open={viewDialogOpen}
+        onOpenChange={(open) => {
+          setViewDialogOpen(open);
+          if (!open) {
+            setAccountsPage(0);
+            setViewingAccounts([]);
+            setTotalAccountsCount(0);
+          }
+        }}
+        accounts={viewingAccounts}
+        loading={loadingAccounts}
+        totalCount={totalAccountsCount}
+        page={accountsPage}
+        pageSize={ACCOUNTS_PER_PAGE}
+        balanceFormat={viewingBalanceFormat}
+        onPrevPage={handlePrevAccountsPage}
+        onNextPage={handleNextAccountsPage}
+        formatCurrency={formatCurrency}
+      />
     </div>;
 };
 
