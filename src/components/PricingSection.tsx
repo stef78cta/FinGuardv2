@@ -110,7 +110,7 @@ const PricingSection = () => {
           const savings = monthlyNum * 12 - yearlyNum;
           const canShowSavings = Number.isFinite(savings) && savings > 0;
           return (
-            <div className="flex flex-col items-center mb-10 gap-3">
+            <div className="flex flex-col items-center mb-6 gap-2">
               <div
                 role="tablist"
                 aria-label="Ciclu de facturare"
