@@ -292,8 +292,8 @@ const PricingSection = () => {
         </div>
 
         {/* Guarantee notice */}
-        <div className="max-w-3xl mx-auto mt-6">
-          <div className="flex items-start gap-3 bg-[var(--newa-selection-bg)]/40 border border-[var(--newa-border-default)] rounded-[var(--newa-radius-xl)] px-5 py-4">
+        <div className="max-w-3xl mx-auto mt-4">
+          <div className="flex items-start gap-3 bg-[var(--newa-selection-bg)]/40 border border-[var(--newa-border-default)] rounded-[var(--newa-radius-xl)] px-5 py-3">
             <div className="flex-shrink-0 w-9 h-9 rounded-[var(--newa-radius-lg)] bg-[var(--newa-brand-accent-indigo)]/10 flex items-center justify-center">
               <ShieldCheck className="w-5 h-5 text-[var(--newa-brand-accent-indigo)]" />
             </div>
