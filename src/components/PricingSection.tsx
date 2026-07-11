@@ -198,7 +198,7 @@ const PricingSection = () => {
                   </h3>
 
                   {/* Price */}
-                  <div className="mb-6 mt-4">
+                  <div className="mb-4 mt-3">
                     {active ? (
                       <div className="flex items-baseline justify-center gap-1">
                         <span className="text-4xl font-mono font-bold gradient-text leading-none">
@@ -223,7 +223,7 @@ const PricingSection = () => {
                   </div>
 
                   {/* Features */}
-                  <ul className="space-y-3 mb-6 text-left">
+                  <ul className="space-y-2 mb-4 text-left">
                     {plan.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-start gap-2.5">
                         <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[var(--newa-brand-accent-emerald)]/15 flex items-center justify-center mt-0.5">
