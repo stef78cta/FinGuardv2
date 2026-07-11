@@ -1,9 +1,32 @@
 # Plan Dezvoltare Database - Security & Correctness Patches
 
 > **Data creării**: 28 Ianuarie 2026  
-> **Versiune Plan**: 1.8 (+ Upload Pipeline v2.0 implementat iun. 2026)  
-> **Ultima actualizare**: 24 Iunie 2026  
-> **Status**: ✅ IMPLEMENTAT (v1.8) + extensii upload v2.0 în migrări 19–30
+> **Versiune Plan**: 1.8 (+ Upload Pipeline v2.0 + Reporting v3.4 + FS Pipeline v3.5 + Reconciliation v3.6)  
+> **Ultima actualizare**: 11 Iulie 2026  
+> **Status**: ✅ IMPLEMENTAT în repo (v1.8 + extensii iun.–iul. 2026; 48 migrări versionate); ⚠️ producție `finguard2` parțial divergentă (19 tabele, Security v1.8 incomplet)
+
+---
+
+## Plan Update (v3.6 — Reconciliation & functional_type, iul. 2026)
+
+| # | Punct | Migrări | Status |
+|---|-------|---------|--------|
+| 1 | Coloană `functional_type` pe CoA + template | `20260709100000` | ✅ |
+| 2 | Generare automată FS din import | `20260703120000` + fixes | ✅ |
+| 3 | `validate_balance_sheet_coverage` + status `unreconciled` | `20260709140000`, `20260709150000` | ✅ |
+| 4 | Rute SLD duale conturi bifuncționale | `20260709140000` | ✅ |
+| 5 | `balance_format` dual 8/10 coloane | `20260708120000` | ✅ |
+| 6 | Pipeline frontend post-import | `src/lib/financialStatementsPipeline.ts` | ✅ |
+
+## Plan Update (v3.4 — Reporting Template, iul. 2026)
+
+| # | Punct | Migrări | Status |
+|---|-------|---------|--------|
+| 1 | `statement_line_definitions` + seed global | `20260703100000`, `20260703100005` | ✅ |
+| 2 | `cash_flow_mapping_rules` | `20260703100001` | ✅ |
+| 3 | `chart_of_accounts_template` + seed RPC | `20260703100004` | ✅ |
+| 4 | Extindere linii P&L și CF | `20260703100002`, `20260703100003` | ✅ |
+| 5 | `auto_map_import_from_chart` | `20260703100006` | ✅ |
 
 ---
 
@@ -3634,7 +3657,76 @@ ORDER BY grantee, privilege_type;
 
 ## NOTĂ FINALĂ
 
-**Planul v1.8 a fost implementat.** Extensiile post-v1.8 (upload pipeline v2.0) sunt documentate în secțiunea de mai jos și în migrările 19–30.
+**Planul v1.8 a fost implementat.** Extensiile post-v1.8 (upload v2.0, reporting v3.4, FS pipeline v3.5, reconciliation v3.6) sunt documentate în secțiunile de mai jos și în migrările 19–48.
+
+---
+
+## Actualizare Iulie 2026 — Reporting, FS Pipeline & Reconciliation (post-plan)
+
+> **Adăugat:** 11 iulie 2026  
+> **Scop:** Documentează implementarea efectivă din repo (migrări 31–48 + cod frontend).
+
+### Status implementare (complet)
+
+| Componentă | Status | Migrare / cod |
+|------------|--------|---------------|
+| Security Patches v1.8 (1–18) | ✅ | `20260128100000` – `20260128100006` |
+| Upload Pipeline v2.0 (19–30) | ✅ | `20260129*` – `20260701120000` |
+| Reporting Template v3.4 (31–37) | ✅ | `20260703100000` – `20260703100006` |
+| FS Pipeline v3.5 (38–42) | ✅ | `20260703110000` – `20260708130000` |
+| Reconciliation v3.6 (43–48) | ✅ | `20260709100000` – `20260709160000` |
+| Pipeline frontend post-import | ✅ | `src/lib/financialStatementsPipeline.ts` |
+| Diagnostic reconciliere UI | ✅ | `src/utils/balanceSheetDiagnostic.ts` |
+
+### Decizii noi (față de plan v1.8 + upload v2.0)
+
+1. **Bucket Storage:** canonical `balante`.
+2. **`check_rate_limit`:** returnează **BOOLEAN**; tabele `rate_limits` nu sunt expuse PostgREST.
+3. **`rate_limits.user_id`:** FK către **`auth.users`**.
+4. **`process_import_accounts`:** returnează **BOOLEAN**; param opțional `p_balance_format`.
+5. **Constraints XOR** pe solduri: **eliminate** (v1.9.4).
+6. **`balance_month`:** o balanță activă per companie/lună.
+7. **`balance_format`:** suport dual 8/10 coloane per import (v3.5).
+8. **`functional_type`:** activ/pasiv/bifuncțional pe CoA, separat de sold brut (v3.6).
+9. **`reports.status`:** include `unreconciled` pentru rapoarte nereconciliate.
+10. **`create_company_with_member`:** semnătură țintă `(p_name, p_cui)` — fără `p_user_id` extern; **producția încă expune `p_user_id`** în `types.ts`.
+
+### Divergență verificată producție (`finguard2`, 11 iul. 2026)
+
+| Componentă | Repo | Producție |
+|------------|------|-----------|
+| Tabele | 21 | 19 (fără `rate_limits*`) |
+| `check_rate_limit` | Da | Nu |
+| `companies.status` | Da | Nu |
+| Upload v2.0 + FS v3.5 + Recon v3.6 | Da | Da |
+| Seed template | 177+ documentat | 193 CoA, 402 SLD, 74 CF, 5 KPI |
+
+### Verificări recomandate post-implementare
+
+- [ ] `supabase migration list` — compară **48 migrări repo** vs istoric remote
+- [ ] Aplică migrări Security v1.8 lipsă (`rate_limits`, `companies.status`, hardening `create_company_with_member`)
+- [ ] `src/integrations/supabase/types.ts` — conține `balance_format`, `functional_type`, RPC-uri v3.5/v3.6
+- [ ] Frontend: `prepare_balance_month_upload` înainte de INSERT import
+- [ ] Post-import: `financialStatementsPipeline.ts` apelat după procesare
+- [ ] Edge Function: bucket `balante`, service_role pentru `process_import_accounts`
+- [ ] Rulare periodică `cleanup_stale_imports()` (pg_cron sau manual)
+- [ ] Script: `node scripts/verify-upload-pipeline.mjs`
+- [ ] Test reconciliere: raport `unreconciled` când `validate_balance_sheet_coverage` eșuează
+
+### Documente actualizate
+
+- `planning/about database/prezentare_finguard_database.md` — prezentare onboarding (v3.6)
+- `planning/about database/tabele.md` — cheat sheet schema (48 migrări)
+- `planning/about database/descriere_database.md` — documentație completă v3.0
+- `planning/about database/plan_dezvoltare_database.md` — acest fișier
+
+### Referințe cod
+
+- `src/lib/financialStatementsPipeline.ts` — pipeline post-import
+- `src/lib/importPipeline.ts` — detectare format 8/10 coloane
+- `src/utils/balanceSheetDiagnostic.ts` — diagnostic reconciliere
+- `scripts/coa/parse-mapping-xlsx.mjs` — tooling template CoA
+- `scripts/coa/emit-functional-type-migration.mjs` — generare migrare functional_type
 
 ---
 
@@ -3643,11 +3735,10 @@ ORDER BY grantee, privilege_type;
 > **Adăugat:** 24 iunie 2026  
 > **Scop:** Documentează implementarea efectivă din repo, dincolo de planul v1.8 original.
 
-### Status implementare
+### Status implementare upload v2.0
 
 | Componentă | Status | Migrare / cod |
 |------------|--------|---------------|
-| Security Patches v1.8 (1–18) | ✅ Implementat | `20260128100000` – `20260128100006` |
 | View security invoker | ✅ | `20260129000001` |
 | Stale imports cleanup | ✅ | `20260129100001` |
 | Bucket `balante` | ✅ | `20260129100002`, `20260621000000` |
@@ -3656,30 +3747,6 @@ ORDER BY grantee, privilege_type;
 | Soft delete orice membru | ✅ | `20260630120000` |
 | Normalizare perioade istorice | ✅ | `20260630130000` |
 | `prepare_balance_month_upload` | ✅ | `20260701120000` |
-
-### Decizii noi (față de plan v1.8)
-
-1. **Bucket Storage:** canonical `balante` (plan menționa `trial-balances` în unele secțiuni).
-2. **`check_rate_limit`:** returnează **BOOLEAN** (confirmat în migrarea `20260128100002`).
-3. **`rate_limits.user_id`:** FK către **`auth.users`** (nu `public.users`).
-4. **`process_import_accounts`:** returnează **BOOLEAN** în versiunea stabilizată iun. 2026.
-5. **Constraints XOR** pe solduri deschis/închis: **eliminate** (v1.9.4) — balanțe reale pot avea valori pe ambele coloane.
-6. **O balanță activă per lună:** enforced via `balance_month` + index UNIQUE parțial.
-
-### Verificări recomandate post-implementare
-
-- [ ] `supabase migration list` — 30 migrări aplicate
-- [ ] `src/integrations/supabase/types.ts` — conține `balance_month`, RPC-uri noi
-- [ ] Frontend: `prepare_balance_month_upload` înainte de INSERT import
-- [ ] Edge Function: bucket `balante`, service_role pentru RPC
-- [ ] Rulare periodică `cleanup_stale_imports()` (pg_cron sau manual)
-- [ ] Script: `node scripts/verify-upload-pipeline.mjs`
-
-### Documente actualizate
-
-- `planning/about database/prezentare_finguard_database.md` — prezentare onboarding
-- `planning/about database/tabele.md` — cheat sheet schema
-- `planning/about database/descriere_database.md` — documentație completă v2.1
 
 ### Referințe upload
 

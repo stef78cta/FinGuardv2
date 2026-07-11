@@ -1,13 +1,26 @@
 # Raport consolidat — FinGuard v2
 
-> **⚠️ Actualizare iulie 2026 (v3.0) — suport DUAL format.** Aplicația acceptă **două formate standard de balanță: 8 coloane (A–H) și 10 coloane (A–J)**, detectate automat per import (alegere manuală pentru cazuri ambigue). Afirmațiile din tabelele de mai jos despre „10 coloane obligatorii" / „format vechi 8 coloane respins" sunt **depășite**. Sursa curentă: `ce_verificari_se_fac_la_upload_baanta.md`.
+> **⚠️ Actualizare iulie 2026 (v3.1).** Pipeline complet: upload dual 8/10 coloane → generare automată situații financiare → reconciliere bilanț (`unreconciled`). Documentație DB: `planning/about database/`.
 
-**Sursă analiză:** 36 fișiere `.md` unice + verificare cod (`src/`, `supabase/migrations/`, `scripts/`)  
-**Data raportului:** 21 iunie 2026  
-**Versiune raport:** 2.0 (update post-stabilizare upload)  
-**Metodă:** corelare cross-document + verificare runtime (`npm test`, `verify-upload-pipeline.mjs`)
+**Sursă analiză:** documentație `planning/` + verificare cod (`src/`, `supabase/migrations/`) + schema live Supabase `finguard2`  
+**Data raportului:** 11 iulie 2026  
+**Versiune raport:** 3.1 (post-FS pipeline + reconciliation v3.6)  
+**Metodă:** corelare cross-document + verificare runtime + `list_tables` / `execute_sql` pe producție
 
 ---
+
+## Changelog raport (v2.0 → v3.1)
+
+| Zona | v2.0 (21 iun.) | v3.1 (11 iul.) |
+|------|----------------|----------------|
+| Format Excel | 10 coloane obligatorii | **Dual 8/10 coloane** (`balance_format` per import) |
+| Situații financiare | Parțial UI | **Generare automată** via `generate_financial_statements_from_import` |
+| Reconciliere bilanț | — | `validate_balance_sheet_coverage`, `functional_type`, status `unreconciled` |
+| Template raportare | — | `statement_line_definitions` (402 linii live), `cash_flow_mapping_rules` (74) |
+| Migrări repo | 30+ | **48** fișiere versionate |
+| Producție `finguard2` | — | **19 tabele**, Security v1.8 **parțial** (`rate_limits` lipsă) |
+| MVP estimat | ~78% | **~85%** |
+| Pregătire producție | ~62% | **~72%** (FS pipeline live; Security v1.8 de finalizat) |
 
 ## Changelog raport (v1.0 → v2.0)
 
@@ -164,6 +177,7 @@ UI validare client (10 col A–J, formule G/H, control totals)
   → INSERT trial_balance_imports (status=processing, processing_started_at)
   → Edge Fn parse-balanta (download, parse, RPC)
   → status=completed
+  → financialStatementsPipeline (seed CoA → auto-map → generate FS → validate coverage)
   → poll trial_balance_imports_public
   → Dashboard/KPI via useBalante → get_balances_with_accounts
 ```
@@ -172,8 +186,8 @@ UI validare client (10 col A–J, formule G/H, control totals)
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Frontend**     | React 18.3, Vite 5.4, TS 5.8, TanStack Query 5.83, Recharts, Vitest 3.2                                                                                                        |
 | **Backend**      | Supabase — PostgreSQL, Auth, Storage, Edge Functions (Deno)                                                                                                                    |
-| **Baza de date** | `users`, `companies`, `company_users`, `trial_balance_imports`, `trial_balance_accounts` (+ `total_sume_*`), `rate_limits`                                                     |
-| **API-uri RPC**  | `create_company_with_member`, `process_import_accounts`, `get_balances_with_accounts`, `get_import_totals`, `check_rate_limit`, `cleanup_stale_imports`, `retry_failed_import` |
+| **Baza de date** | 19 tabele live: nucleu upload + `chart_of_accounts` (`functional_type`), `statement_line_definitions`, `financial_statements` + linii, `reports` (`unreconciled`); `rate_limits` **lipsește** pe prod |
+| **API-uri RPC**  | `prepare_balance_month_upload`, `process_import_accounts`, `generate_financial_statements_from_import`, `validate_balance_sheet_coverage`, `auto_map_import_from_chart`, `seed_standard_chart_of_accounts`, `get_balances_with_accounts`, `cleanup_stale_imports`, `retry_failed_import` |
 | **Integrări**    | Google OAuth, Lovable deploy                                                                                                                                                   |
 | **Hosting**      | Lovable + domeniu `finguard.ro` (CORS whitelist)                                                                                                                               |
 
@@ -181,16 +195,18 @@ UI validare client (10 col A–J, formule G/H, control totals)
 
 ## 6. Modulele aplicației
 
-| Modul                 | Rol                                         | Status iun. 2026                            |
+| Modul                 | Rol                                         | Status iul. 2026                            |
 | --------------------- | ------------------------------------------- | ------------------------------------------- |
 | **Auth**              | Sesiune, profil                             | ✅ Stabil                                   |
-| **Company**           | Multi-tenant, creare firmă                  | ⚠️ `CompanyContext` — fix `p_user_id` rămas |
-| **Upload/Parse**      | Import Excel E2E                            | ✅ Refactorizat; necesită deploy            |
-| **importPipeline**    | Invoke Edge Fn, polling, erori UI, fallback | ✅ Nou                                      |
-| **excel-parser**      | Validări blocking v2.1                      | ✅ + 13 teste                               |
+| **Company**           | Multi-tenant, creare firmă                  | ⚠️ `create_company_with_member` încă cu `p_user_id` pe prod |
+| **Upload/Parse**      | Import Excel E2E (dual 8/10 col)            | ✅ Live pe `finguard2`                      |
+| **importPipeline**    | Invoke Edge Fn, polling, erori UI, fallback | ✅ Stabil                                   |
+| **FS Pipeline**       | Generare BS/P&L/CF post-import              | ✅ `financialStatementsPipeline.ts`         |
+| **Reconciliere**      | Validare acoperire bilanț                   | ✅ `validate_balance_sheet_coverage`        |
+| **excel-parser**      | Validări blocking                           | ✅ + teste Vitest                           |
 | **Validation (OMFP)** | 16 reguli contabile                         | ⚠️ Cod există, neintegrat                   |
-| **Analytics/KPI**     | 9 indicatori, grafice                       | ✅ Client-side                              |
-| **Reports**           | Bilanț, P&L, export                         | ⚠️ Parțial                                  |
+| **Analytics/KPI**     | 9 indicatori, grafice                       | ✅ Client-side (`kpi_values` nepopulat DB)    |
+| **Reports**           | Bilanț, P&L, CF generate                    | ✅ Generate automat; export PDF parțial     |
 | **Admin**             | Panou administrare                          | ⚠️ Parțial                                  |
 | **Security**          | RLS, rate limits, views                     | ✅ DB; ⚠️ types regenerate                  |
 

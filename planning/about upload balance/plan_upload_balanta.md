@@ -1,10 +1,31 @@
 # Plan Rezolvare Buguri Upload Balanță - Finguard v2
 
-> **⚠️ Actualizare iulie 2026 (v3.0) — suport DUAL format.** Aplicația acceptă **două formate standard de balanță: 8 coloane (A–H) și 10 coloane (A–J)**, detectate automat per import (alegere manuală pentru cazuri ambigue). Secțiunile de mai jos care afirmă „exclusiv 10 coloane A–J" / „format 8 coloane respins" sunt **depășite**. Sursa curentă: `ce_verificari_se_fac_la_upload_baanta.md`.
+> **STARE ACTUALĂ (11 iulie 2026).** Planul de mai jos este **document istoric** (ian.–iun. 2026). Implementarea curentă este descrisă în [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md).
 
-**Versiune:** 1.4 (Update: 29 ianuarie 2026 - Inconsistențe Critice & Contract API)  
-**Data:** 29 ianuarie 2026  
-**Scop:** Analiză și plan de rezolvare a inconsistențelor identificate în sistemul de upload/procesare balanță
+## Rezumat — ce este implementat acum
+
+| Zonă | Status |
+|------|--------|
+| Dual format Excel 8/10 coloane | ✅ `excel-parser.ts`, migrare 20260708 |
+| Validări blocking (SI, Rulaj, SF, clase 6/7) | ✅ Client + Edge Function |
+| Bucket Storage `balante` | ✅ constants.ts, parse-balanta, migrări |
+| Pipeline Edge Fn + fallback client | ✅ importPipeline.ts |
+| View RLS `security_invoker` | ✅ Migrări 20260129 |
+| Preview UI upload | ✅ BalanceUploadPreview + useBalanceUploadForm |
+| O balanță activă / lună | ✅ balance_month + prepare_balance_month_upload |
+| Situații financiare post-upload | ✅ financialStatementsPipeline |
+| 16 validări balanceValidation.ts | ⚠️ Doar agregare duplicate folosită |
+| ValidationResultsDialog | ⚠️ Componentă neintegrată în pagină |
+
+**Teste automate:** 31 teste `excel-parser.test.ts` + 6 prepareBalanceMonth + 2 useBalanceUploadForm.
+
+---
+
+> **Notă v3.0 (iulie 2026):** Secțiunile care impun „exclusiv 10 coloane A–J" sau resping format 8 coloane sunt **depășite**.
+
+**Versiune plan:** 1.4 (Update: 29 ianuarie 2026)  
+**Data plan:** 29 ianuarie 2026  
+**Scop original:** Analiză și plan de rezolvare a inconsistențelor identificate în sistemul de upload/procesare balanță
 
 ---
 

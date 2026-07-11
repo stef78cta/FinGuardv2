@@ -1,10 +1,10 @@
-# 🧪 Ghid Testare Upload Balanță - finguardv2
+# Ghid testare Upload Balanță — finguardv2
 
-> **⚠️ Actualizare iulie 2026 (v3.0) — suport DUAL format.** Aplicația acceptă **două formate standard de balanță: 8 coloane (A–H) și 10 coloane (A–J)**, detectate automat per import (alegere manuală pentru cazuri ambigue). Testul „format vechi 8 coloane respins" a fost **inversat**: formatul 8 coloane este acum acceptat. Sursa curentă: `ce_verificari_se_fac_la_upload_baanta.md`.
+> **Actualizare 11 iulie 2026 (v3.1).** Dual format 8/10 coloane. Preview UI: `BalanceUploadPreview`. Bucket: **`balante`**. Duplicate = warning + agregare. **31 teste** parser Vitest. Sursa: [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md).
 
-**Versiune:** v3.0 (dual format 8/10 coloane); anterior v2.1 (doar 10 coloane A–J)  
-**Data:** Iunie 2026  
-**Scop:** Suită completă de teste pentru validarea implementării upload balanță
+**Versiune:** v3.1  
+**Data:** 11 iulie 2026  
+**Scop:** Scenarii manuale + referință teste automate
 
 ---
 
@@ -30,8 +30,8 @@
 cd c:\_Software\SAAS\finguardv2
 supabase db push
 
-# 2. Verifică că bucket 'trial-balances' există
-# Supabase Dashboard → Storage → Verifică 'trial-balances'
+# 2. Verifică că bucket 'balante' există
+# Supabase Dashboard → Storage → Verifică 'balante'
 
 # 3. Creează cont test (dacă nu există)
 # Supabase Dashboard → Authentication → Add User
@@ -55,12 +55,12 @@ npm test
 c:\_Software\SAAS\finguardv2\testing\
 ├── fixtures\
 │   ├── valid\
-│   │   ├── balanta_simpla_valida.xlsx         # 3 conturi, 10 coloane, echilibrate
-│   │   ├── balanta_complexa_valida.xlsx       # 100 conturi, echilibrate
-│   │   └── balanta_mare_valida.xlsx           # 1000 conturi, echilibrate
+│   │   ├── balanta_valida_8_coloane.xlsx       # Format A–H
+│   │   ├── balanta_simpla_valida_10col.xlsx    # 10 coloane, echilibrate
+│   │   ├── balanta_complexa_valida.xlsx       # 100 conturi
+│   │   └── balanta_mare_valida.xlsx           # 1000 conturi
 │   ├── invalid\
-│   │   ├── balanta_format_vechi_8_coloane.xlsx # Respinge EXCEL_LEGACY_8_COLUMN_FORMAT
-│   │   ├── balanta_total_sume_incorect.xlsx   # G/H ≠ formule
+│   │   ├── balanta_total_sume_incorect.xlsx   # 10 col: SF ≠ Total Sume net
 │   │   ├── balanta_dezechilibrata_opening.xlsx
 │   │   ├── balanta_dezechilibrata_turnover.xlsx
 │   │   ├── balanta_dezechilibrata_closing.xlsx
@@ -131,30 +131,14 @@ c:\_Software\SAAS\finguardv2\testing\
 
 ---
 
-### 3. balanta_duplicate_conturi.xlsx ❌/⚠️
+### 3. balanta_duplicate_conturi.xlsx ⚠️
 
-**Descriere:** Balanță cu același cod cont de 2 ori.
+**Descriere:** Același cod cont de 2 ori.
 
-**Conturi:**
-
-| Cont | Denumire | SI D | SI C | Rulaj D | Rulaj C | Tot. D | Tot. C | SF D | SF C |
-|------|----------|------|------|---------|---------|--------|--------|------|------|
-| 1012 | Bănci BRD | 5000.00 | 0.00 | 2000.00 | 1000.00 | 7000.00 | 1000.00 | 6000.00 | 0.00 |
-| 1012 | Bănci ING | 5000.00 | 0.00 | 3000.00 | 2000.00 | 8000.00 | 2000.00 | 6000.00 | 0.00 |
-| 4111 | Venituri | 0.00 | 10000.00 | 0.00 | 3000.00 | 0.00 | 13000.00 | 0.00 | 13000.00 |
-| 6111 | Cheltuieli | 0.00 | 0.00 | 3000.00 | 0.00 | 3000.00 | 0.00 | 3000.00 | 0.00 |
-
-**Așteptat (ENV default - agregare OFF):**
-- ❌ Eroare `DUPLICATE_ACCOUNTS`
-- Mesaj: "1 cod(uri) duplicate detectate. Fiecare cont trebuie să fie unic."
-- Conturi afectate: `["1012"]`
-- Upload blocat
-
-**Așteptat (ENV agregare ON):**
-- ⚠️ Warning `DUPLICATE_ACCOUNTS`
-- Mesaj: "1 cod(uri) duplicate detectate. Vor fi agregate automat."
-- Conturi afectate: `["1012"]`
-- Upload permis cu agregare
+**Așteptat (comportament actual):**
+- ⚠️ Warning `DUPLICATE_ACCOUNTS` în preview
+- Upload **permis** — conturile sunt **agregate automat** la insert (`aggregateDuplicateAccounts`)
+- Nu există mod ENV pentru blocare duplicate în fluxul curent
 
 ---
 
@@ -209,7 +193,7 @@ c:\_Software\SAAS\finguardv2\testing\
 - ✅ Toast success: "Balanța a fost încărcată și procesată cu succes!"
 - ✅ Tabel balanțe: nou rând cu status "Procesat"
 - ✅ Totaluri: Debit=15000 RON, Credit=15000 RON, 3 conturi
-- ✅ Fișier în storage: `trial-balances/<company_id>/<timestamp>_balanta_simpla_valida.xlsx`
+- ✅ Fișier în storage: `balante/<company_id>/<timestamp>_balanta_simpla_valida.xlsx`
 
 ---
 
@@ -407,11 +391,10 @@ export AGGREGATE_DUPLICATES=true
 
 ---
 
-### Test V8: Duplicate Cod Cont ✅
+### Test V8: Duplicate Cod Cont ⚠️
 
 **Input:** `balanta_duplicate_conturi.xlsx`  
-**Așteptat (agregare OFF):** Eroare `DUPLICATE_ACCOUNTS`  
-**Așteptat (agregare ON):** Warning `DUPLICATE_ACCOUNTS`  
+**Așteptat:** Warning `DUPLICATE_ACCOUNTS`, upload permis, agregare la insert  
 **Status:** [ ]
 
 ---
@@ -558,17 +541,10 @@ export AGGREGATE_DUPLICATES=true
 
 ### Database:
 
-- [ ] Migrări aplicate: `20260129000001_fix_view_rls_security_invoker.sql`
-- [ ] Migrări aplicate: `20260129000002_fix_storage_bucket_consistency.sql`
-- [ ] Migrări aplicate: `20260621100000_add_total_sume_columns.sql` (coloane G/H în DB)
-- [ ] Bucket `balante` există (sau `trial-balances` — verifică constanta din cod)
-- [ ] Storage policies verificate (3 policies pentru INSERT/SELECT/DELETE)
-- [ ] Views au `security_invoker = true`
-- [ ] RLS policies pe views verificate
-
-### Code:
-
-- [ ] `npm test` trece (teste parser dual 8/10 coloane)
+- [ ] Bucket `balante` există
+- [ ] Storage policies verificate (prefix `balante_`)
+- [ ] Migrări până la `20260708120000_add_balance_format_dual_support.sql`
+- [ ] `npm test` — 31 teste parser trec
 - [ ] Fișiere fixture Excel pentru ambele formate (A–H și A–J)
 - [ ] Hook folosește bucket canonical (`BALANCE_STORAGE_BUCKET` din constants)
 - [ ] Edge Function aliniată cu parser client (detectare + normalizare dual-format)

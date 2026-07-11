@@ -1,14 +1,12 @@
-# ✅ FIX IMPLEMENTAT: Validări Blocking pentru Upload Balanță
+# FIX: Validări Blocking pentru Upload Balanță
 
-> **⚠️ Actualizare iulie 2026 (v3.0) — suport DUAL format.** Aplicația acceptă **două formate standard de balanță: 8 coloane (A–H) și 10 coloane (A–J)**, detectate automat per import (alegere manuală pentru cazuri ambigue). Codul `EXCEL_LEGACY_8_COLUMN_FORMAT` **a fost eliminat** — formatul 8 coloane nu mai este respins. Sursa curentă: `ce_verificari_se_fac_la_upload_baanta.md`.
+> **Actualizare 11 iulie 2026 (v3.1).** Validările blocking sunt în **`src/lib/excel-parser.ts`**. Fluxul curent: parsare + preview în **`useBalanceUploadForm`** → la upload, **`uploadBalance`** re-validează și **aruncă eroare fără Storage/INSERT** dacă `ok === false`. Dual format 8/10 coloane activ. Sursa completă: [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md).
 
-## 📋 **REZUMAT PROBLEMĂ**
+## Rezumat problemă (ianuarie 2026)
 
-**Problema raportată**: Upload-uri cu erori critice (total Debit ≠ Credit, conturi lipsă) erau procesate "cu succes" și persistate în DB, fără să fie respinse.
+**Problema raportată:** Upload-uri cu erori critice (dezechilibru SI/Rulaj/SF) erau persistate în DB.
 
-**Impact**: Balanțe invalide în sistem → date corupte, reconcilieri imposibile, rapoarte greșite.
-
-**Severitate**: **CRITICĂ** (blocker pentru integritate date)
+**Stare curentă:** Rezolvat. Validarea blocking oprește fluxul **înainte** de `prepare_balance_month_upload`, Storage și INSERT.
 
 ---
 
@@ -73,10 +71,10 @@ Toate verificările folosesc `applyBalanceControlCheck()` cu prag `CONTROL_THRES
 | `BALANCE_CONTROL_TOTAL_MISMATCH` | Total SF Debit = Total SF Credit |
 | `BALANCE_CONTROL_CLASS6_CLOSING_NOT_ZERO` | Conturi 6xx: SF Debit = SF Credit = 0 |
 | `BALANCE_CONTROL_CLASS7_CLOSING_NOT_ZERO` | Conturi 7xx: SF Debit = SF Credit = 0 |
-| ~~`EXCEL_LEGACY_8_COLUMN_FORMAT`~~ | **Eliminat (v3.0)** — formatul 8 coloane A–H este acum acceptat și detectat automat |
-| `EXCEL_MISSING_REQUIRED_COLUMNS` | Lipsesc coloane I/J din structura foii |
-| `EXCEL_INVALID_COLUMN_COUNT` | Exact 10 coloane A–J; respinge date în coloana K+ (celule goale C–J = 0) |
-| `BALANCE_ROW_CLOSING_MISMATCH` | (SF D − SF C) ≠ (Total Sume D − Total Sume C) (toleranță 0,01 RON) |
+| ~~`EXCEL_LEGACY_8_COLUMN_FORMAT`~~ | **Eliminat (v3.0)** — 8 coloane acceptat |
+| `EXCEL_AMBIGUOUS_FORMAT` | 9 coloane — alegere manuală UI |
+| `EXCEL_INVALID_COLUMN_COUNT` | Date peste coloana J |
+| `BALANCE_ROW_CLOSING_MISMATCH` | (10 col.) SF net ≠ Total Sume D − C |
 | `BALANCE_CLOSING_MISMATCH_DETECTED` | Agregat erori identitate sold final |
 
 **Validare #3: Conturi Invalide/Lipsă (BLOCKING)**
@@ -135,111 +133,23 @@ return {
 };
 ```
 
-### **3. Hook `uploadBalance` - Verificare Blocking Errors**
+### 3. Hook `uploadBalance` — verificare blocking (stare actuală)
 
-**Fișier**: `src/hooks/useTrialBalances.tsx`
+**Fișier:** `src/hooks/useTrialBalances.tsx`
 
-**Modificări**:
 ```typescript
-const parseResult = await parseExcelFile(file);
+const parseResult = await parseExcelFile(file, { forcedFormat: options?.forcedFormat });
 
-// v2.0: VERIFICARE BLOCKING ERRORS (ok === false)
 if (!parseResult.ok) {
-  console.error('[uploadBalance] BLOCKING ERRORS detected:', parseResult.blockingErrors);
-  console.error('[uploadBalance] Row errors:', parseResult.rowErrors);
-  
-  // Construiește mesaj detaliat pentru UI
-  const errorMessages: string[] = [];
-  
-  parseResult.blockingErrors.forEach(err => {
-    errorMessages.push(`❌ ${err.message}`);
-    
-    // Adaugă detalii specifice pentru fiecare tip de eroare
-    const controlUi = CONTROL_MISMATCH_UI[err.code];
-    if (controlUi && err.details) {
-      const details = err.details as Record<string, number>;
-      errorMessages.push(`  • ${controlUi.debitLabel}: ${details[controlUi.debitKey].toFixed(2)} RON`);
-      errorMessages.push(`  • ${controlUi.creditLabel}: ${details[controlUi.creditKey].toFixed(2)} RON`);
-      errorMessages.push(`  • Diferență: ${details.difference.toFixed(2)} RON`);
-    }
-    
-    if (err.code === 'BALANCE_INVALID_ROWS_DETECTED' && err.details) {
-      const details = err.details as { invalidRowsCount: number; firstErrors: Array<{ rowIndex: number; message: string }> };
-      errorMessages.push(`  • Total rânduri invalide: ${details.invalidRowsCount}`);
-      errorMessages.push(`  • Exemple erori:`);
-      details.firstErrors.forEach(rowErr => {
-        errorMessages.push(`    - ${rowErr.message}`);
-      });
-    }
-  });
-  
-  const errorMessage = errorMessages.join('\n');
-  
-  // Update status la 'error' cu detalii complete
-  await supabase
-    .from('trial_balance_imports')
-    .update({ 
-      status: 'error', 
-      error_message: errorMessage,
-      internal_error_detail: JSON.stringify({
-        blockingErrors: parseResult.blockingErrors,
-        rowErrors: parseResult.rowErrors.slice(0, 10),
-        metrics: parseResult.metrics,
-      }),
-      internal_error_code: parseResult.blockingErrors[0]?.code || 'VALIDATION_FAILED',
-    })
-    .eq('id', importData.id);
-  
-  // Aruncă eroare → UI afișează toast.error()
-  throw new Error(errorMessage);
+  const errorMessage = formatBlockingValidationErrors(parseResult);
+  throw new Error(errorMessage);  // Fără Storage, fără INSERT
 }
 ```
 
-**Rezultat**:
-- ❌ Upload RESPINS COMPLET (BLOCKING)
-- ⛔ ZERO persistență în DB (status = 'error' în `trial_balance_imports`, FĂRĂ insert în `trial_balance_accounts`)
-- 📢 Mesaj clar în UI cu detalii:
-  - Total Debit vs Credit + diferență
-  - Lista rânduri invalide (primele 5 exemple)
-  - Metrici: rânduri citite, acceptate, respinse
-
-### **4. UI - Afișare Erori (Toast Îmbunătățit)**
-
-**Fișier**: `src/pages/IncarcareBalanta.tsx`
-
-**Modificări**:
-```typescript
-catch (error) {
-  console.error('[handleUpload] Upload error:', error);
-  setUploadStatus('error');
-  
-  // v2.0: Afișare îmbunătățită pentru erori de validare blocking
-  const errorMessage = error instanceof Error ? error.message : 'Eroare la încărcare';
-  
-  // Verifică dacă e eroare de validare (conține ❌)
-  if (errorMessage.includes('❌')) {
-    // Eroare de validare blocking - afișează cu formatare
-    const errorLines = errorMessage.split('\n');
-    const mainError = errorLines[0];
-    
-    // Toast principal cu prima linie
-    toast.error(mainError, {
-      duration: 8000, // 8 secunde pentru a putea citi
-    });
-    
-    // Log detalii în consolă pentru debugging
-    console.error('[handleUpload] Validation errors:', errorLines);
-  } else {
-    // Eroare generică
-    toast.error(errorMessage);
-  }
-}
-```
-
-**Rezultat**:
-- 🔴 Toast error cu mesaj clar (8 secunde)
-- 📊 Detalii complete în console pentru debugging
-- ✅ Status upload = 'error' (vizual feedback în UI)
+**Rezultat:**
+- Upload respins complet la validare blocking
+- **Nu** se creează rând în `trial_balance_imports` (validarea e înainte de INSERT)
+- UI: toast error (8s) via `IncarcareBalanta.tsx`; erori vizibile și în `BalanceUploadPreview`
 
 ---
 
@@ -414,8 +324,8 @@ expect(parseResult.warnings[0].code).toBe('BALANCE_CONTROL_ROUNDING_DIFF');
 - [x] **5. No partial writes**: ZERO insert în DB dacă `ok === false`
 - [x] **6. UI feedback**: Toast error cu mesaj detaliat (8s)
 - [x] **7. Audit trail**: `internal_error_detail`, `internal_error_code` în DB
-- [x] **8. Teste automate**: `src/lib/excel-parser.test.ts` — `npm test` (13 teste Vitest)
-- [x] **9. Format 10 coloane v2.1**: DB `total_sume_*`, Edge Function aliniată, migrare `20260621100000`
+- [x] **8. Teste automate:** `excel-parser.test.ts` — **31 teste** Vitest (`npm test`)
+- [x] **9. Dual format + balance_month:** migrări 20260701, 20260708
 
 ---
 

@@ -1,10 +1,10 @@
 # Documentație: Încărcare Balanță de Verificare - Finguard v2
 
-> **⚠️ Actualizare iulie 2026 (v3.0) — suport DUAL format.** Aplicația acceptă **două formate standard de balanță: 8 coloane (A–H) și 10 coloane (A–J)**, detectate automat per import (alegere manuală pentru cazuri ambigue). Acest document (v1.8) este **istoric**; pentru starea curentă a validărilor și mapping-ului vezi `ce_verificari_se_fac_la_upload_baanta.md`.
+> **Actualizare 11 iulie 2026 (v3.1).** Document rescris parțial pentru starea curentă. Pentru validări, coduri eroare și flux complet vezi [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md). Secțiunile 4–11 de mai jos conțin detalii istorice (Edge Function, securitate) — unele referințe la linii de cod pot fi depășite.
 
-**Versiune:** 1.8  
-**Data:** 28 ianuarie 2026  
-**Scop:** Documentație completă a procedurii de încărcare, procesare și validare a balanței de verificare
+**Versiune:** 3.1  
+**Data:** 11 iulie 2026  
+**Scop:** Procedura de încărcare, procesare și validare a balanței de verificare
 
 ---
 
@@ -31,29 +31,41 @@
 
 Sistemul de încărcare a balanței de verificare permite utilizatorilor să încarce fișiere Excel (.xlsx, .xls) cu datele contabile, care sunt procesate automat pentru extragerea conturilor și calcularea totalurilor.
 
-### 1.2. Componente Principale
+### 1.2. Componente Principale (stare iulie 2026)
 
 | Componentă | Locație | Descriere |
 |------------|---------|-----------|
-| **UI Upload** | `src/pages/IncarcareBalanta.tsx` | Interfață utilizator pentru încărcare |
-| **Hook Gestionare** | `src/hooks/useTrialBalances.tsx` | Logică React pentru CRUD balanțe |
-| **Edge Function** | `supabase/functions/parse-balanta/index.ts` | Procesare server-side Excel |
-| **Validare Fișiere** | `src/utils/fileHelpers.ts` | Validări și normalizare nume fișiere |
-| **Funcție SQL** | `migrations/.../process_import_accounts_function.sql` | Inserare conturi în DB |
-| **Error Boundary** | `src/components/ErrorBoundary.tsx` | Gestionare erori React |
+| **UI Upload** | `src/pages/IncarcareBalanta.tsx` | Pagină upload, listă imports, replace lună |
+| **Formular + preview** | `src/hooks/useBalanceUploadForm.ts` | Parsare la selectare, preview, format ambiguu |
+| **Preview UI** | `src/components/upload/BalanceUploadPreview.tsx` | Totaluri, erori, warnings, selector 8/10 col |
+| **Dialog conturi** | `src/components/upload/BalanceAccountsViewDialog.tsx` | Vizualizare conturi paginat |
+| **Hook CRUD** | `src/hooks/useTrialBalances.tsx` | Upload, listă, delete, retry |
+| **Selector lună** | `src/components/app/BalanceMonthPicker.tsx` | Luna balanței (`balance_month`) |
+| **Parser + validări** | `src/lib/excel-parser.ts` | Dual format, validări blocking |
+| **Pipeline** | `src/lib/importPipeline.ts` | Edge Fn, polling, fallback client |
+| **Pregătire lună** | `src/lib/prepareBalanceMonthUpload.ts` | RPC conflict/replace |
+| **Perioadă** | `src/lib/balancePeriod.ts` | balance_month → period_start/end |
+| **Edge Function** | `supabase/functions/parse-balanta/index.ts` | Procesare server-side |
+| **Constante Storage** | `src/lib/storage/constants.ts` | Bucket `balante` |
+| **Validare fișiere** | `src/utils/fileHelpers.ts` | Normalizare nume fișier |
+| **Agregare duplicate** | `src/utils/balanceValidation.ts` | `aggregateDuplicateAccounts` |
+| **Situații financiare** | `src/lib/financialStatementsPipeline.ts` | Post-upload |
+| **Error Boundary** | `src/components/ErrorBoundary.tsx` | Erori React |
 
 ### 1.3. Arhitectură
 
 ```
-[Client Browser]
-     ↓
-[IncarcareBalanta.tsx] → [useTrialBalances Hook]
-     ↓                           ↓
-[Supabase Storage]    →    [Edge Function: parse-balanta]
-     ↓                           ↓
-[Database]             ←    [process_import_accounts RPC]
-     ↓
-[Rezultate vizualizare în UI]
+[Browser]
+  IncarcareBalanta.tsx
+    → useBalanceUploadForm (parse + preview)
+    → useTrialBalances (upload, listă)
+         → excel-parser.ts (validare blocking)
+         → prepare_balance_month_upload (RPC)
+         → Storage bucket `balante`
+         → trial_balance_imports (INSERT)
+         → importPipeline → parse-balanta (Edge Fn) / fallback client
+         → financialStatementsPipeline
+    → BalanceUploadPreview (feedback utilizator)
 ```
 
 ---
@@ -66,52 +78,39 @@ Sistemul de încărcare a balanței de verificare permite utilizatorilor să în
 - Utilizatorul trebuie să aibă o companie activă selectată
 - Afișare banner cu compania activă: **"Încărci balanță pentru: [Nume Companie]"**
 
-#### Pas 2: Selectare Data de Referință
-- **Obligatoriu:** Data până la care este validă balanța
-- Selector calendar în format românesc (dd.MM.yyyy)
-- Data de referință = ultima zi a perioadei
-- Data de start = prima zi a lunii din data de referință
+#### Pas 2: Selectare Luna Balanței
+- **Obligatoriu:** Luna pentru care se încarcă balanța (`BalanceMonthPicker`)
+- Se persistă ca `balance_month` (prima zi a lunii, ex. `2026-01-01`)
+- `period_start` / `period_end` sunt calculate în `balancePeriod.ts`
 
 #### Pas 3: Încărcare Fișier
-**Metode disponibile:**
-- **Drag & Drop:** Tragere fișier în zona marcată
-- **File Picker:** Click pe "Selectează fișier"
+- Drag & drop sau file picker
+- La selectare: **parsare automată** + preview (`BalanceUploadPreview`)
+- Formate acceptate: **8 coloane (A–H)** sau **10 coloane (A–J)**
+- Dacă structura e ambiguă (9 coloane): dialog alegere format
 
-**Specificații tehnice afișate:**
-- Secțiune colapsabilă "Specificații Tehnice și Format Acceptat"
-- Structură Excel obligatorie (**10 coloane: A–J** — vezi §3.3)
-- Exemplu tabel cu date demonstrative
+#### Pas 4: Confirmare Upload
+- Buton activ doar dacă `parseResult.ok === true`
+- Progress: validating → uploading → processing → completed
+- Dacă există deja balanță pe lună: dialog **replace**
 
-#### Pas 4: Validare și Upload
-- Validări client-side (tip, dimensiune)
-- Progress bar (10% → 30% → 100%)
-- Apel Edge Function pentru procesare
-
-#### Pas 5: Vizualizare Rezultate
-- Status badge: Draft/În procesare/Procesat/Validat/Eroare
-- Afișare totaluri: Nr. Conturi, Total Debit, Total Credit
-- Mesaje eroare (dacă există)
+#### Pas 5: Rezultate
+- Listă imports cu totaluri (RPC `get_company_imports_with_totals`)
+- Status: processing / completed / error
+- Acțiuni: download, vizualizare conturi, ștergere (soft delete)
 
 ### 2.2. Implementare Tehnică Upload
 
-**Fișier:** `src/hooks/useTrialBalances.tsx` (linii 165-231)
-
-```typescript
-const uploadBalance = async (
-  file: File,
-  periodStart: Date,
-  periodEnd: Date,
-  userId: string
-): Promise<TrialBalanceImport>
-```
+**Fișier:** `src/hooks/useTrialBalances.tsx` — funcția `uploadBalance`
 
 **Proces:**
-1. **Validare companie activă:** `if (!companyId) throw new Error('No company selected')`
-2. **Generare path storage:** `${companyId}/${timestamp}_${file.name}`
-3. **Upload în Supabase Storage:** Bucket `balante`
-4. **Creare înregistrare import:** Status = `processing`
-5. **Apel Edge Function:** POST la `/functions/v1/parse-balanta`
-6. **Cleanup la eroare:** Ștergere fișier din storage dacă insert DB eșuează
+1. Validare blocking: `parseExcelFile` — dacă `!ok`, throw (fără DB)
+2. `prepareBalanceMonthUpload` — conflict lună / replace
+3. Upload Storage bucket **`balante`**: `${companyId}/${timestamp}_${file.name}`
+4. INSERT `trial_balance_imports` (status=`processing`, `balance_month`, `balance_format`)
+5. `processImport` → Edge Function `parse-balanta` sau fallback client
+6. `generateFinancialStatementsForImport`
+7. Cleanup Storage la eroare INSERT
 
 ---
 
@@ -139,32 +138,14 @@ const validTypes = [
 ];
 ```
 
-### 3.3. Structură Excel Obligatorie
+### 3.3. Structură Excel — dual format
 
-> **Actualizare iunie 2026 (v2.1):** Format obligatoriu **10 coloane A–J**. Formatul vechi cu 8 coloane (G/H = SF) **nu mai este acceptat**.
+Vezi mapping complet în [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md) §2.
 
-**Configurare:** 10 coloane fixe (A–J), prima linie = header (ignorat)
+**Format 10 coloane (A–J)** — G/H = total sume, I/J = sold final  
+**Format 8 coloane (A–H)** — G/H = sold final; total_sume calculate intern
 
-| Coloană | Nume Câmp | Tip Date | Validare | Exemplu |
-|---------|-----------|----------|----------|---------|
-| **A** | Cont | Text | 3-6 cifre | `1012`, `4111` |
-| **B** | Denumire | Text | Max 200 caractere | "Conturi la bănci" |
-| **C** | Sold Inițial Debit | Număr | Format RO/US | `50000.00` |
-| **D** | Sold Inițial Credit | Număr | Format RO/US | `0.00` |
-| **E** | Rulaj Debit | Număr | Format RO/US | `25000.00` |
-| **F** | Rulaj Credit | Număr | Format RO/US | `15000.00` |
-| **G** | Total sume debitoare | Număr | **= C + E** (toleranță 0,01 RON) | `75000.00` |
-| **H** | Total sume creditoare | Număr | **= D + F** (toleranță 0,01 RON) | `15000.00` |
-| **I** | Sold Final Debit | Număr | Format RO/US | `60000.00` |
-| **J** | Sold Final Credit | Număr | Format RO/US | `0.00` |
-
-**Observații:**
-- Prima linie (header) este ignorată automat la procesare
-- Liniile goale sunt ignorate automat
-- Celule goale în C–J → tratate ca 0
-- Date dincolo de coloana J resping upload-ul
-- Conturi duplicate sunt permise (agregate automat la salvare)
-- Câmpurile G/H sunt persistate în DB: `total_sume_debitoare`, `total_sume_creditoare`
+Prima linie = header (ignorat). Celule numerice goale = 0. Date peste coloana J = respins.
 
 ### 3.4. Formate Numerice Suportate
 
@@ -379,7 +360,7 @@ END IF;
          ↓
 [3. Validare Size] → MAX_FILE_SIZE_BYTES (ÎNAINTE de download)
          ↓
-[4. Download Fișier] → Supabase Storage (trial-balances bucket)
+[4. Download Fișier] → Supabase Storage (`balante` bucket)
          ↓
 [5. Validare Size Secundară] → Defense-in-depth
          ↓
@@ -669,12 +650,9 @@ USING (
 
 ### 6.5. Storage Policy
 
-**Bucket:** `balante` (sau `trial-balances`)
+**Bucket:** `balante` (canonic în cod și Edge Function)
 
-**Policy:**
-- Path format: `<user_id>/<filename>`
-- Filename pattern: `^[a-zA-Z0-9._\- ]+$` (doar ASCII safe)
-- Validare în `fileHelpers.ts`
+**Path:** `{company_id}/{timestamp}_{filename}`
 
 ---
 
@@ -797,7 +775,7 @@ componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
 #### handleUpload (linii 215-220)
 ```typescript
 try {
-  await uploadBalance(uploadedFile, periodStart, referenceDate, userData.id);
+  await uploadBalance(uploadedFile, balanceMonth, userData.id);
   // Success handling
 } catch (error) {
   console.error('Upload error:', error);
@@ -1583,7 +1561,6 @@ const formatCurrency = (value: number) => {
 │ [4] SUPABASE STORAGE UPLOAD                                 │
 │  - Bucket: balante                                          │
 │  - Path: {companyId}/{timestamp}_{filename}                │
-│  - Cleanup: Dacă eroare DB → remove file                   │
 └──────────────────────────┬──────────────────────────────────┘
                            ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -1617,7 +1594,7 @@ const formatCurrency = (value: number) => {
                            ↓
 ┌─────────────────────────────────────────────────────────────┐
 │ [9] DOWNLOAD FROM STORAGE                                   │
-│  - supabase.storage.from('trial-balances').download()      │
+│  - supabase.storage.from('balante').download()      │
 │  - Validare secundară: fileData.size <= 10MB               │
 └──────────────────────────┬──────────────────────────────────┘
                            ↓
@@ -1797,10 +1774,10 @@ Manual Intervention:
 ### ✅ Ce TREBUIE să Facă Utilizatorul
 
 1. **Selectare companie activă**
-2. **Selectare data de referință** (obligatoriu)
-3. **Fișier Excel** cu structura exactă (**10 coloane A–J** — vezi `ce_verificari_se_fac_la_upload_baanta.md`)
-4. **Format numere:** RO (1.234,56) SAU US (1,234.56)
-5. **Cod cont:** 3-6 cifre (ex: 1012, 4111)
+2. **Selectare luna balanței** (obligatoriu)
+3. **Fișier Excel** 8 coloane (A–H) **sau** 10 coloane (A–J)
+4. **Format numere:** RO (1.234,56) sau US (1,234.56)
+5. **Cod cont:** 3-6 cifre
 
 ### ⚠️ Limite de Reținut
 
@@ -1846,6 +1823,6 @@ Manual Intervention:
 
 ---
 
-**Documentație generată:** 28 ianuarie 2026  
-**Versiune aplicație:** Finguard v2 (1.8)  
-**Autor:** Documentație automată bazată pe analiză cod
+**Documentație generată/actualizată:** 11 iulie 2026  
+**Versiune aplicație:** Finguard v2 (upload v3.1)  
+**Sursă canonică validări:** `ce_verificari_se_fac_la_upload_baanta.md`

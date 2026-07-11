@@ -1,8 +1,9 @@
 # Raport Stabilizare Pipeline Upload Balanță — FinGuard v2
 
-> **⚠️ Actualizare iulie 2026 (v3.0) — suport DUAL format.** Pipeline-ul acceptă acum **două formate standard: 8 coloane (A–H) și 10 coloane (A–J)**, detectate automat per import. Afirmațiile despre „exact 10 coloane A–J" reflectă v2.1 și sunt **depășite**. Sursa curentă: `ce_verificari_se_fac_la_upload_baanta.md`.
+> **Actualizare 11 iulie 2026 (v3.1).** Raportul original (21 iunie 2026) descrie stabilizarea pipeline-ului. De atunci s-au adăugat: **dual format 8/10 coloane**, **`balance_month`**, RPC **`prepare_balance_month_upload`**, UI **`BalanceUploadPreview`**, generare situații financiare post-upload. Sursa curentă completă: [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md).
 
-**Data:** 21 iunie 2026  
+**Data raport inițial:** 21 iunie 2026  
+**Ultima revizie document:** 11 iulie 2026  
 **Scop:** Production-ready flow Excel → Storage → parse-balanta → DB → KPI
 
 ---
@@ -91,20 +92,30 @@
 | `supabase/migrations/20260621000000_stabilize_upload_pipeline.sql` | **NOU** — consolidare bucket, view, GRANT parțial, RPC robust |
 | `scripts/verify-upload-pipeline.mjs` | **NOU** — verificări statice + checklist E2E |
 
-### Flux final (Production Ready)
+### Flux final (Production Ready — iulie 2026)
 
 ```
-[UI] validare Excel (client: celule goale=0, **detectare format 8/10 coloane**, identitate SF = Total Sume D − Total Sume C doar la 10 coloane, blocking conturi/control totals)
+[UI] BalanceMonthPicker + selectare fișier
+  → [useBalanceUploadForm] parseExcelFile → BalanceUploadPreview (blocking înainte de confirm)
+  → [User] confirmă upload
+  → [useTrialBalances] re-validare → prepare_balance_month_upload (conflict/replace lună)
   → [Storage] bucket `balante` / {company_id}/{timestamp}_file.xlsx
-  → [DB] INSERT trial_balance_imports (status=processing, processing_started_at)
-  → [Edge Fn] parse-balanta
-       → download Storage
-       → parse Excel
-       → RPC process_import_accounts
-       → status=completed
-  → [UI] poll trial_balance_imports_public
-  → [Dashboard/KPI] useBalante → get_balances_with_accounts
+  → [DB] INSERT trial_balance_imports (processing, balance_month, balance_format, …)
+  → [importPipeline] Edge Fn parse-balanta → poll; fallback client-side la eșec
+  → [financialStatementsPipeline] generare situații financiare
+  → [UI] refresh get_company_imports_with_totals
+  → [Dashboard/KPI] useBalante
 ```
+
+### Evoluții post-stabilizare (iunie → iulie 2026)
+
+| Adăugare | Fișier / migrare |
+|----------|------------------|
+| Dual format 8/10 coloane | `excel-parser.ts`, `20260708120000_add_balance_format_dual_support.sql` |
+| Selector lună + `balance_month` | `BalanceMonthPicker`, `20260630100000_*` |
+| RPC conflict lună | `prepareBalanceMonthUpload.ts`, `20260701120000_*` |
+| Preview UI | `useBalanceUploadForm`, `BalanceUploadPreview` |
+| Teste parser | 31 teste în `excel-parser.test.ts` |
 
 ---
 
@@ -159,7 +170,9 @@ SELECT * FROM cleanup_stale_imports();
 | upload funcțional | ✅ Implementat (necesită deploy) |
 | procesare funcțională | ✅ Edge Fn + polling |
 | KPI funcționale | ✅ useBalante neschimbat logic, citește completed |
-| test E2E trecut | ⚠️ Build + script static OK; test live necesită deploy Supabase |
+| test E2E trecut | ✅ 39 teste Vitest upload-related; E2E live necesită deploy Supabase |
+| dual format 8/10 | ✅ excel-parser + migrare 20260708 |
+| balance_month + replace | ✅ prepare_balance_month_upload |
 
 ---
 

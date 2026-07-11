@@ -1,8 +1,9 @@
 # FinGuard v2 - Custom Knowledge File
 
-> **Ultima actualizare**: 26 Ianuarie 2026  
-> **Status proiect**: ✅ Production-ready (7/11 probleme critice rezolvate)  
-> **Versiune**: 2.0
+> **Ultima actualizare**: 11 Iulie 2026  
+> **Status proiect**: ✅ Funcțional (upload → FS → reconciliere); ⚠️ Security v1.8 parțial pe producție  
+> **Versiune**: 3.6  
+> **Documentație DB detaliată**: `planning/about database/` (`descriere_database.md`, `tabele.md`, `prezentare_finguard_database.md`)
 
 ---
 
@@ -14,7 +15,7 @@
 
 ### Propunere de Valoare
 - **Analiză financiară automată**: Procesare balanțe lunare → rapoarte comprehensive în secunde
-- **Confidențialitate**: Nu necesită identificare firmă prin CUI
+- **Confidențialitate**: Date izolate per companie (RLS); CUI folosit pentru identificare tenant, nu pentru interogări externe
 - **Multi-company support**: Gestiune multiplă companii per utilizator
 - **Securitate garantată**: Date criptate în cloud (Supabase + RLS)
 
@@ -50,7 +51,47 @@
 
 ## 3. Backend Architecture (Supabase)
 
-### Database Schema (PostgreSQL)
+> **Schema completă:** vezi `planning/about database/prezentare_finguard_database.md`.  
+> **Stare verificată 11 iul. 2026** (proiect `finguard2`): 19 tabele, 4 view-uri, flux upload→FS→reconciliere funcțional.
+
+### Database Schema — sumar curent
+
+| Modul | Tabele cheie | Status producție |
+|-------|--------------|------------------|
+| Auth & users | `users`, `user_roles` | ✅ |
+| Multi-tenancy | `companies`, `company_users` | ✅ (fără `companies.status`) |
+| Upload balanță | `trial_balance_imports` (`balance_month`, `balance_format`), `trial_balance_accounts` (`total_sume_*`) | ✅ |
+| Plan conturi | `chart_of_accounts` (`functional_type`), `chart_of_accounts_template` | ✅ |
+| Template raportare | `statement_line_definitions`, `cash_flow_mapping_rules` | ✅ |
+| Mapări | `account_mappings` (split + versionare) | ✅ |
+| Situații financiare | `financial_statements` + `balance_sheet_lines`, `income_statement_lines`, `cash_flow_lines` | ✅ |
+| Rapoarte | `reports` (status include `unreconciled`), `report_statements` | ✅ |
+| KPI | `kpi_definitions`, `kpi_values` | ✅ (valori calculate: 0 în snapshot) |
+| Rate limiting | `rate_limits`, `rate_limits_meta` | ⚠️ în repo, neaplicat pe prod |
+
+### RPC-uri principale (confirmate în `types.ts`)
+
+| Funcție | Scop |
+|---------|------|
+| `prepare_balance_month_upload` | Pregătire upload; conflict/replace lună |
+| `process_import_accounts` | Procesare conturi JSONB; `p_balance_format` opțional |
+| `seed_standard_chart_of_accounts` | Instanțiere plan standard per companie |
+| `auto_map_import_from_chart` | Mapare automată TB → CoA |
+| `generate_financial_statements_from_import` | Generează BS/P&L/CF + raport comprehensive |
+| `validate_balance_sheet_coverage` | Validare reconciliere bilanț |
+| `cleanup_stale_imports` / `retry_failed_import` / `soft_delete_import` | Operațiuni upload |
+
+### Pipeline post-import (frontend)
+
+Implementat în `src/lib/financialStatementsPipeline.ts`:
+1. `seed_standard_chart_of_accounts` (best-effort)
+2. `auto_map_import_from_chart` (obligatoriu)
+3. `generate_financial_statements_from_import`
+4. `validate_balance_sheet_coverage` → `reports.status`: `completed` | `unreconciled`
+
+### Database Schema (PostgreSQL) — detaliu istoric
+
+> Secțiunea de mai jos este **depășită** (ian. 2026). Păstrată ca referință; folosiți `planning/about database/` pentru schema actuală.
 
 #### Users & Authentication
 ```sql
@@ -130,26 +171,25 @@ Toate tabelele au politici RLS active:
 ### Edge Functions
 | Function | Status | Scop |
 |----------|--------|------|
-| `parse-balanta` | ✅ Implementat | Procesare Excel upload + validare + inserare DB |
+| `parse-balanta` | ✅ Implementat | Procesare Excel upload + RPC `process_import_accounts` |
 | `calculate-kpis` | ⏳ Planificat | Calcul indicatori financiari server-side |
 | `generate-report` | ⏳ Planificat | Generare PDF raport comprehensive |
 
 #### parse-balanta (Implementat)
-- ✅ Rate limiting: 10 req/min per user
+- ⚠️ Rate limiting DB: apelează `check_rate_limit` — **RPC lipsă pe producție** (migrare `20260128100002` neaplicată)
 - ✅ CORS restrictiv cu whitelist origins
-- ✅ Input validation & sanitization (prevenire injection)
-- ✅ Validare cod cont (3-6 cifre)
-- ✅ Parsare Excel cu XLSX library
-- ✅ Inserare batch în DB
+- ✅ Parsare Excel 8/10 coloane (`importPipeline.ts`, `excel-parser.ts`)
+- ✅ Pipeline post-import via `financialStatementsPipeline.ts`
 
 ### Stored Functions (PostgreSQL RPC)
 | Function | Scop |
 |----------|------|
-| `get_import_totals(_import_id)` | Totaluri import calculate server-side |
-| `get_company_imports_with_totals(...)` | Lista importuri + totaluri (evită N+1) |
-| `get_accounts_paginated(...)` | Conturi paginat pentru performance |
-| `get_balances_with_accounts(...)` | Balanțe cu conturi (batch query) |
-| `soft_delete_import(_import_id)` | Soft delete pentru istoricul datelor |
+| `prepare_balance_month_upload` | Verifică/replace lună înainte de upload |
+| `process_import_accounts` | Procesare conturi din Edge Function |
+| `generate_financial_statements_from_import` | Generează situații financiare + raport |
+| `validate_balance_sheet_coverage` | Reconciliere bilanț |
+| `get_import_totals` / `get_company_imports_with_totals` / `get_balances_with_accounts` | Queries performante |
+| `soft_delete_import` / `retry_failed_import` / `cleanup_stale_imports` | Gestiune importuri |
 
 ---
 

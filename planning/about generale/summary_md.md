@@ -1,8 +1,8 @@
 # Sumar Fișiere Markdown - FinGuard v2
 
-> **Ultima actualizare:** 28 Ianuarie 2026  
-> **Total fișiere `.md`:** 22  
-> **Status proiect:** ✅ Production-ready (Security Patches v1.8 implementate)
+> **Ultima actualizare:** 11 Iulie 2026  
+> **Total fișiere `.md`:** 41+ în `planning/`  
+> **Status proiect:** ✅ Funcțional (upload → FS → reconciliere); documentație DB în `planning/about database/`
 
 ---
 
@@ -23,7 +23,9 @@
 | --------------------------- | -------------------------------------- | -------------- |
 | **planning/about generale/KNOWLEDGE.md**   | Prima referință pentru orice întrebare | 20 min         |
 | **planning/about generale/tech_stack.md**  | Arhitectură tehnică și comenzi         | 15 min         |
-| **planning/about generale/analiza_app.md** | Starea curentă a aplicației            | 15 min         |
+| **planning/about database/descriere_database.md** | Documentație completă schema DB (v3.6) | 15 min |
+| **planning/about database/prezentare_finguard_database.md** | Onboarding arhitectură DB | 10 min |
+| **planning/about database/tabele.md** | Cheat sheet tabele + RPC | 5 min |
 
 ---
 

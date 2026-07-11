@@ -1,243 +1,125 @@
-# 🚀 Quick Start - Implementare Upload Balanță v1.4
+# Quick Start — Upload Balanță (stare actuală)
 
-**Status:** ✅ COMPLET - Production Ready  
-**Data:** 29 Ianuarie 2026
-
----
-
-## 📊 Ce a fost implementat
-
-Am analizat detaliat proiectul **finguardv2** și am implementat **complet** planul din `plan_upload_balanta.md`:
-
-### ✅ 3 FIX-uri CRITICE de securitate:
-
-1. **Bucket name inconsistent** → Standardizat la `'trial-balances'`
-2. **View RLS** → Adăugat `security_invoker = true`
-3. **Storage policies** → Actualizate pentru mapping corect
-
-### ✅ 16 Validări contabile complete:
-
-- 8 CRITICE (blocante)
-- 8 WARNINGS (non-blocante)
-- Conform OMFP 1802/2014
-
-### ✅ Componente noi create:
-
-- `balanceValidation.ts` (850+ linii)
-- `ValidationResultsDialog.tsx` (400+ linii)
-- 2 migrări SQL
+**Versiune:** 3.1  
+**Data:** 11 iulie 2026  
+**Status:** Implementat în cod — necesită deploy Supabase pentru mediu remote
 
 ---
 
-## 🗂️ Fișiere Create/Modificate
+## Ce face aplicația acum
+
+1. Acceptă Excel **8 coloane (A–H)** sau **10 coloane (A–J)** — detectare automată
+2. Validează **blocking în browser** înainte de upload (preview cu `BalanceUploadPreview`)
+3. Permite **o balanță activă per lună** per companie (replace opțional)
+4. Încarcă în Storage bucket **`balante`**
+5. Procesează via **Edge Function** `parse-balanta` (fallback client dacă eșuează)
+6. Generează **situații financiare** după import reușit
+
+Detalii complete: [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md)
+
+---
+
+## Fișiere cheie
 
 ```
-finguardv2/
-├── src/
-│   ├── hooks/
-│   │   └── useTrialBalances.tsx              ✏️ Modificat
-│   ├── utils/
-│   │   └── balanceValidation.ts              ✨ NOU
-│   └── components/
-│       └── upload/
-│           └── ValidationResultsDialog.tsx   ✨ NOU
-├── supabase/
-│   └── migrations/
-│       ├── 20260129000001_fix_view_rls_security_invoker.sql      ✨ NOU
-│       └── 20260129000002_fix_storage_bucket_consistency.sql     ✨ NOU
-└── planning/
-    └── about upload balance/
-        ├── IMPLEMENTATION_UPLOAD_BALANTA.md      ✨ NOU (documentație)
-        ├── TESTING_GUIDE_UPLOAD_BALANTA.md       ✨ NOU (teste)
-        └── QUICK_START_IMPLEMENTATION.md          ✨ NOU (acest fișier)
+src/
+├── pages/IncarcareBalanta.tsx
+├── hooks/
+│   ├── useBalanceUploadForm.ts      # parse + preview
+│   └── useTrialBalances.tsx         # upload orchestration
+├── components/upload/
+│   ├── BalanceUploadPreview.tsx     # UI preview (activ)
+│   └── BalanceAccountsViewDialog.tsx
+├── lib/
+│   ├── excel-parser.ts              # validări + dual format
+│   ├── importPipeline.ts            # Edge Fn + fallback
+│   ├── prepareBalanceMonthUpload.ts
+│   ├── balancePeriod.ts
+│   └── storage/constants.ts         # BALANCE_STORAGE_BUCKET = 'balante'
+supabase/
+├── functions/parse-balanta/index.ts
+└── migrations/
+    ├── 20260621000000_stabilize_upload_pipeline.sql
+    ├── 20260701120000_prepare_balance_month_upload.sql
+    └── 20260708120000_add_balance_format_dual_support.sql
 ```
 
 ---
 
-## 🚀 Deployment în 5 pași
+## Deploy în 4 pași
 
-### 1. Aplică Migrările SQL
+### 1. Migrări
 
 ```bash
 cd c:\_Software\SAAS\finguardv2
 supabase db push
 ```
 
-**Verifică în Supabase Dashboard:**
-- SQL Editor → Rulează verificări din migrări
-- Storage → Verifică că bucket `trial-balances` există
-
----
-
-### 2. Regenerează TypeScript Types
+### 2. Edge Function
 
 ```bash
-npx supabase gen types typescript --project-id <your-project-id> > src/integrations/supabase/types.ts
+supabase functions deploy parse-balanta
 ```
 
----
-
-### 3. Test Local
+### 3. Teste locale
 
 ```bash
+npm test
 npm run dev
 ```
 
-**Navighează la:** `http://localhost:5173/incarcare-balanta`
+Navigare: `http://localhost:5173/incarcare-balanta`
 
-**Test rapid:**
-1. Creează fișier Excel cu 3 conturi echilibrate
-2. Upload → Verifică că validările apar
-3. Confirmă → Verifică că apare în lista de balanțe
+### 4. Verificare rapidă
+
+- Upload `.xlsx` valid 10 coloane → listă imports, status Procesat
+- Upload `.xlsx` valid 8 coloane → badge format 8 coloane
+- Upload dezechilibrat → eroare în preview, fără persistență
 
 ---
 
-### 4. Verificări Post-Deployment
+## Checklist
 
-Rulează în **Supabase SQL Editor:**
+### Database
+- [ ] Migrări până la `20260708120000_*` aplicate
+- [ ] Bucket `balante` există
+- [ ] RPC `prepare_balance_month_upload` disponibil
+- [ ] Coloane `balance_month`, `balance_format` pe `trial_balance_imports`
+
+### Cod
+- [ ] `npm test` — 39+ teste upload-related trec
+- [ ] `npm run build` — SUCCESS
+- [ ] Edge Function deployată
+
+### Funcțional
+- [ ] Upload 10 coloane valid
+- [ ] Upload 8 coloane valid
+- [ ] Blocare dezechilibru SI/Rulaj/SF
+- [ ] Replace balanță existentă pe aceeași lună
+- [ ] Delete (soft) import
+
+---
+
+## Documentație
+
+| Document | Conținut |
+|----------|----------|
+| `ce_verificari_se_fac_la_upload_baanta.md` | **Sursa principală** — validări, flux, DB |
+| `IMPLEMENTATION_UPLOAD_BALANTA.md` | Rezumat tehnic implementare |
+| `TESTING_GUIDE_UPLOAD_BALANTA.md` | Scenarii manuale + fixtures |
+| `RAPORT_STABILIZARE_UPLOAD_BALANTA.md` | Audit + fix-uri iunie 2026 |
+| `plan_upload_balanta.md` | Plan istoric (parțial depășit) |
+
+---
+
+## Support
+
+- Erori upload: browser console + Supabase Logs → Edge Functions
+- Validări: rulează `npm test -- --run src/lib/excel-parser.test.ts`
+- SQL imports recente:
 
 ```sql
--- Verificare 1: Views au security_invoker
-SELECT viewname, definition
-FROM pg_views
-WHERE viewname LIKE 'trial_balance_imports%'
-  AND schemaname = 'public';
-
--- Verificare 2: Storage policies
-SELECT policyname, cmd
-FROM pg_policies
-WHERE tablename = 'objects'
-  AND schemaname = 'storage'
-ORDER BY policyname;
-
--- Verificare 3: Bucket exists
-SELECT id, name, public
-FROM storage.buckets
-WHERE id = 'trial-balances';
+SELECT id, balance_month, balance_format, status, accounts_count, created_at
+FROM trial_balance_imports
+ORDER BY created_at DESC LIMIT 10;
 ```
-
-**Toate trebuie să returneze rezultate!**
-
----
-
-### 5. Test în Producție
-
-1. Login cu cont real
-2. Upload balanță validă → ✅ SUCCESS
-3. Upload balanță invalidă → ❌ Erori detaliate
-4. Verifică storage: fișierul e în `trial-balances` bucket
-
----
-
-## 📋 Checklist Complet
-
-### Database:
-- [x] Migrare view RLS aplicată
-- [x] Migrare storage bucket aplicată
-- [x] Bucket `trial-balances` există
-- [x] Storage policies (3) create
-- [x] Views au `security_invoker = true`
-
-### Code:
-- [x] Hook folosește `trial-balances`
-- [x] 16 validări implementate
-- [x] UI ValidationResultsDialog creată
-- [x] Types regenerate
-
-### Funcțional:
-- [ ] Test upload balanță validă
-- [ ] Test upload balanță invalidă
-- [ ] Test validări critice (8)
-- [ ] Test validări warning (8)
-- [ ] Test cross-tenant isolation
-
----
-
-## 🧪 Testing
-
-Consultă **`TESTING_GUIDE_UPLOAD_BALANTA.md`** pentru:
-
-- 📊 Template-uri Excel de test
-- ✅ 16 scenarii de validare
-- 🔥 Edge cases
-- ⚡ Performance tests
-- 📋 Checklist final
-
----
-
-## 📚 Documentație Completă
-
-| Document | Descriere |
-|----------|-----------|
-| `IMPLEMENTATION_UPLOAD_BALANTA.md` | Documentație tehnică detaliată (toate fix-urile, validările, deployment) |
-| `TESTING_GUIDE_UPLOAD_BALANTA.md` | Ghid testare cu scenarii complete și template-uri Excel |
-| `QUICK_START_IMPLEMENTATION.md` | Quick start (acest fișier) |
-| `plan_upload_balanta.md` | Plan original cu analiza problemelor (referință) |
-
----
-
-## 🎯 Rezultate Finale
-
-### Securitate:
-- 🔒 **0 vulnerabilități critice** (toate fix-ate)
-- 🔒 Cross-tenant isolation garantat
-- 🔒 RLS policies complete
-
-### Funcționalitate:
-- ✅ **16/16 validări** implementate
-- ✅ Feedback UI detaliat
-- ✅ Performance optimizată
-
-### Calitate:
-- 📝 **3,500+ linii** cod nou
-- 📚 **3 documente** complete
-- 🧪 **30+ teste** documentate
-
----
-
-## 💡 Next Steps
-
-### Imediat:
-1. Aplică migrările (5 min)
-2. Test local (10 min)
-3. Deploy în staging (5 min)
-
-### Opțional:
-1. Creează fișiere Excel de test (30 min)
-2. Rulează suita completă de teste (1 oră)
-3. Performance testing cu 1000 conturi (30 min)
-
----
-
-## 📞 Support
-
-**Probleme?** Verifică:
-1. Logs în Supabase Dashboard → Logs → Errors
-2. Browser console pentru erori frontend
-3. Network tab pentru request/response
-
-**Documentație:**
-- `IMPLEMENTATION_UPLOAD_BALANTA.md` - detalii tehnice
-- `TESTING_GUIDE_UPLOAD_BALANTA.md` - teste și debugging
-
----
-
-## 🎉 Success!
-
-Implementarea este **completă și production-ready**!
-
-Toate inconsistențele din `plan_upload_balanta.md` au fost rezolvate:
-- ✅ v1.4.1 - Bucket consistency
-- ✅ v1.4.2 - View RLS security
-- ✅ v1.4.3 - Storage policies
-- ✅ v1.3 - Toate cele 16 validări
-- ✅ UI/UX îmbunătățit
-- ✅ Documentație completă
-
-**Ready to deploy!** 🚀
-
----
-
-**Versiune:** 1.0  
-**Data:** 29 Ianuarie 2026  
-**Autor:** FinGuard Development Team

@@ -1,8 +1,9 @@
 # FinGuard v2 - Schema Bază de Date
 
-> **Ultima actualizare**: 3 Iulie 2026  
-> **Versiune Schema**: Plan Final v3.3 + Security Patches v1.8 + Upload Pipeline v2.0 + Reporting Template v3.4  
-> **Migrări în repo**: 36 fișiere SQL (`supabase/migrations/`)
+> **Ultima actualizare**: 11 Iulie 2026  
+> **Versiune Schema**: Plan Final v3.3 + Security Patches v1.8 + Upload Pipeline v2.0 + Reporting Template v3.4 + Financial Statements Pipeline v3.5 + Reconciliation v3.6  
+> **Migrări în repo**: 48 fișiere SQL versionate (`supabase/migrations/`) + 1 script utilitar cleanup  
+> **Producție (`finguard2`)**: 19 tabele, 4 view-uri, ~61 migrări aplicate — vezi nota de divergență mai jos
 
 ---
 
@@ -16,8 +17,8 @@
 | `company_users` | Junction users-companies | ✅ |
 | `trial_balance_imports` | Importuri balanțe (cu tracking procesare) | ✅ |
 | `trial_balance_accounts` | Conturi din balanțe | ✅ |
-| `chart_of_accounts` | Plan de conturi per companie | ✅ |
-| `chart_of_accounts_template` | Plan de conturi standard (referință globală) | ✅ |
+| `chart_of_accounts` | Plan de conturi per companie (cu `functional_type`) | ✅ |
+| `chart_of_accounts_template` | Plan de conturi standard (referință globală, cu `functional_type`) | ✅ |
 | `account_mappings` | Mapări conturi TB → CoA | ✅ |
 | `statement_line_definitions` | Scheletul de raportare (BS/P&L/CF): grupuri, subtotaluri, calcule | ✅ |
 | `cash_flow_mapping_rules` | Reguli cash-flow metoda directă (numerar ↔ contrapartidă) | ✅ |
@@ -29,18 +30,33 @@
 | `kpi_values` | Valori KPI calculate | ✅ |
 | `reports` | Rapoarte generate | ✅ |
 | `report_statements` | Junction reports-statements | ✅ |
-| `rate_limits` | Rate limiting persistent (DB-based) | ✅ |
-| `rate_limits_meta` | Metadata cleanup rate limits | ✅ |
+| `rate_limits` | Rate limiting persistent (DB-based; FK → `auth.users`) | ✅ repo / ⚠️ neaplicat prod |
+| `rate_limits_meta` | Metadata cleanup rate limits | ✅ repo / ⚠️ neaplicat prod |
+
+**Total tabele repo:** 21 (19 expuse PostgREST + 2 auxiliare securitate)  
+**Total tabele producție (`finguard2`):** 19
 
 ## Sumar View-uri
 
 | View | Descriere | Acces |
 |------|-----------|-------|
-| `trial_balance_imports_public` | View public (`security_invoker`); include `balance_month`; fără erori interne | authenticated |
+| `trial_balance_imports_public` | View public (`security_invoker`); include `balance_month`, `balance_format`; fără erori interne | authenticated |
 | `trial_balance_imports_internal` | Debugging; include `internal_error_detail/code` | service_role |
+| `active_trial_balance_imports` | Importuri active (`deleted_at IS NULL`); folosit ca FK din `kpi_values` / `financial_statements` | authenticated |
 | `stale_imports_monitor` | Importuri în `processing` > 5 min (warning threshold) | monitoring / service_role |
 
 **Storage:** bucket canonical **`balante`** (10 MB, MIME Excel).
+
+### Divergență repo vs producție (11 iul. 2026)
+
+| Lipsă / diferență pe `finguard2` | Impact |
+|----------------------------------|--------|
+| `rate_limits`, `rate_limits_meta`, `check_rate_limit()` | Edge Function `parse-balanta` apelează RPC inexistent |
+| `companies.status` | Lifecycle `archived/deleting` indisponibil |
+| CUI index normalizat v1.8 | Doar `companies_cui_key` simplu |
+| `create_company_with_member(p_name, p_cui)` fără `p_user_id` | Prod încă expune `p_user_id` în `types.ts` |
+
+Funcționalități **confirmate live**: `balance_month`, `balance_format`, `functional_type`, pipeline FS (`generate_financial_statements_from_import`), reconciliere (`validate_balance_sheet_coverage`, `reports.status = unreconciled`).
 
 ---
 
@@ -49,10 +65,14 @@
 | Schimbare | Detaliu |
 |-----------|---------|
 | `balance_month` | Coloană NOT NULL pe `trial_balance_imports`; UNIQUE activ per `(company_id, balance_month)` |
+| `balance_format` | Coloană per import: `8_COLUMNS` / `10_COLUMNS` / NULL (importuri vechi); param `p_balance_format` în `process_import_accounts` |
 | Format 10 coloane | `total_sume_debitoare`, `total_sume_creditoare` pe `trial_balance_accounts` |
+| `functional_type` | Coloană pe `chart_of_accounts` + `chart_of_accounts_template`: `activ` / `pasiv` / `bifunctional` |
 | RPC upload | `prepare_balance_month_upload`, `soft_delete_import` (orice membru), `retry_failed_import` |
+| RPC raportare | `seed_standard_chart_of_accounts`, `auto_map_import_from_chart`, `generate_financial_statements_from_import`, `validate_balance_sheet_coverage` |
 | Stale imports | `cleanup_stale_imports()` (10 min), view `stale_imports_monitor` (5 min) |
 | View security | `security_invoker = true` pe view-uri import |
+| Reconciliere bilanț | `reports.status` include `unreconciled`; rute SLD duale pentru conturi bifuncționale |
 | Constraints | Eliminate `check_opening_balance_xor` / `check_closing_balance_xor` (v1.9.4) |
 
 ---
@@ -82,9 +102,39 @@ schema Finguard. Structura de raportare este separată de planul de conturi prop
 `scripts/coa/standard-coa-template.json` (artefact durabil) + migrarea generată
 `20260703100005_seed_standard_report_template.sql`.
 
-**Volume seed:** 177 conturi standard, 373 linii de raport, 74 reguli cash-flow, 5 KPI marje.
+**Volume seed (template global):** 177+ conturi standard, 373+ linii de raport, 74 reguli cash-flow, 5 KPI marje (extinse incremental în migrările iul. 2026).
 
 ---
+
+## Financial Statements Pipeline v3.5 (3–9 iul. 2026)
+
+Generarea automată a situațiilor financiare după import, implementată în DB și apelată din frontend via `src/lib/financialStatementsPipeline.ts`.
+
+| Componentă | Rol |
+|------------|-----|
+| `seed_standard_chart_of_accounts(_company_id)` | Instanțiază idempotent planul standard pentru companie |
+| `auto_map_import_from_chart(_import_id)` | Mapare automată TB → CoA (prefix match, `valid_from = period_start`) |
+| `generate_financial_statements_from_import(_import_id)` | Generează BS / P&L / CF + raport `comprehensive` versionat |
+| `validate_balance_sheet_coverage(_import_id)` | Verifică acoperire mapări, `functional_type`, rute bifuncționale |
+| `_tb_closing_balance`, `_tb_economic_net`, `_apply_report_sign` | Helpers interne pentru calcul linii (nu expuse direct frontend) |
+
+**Flux frontend post-import:**
+1. `seed_standard_chart_of_accounts` (best-effort, warning la eșec)
+2. `auto_map_import_from_chart` (obligatoriu)
+3. `generate_financial_statements_from_import`
+4. `validate_balance_sheet_coverage` → setează `reports.status` la `completed` sau `unreconciled`
+
+---
+
+## Reconciliation v3.6 (9 iul. 2026)
+
+| Schimbare | Detaliu |
+|-----------|---------|
+| `functional_type` | Separă funcțiunea contabilă (activ/pasiv/bifuncțional) de soldul brut din balanță |
+| Rute SLD duale | Conturi bifuncționale (378, 4551, 473, 121, 438, 428, 4428, …) pot avea linii distincte pe Active vs Pasive |
+| `validate_balance_sheet_coverage` | Returnează JSONB: `is_valid`, `unmapped_count`, `not_in_report_count`, `bifunctional_route_issue_count`, `missing_functional_type_count` |
+| `reports.status` | Valori: `generating`, `completed`, `error`, **`unreconciled`** |
+| Corecții template | Cont 581 viramente interne, 4551 bifuncțional, 2805/2807 pasiv |
 
 ## 1. Users & Authentication
 
@@ -177,6 +227,7 @@ CREATE TABLE public.trial_balance_imports (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     company_id UUID NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
     balance_month DATE NOT NULL,  -- v2.0 iun.2026: prima zi a lunii (sursă canonică)
+    balance_format TEXT,  -- v3.5 iul.2026: '8_COLUMNS' | '10_COLUMNS' | NULL (importuri vechi)
     period_start DATE NOT NULL,
     period_end DATE NOT NULL,
     source_file_name VARCHAR(255) NOT NULL,
@@ -254,6 +305,8 @@ CREATE TABLE public.chart_of_accounts (
     account_name VARCHAR(255) NOT NULL,
     account_type VARCHAR(50) NOT NULL
         CHECK (account_type IN ('asset', 'liability', 'equity', 'revenue', 'expense')),
+    functional_type TEXT
+        CHECK (functional_type IN ('activ', 'pasiv', 'bifunctional')),  -- v3.6: funcțiune contabilă
     parent_id UUID REFERENCES public.chart_of_accounts(id) ON DELETE SET NULL,
     is_postable BOOLEAN NOT NULL DEFAULT TRUE,
     is_system BOOLEAN NOT NULL DEFAULT FALSE,
@@ -366,7 +419,10 @@ CREATE TABLE public.income_statement_lines (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     statement_id UUID NOT NULL REFERENCES public.financial_statements(id) ON DELETE CASCADE,
     line_key VARCHAR(100) NOT NULL,
-    category VARCHAR(100) NOT NULL CHECK (category IN ('venituri', 'cheltuieli')),
+    category VARCHAR(100) NOT NULL
+        CHECK (category IN ('venituri', 'cheltuieli', 'rezultat', 'marja', 'calculated')),
+    line_type VARCHAR(50)
+        CHECK (line_type IS NULL OR line_type IN ('account', 'group', 'calculated', 'kpi')),
     subcategory VARCHAR(100),
     chart_account_id UUID REFERENCES public.chart_of_accounts(id),
     trial_balance_account_id UUID REFERENCES public.trial_balance_accounts(id),
@@ -385,7 +441,13 @@ CREATE TABLE public.cash_flow_lines (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     statement_id UUID NOT NULL REFERENCES public.financial_statements(id) ON DELETE CASCADE,
     line_key VARCHAR(100) NOT NULL,
-    section VARCHAR(50) NOT NULL CHECK (section IN ('operating', 'investing', 'financing')),
+    section VARCHAR(50) NOT NULL CHECK (section IN (
+        'opening_cash', 'operating', 'investing', 'financing',
+        'internal_transfers', 'unusual', 'closing_cash', 'calculated'
+    )),
+    cash_flow_area VARCHAR(100),
+    line_type VARCHAR(50)
+        CHECK (line_type IS NULL OR line_type IN ('account', 'group', 'report', 'calculated')),
     description VARCHAR(255) NOT NULL,
     amount NUMERIC(15,2) NOT NULL,
     display_order INT NOT NULL DEFAULT 0,
@@ -502,7 +564,7 @@ CREATE TABLE public.reports (
     file_url TEXT,
     file_format VARCHAR(10) CHECK (file_format IN ('pdf', 'excel', 'json')),
     status VARCHAR(50) NOT NULL DEFAULT 'generating'
-        CHECK (status IN ('generating', 'completed', 'error')),
+        CHECK (status IN ('generating', 'completed', 'error', 'unreconciled')),
     metadata JSONB,
     CONSTRAINT valid_report_period CHECK (period_start <= period_end)
 );
@@ -540,14 +602,18 @@ CREATE TABLE public.report_statements (
 | Funcție | Descriere | Versiune | Securitate |
 |---------|-----------|----------|------------|
 | `assert_mappings_complete_for_import(import_id)` | Validare 100% mapare la ref_date | v3.3 (hardened v1.8) | SECURITY DEFINER |
-| `create_company_with_member(name, cui)` | Creare atomică companie + prim membru | v1.8 | SECURITY DEFINER |
+| `create_company_with_member(name, cui)` | Creare atomică companie + prim membru (fără `p_user_id` extern) | v1.8 | SECURITY DEFINER |
 | `archive_company(company_id)` | Marchează companie ca archived | v1.7 | SECURITY DEFINER |
 | `prepare_balance_month_upload(company_id, balance_month, replace?)` | Pregătește upload; soft-delete replace opțional | v2.0 iun.2026 | SECURITY DEFINER |
-| `process_import_accounts(import_id, accounts, user_id)` | Procesare import (10 coloane, idempotență, lock) | v1.8 → v2.0 | SECURITY DEFINER |
+| `process_import_accounts(import_id, accounts, user_id, balance_format?)` | Procesare import (8/10 coloane, idempotență, lock) | v1.8 → v3.5 | SECURITY DEFINER |
 | `soft_delete_import(import_id)` | Soft delete — orice membru companie | v2.0 iun.2026 | SECURITY DEFINER |
 | `retry_failed_import(import_id, user_id)` | Retry import cu status `error` | v1.9 | SECURITY DEFINER |
 | `cleanup_stale_imports()` | Marchează processing > 10 min ca `error` | v1.9 | SECURITY DEFINER |
-| `get_company_imports_with_totals(company_id)` | Listă importuri + totaluri closing | v1.0 perf | SECURITY DEFINER |
+| `seed_standard_chart_of_accounts(company_id)` | Instanțiază plan conturi standard per companie | v3.4 | SECURITY DEFINER |
+| `auto_map_import_from_chart(import_id)` | Mapare automată TB → CoA | v3.5 | SECURITY DEFINER |
+| `generate_financial_statements_from_import(import_id)` | Generează BS/P&L/CF + raport comprehensive | v3.5 | SECURITY DEFINER |
+| `validate_balance_sheet_coverage(import_id)` | Validare reconciliere bilanț (JSONB) | v3.6 | SECURITY DEFINER |
+| `get_company_imports_with_totals(company_id)` | Listă importuri + totaluri closing + `balance_format` | v1.0 perf | SECURITY DEFINER |
 | `get_balances_with_accounts(company_id, limit, offset)` | Balanțe + conturi JSONB | v1.0 perf | SECURITY DEFINER |
 | `get_accounts_paginated(...)` | Conturi paginate per import | v1.0 perf | SECURITY DEFINER |
 | `get_import_totals(import_id)` | Totaluri per import | v1.0 perf | SECURITY DEFINER |
@@ -652,9 +718,31 @@ CREATE TABLE public.report_statements (
 | `20260703100002_extend_income_statement_lines.sql` | Relaxare `category` + coloană `line_type` |
 | `20260703100003_extend_cash_flow_lines.sql` | Extindere `section` + `cash_flow_area` + `line_type` |
 | `20260703100004_chart_of_accounts_template.sql` | Tabel template CoA + funcția `seed_standard_chart_of_accounts()` |
-| `20260703100005_seed_standard_report_template.sql` | **(generată)** seed global: CoA template, definiții raport, reguli CF, KPI |
+| `20260703100005_seed_standard_report_template.sql` | Seed global: CoA template, definiții raport, reguli CF, KPI |
+| `20260703100006_auto_map_import_from_chart.sql` | RPC mapare automată TB → CoA |
 
-**Total migrări versionate:** 36 (+ script utilitar `CLEANUP_EXISTING_STALE_IMPORTS.sql`)
+### Financial Statements Pipeline v3.5 (3–8 iul. 2026)
+
+| Fișier | Descriere |
+|--------|-----------|
+| `20260703110000_extend_coa_template_operational_gaps.sql` | Completare goluri template CoA operațional |
+| `20260703120000_generate_financial_statements_from_import.sql` | RPC generare BS/P&L/CF + raport comprehensive |
+| `20260703130000_fix_financial_statement_calculations.sql` | Corecții calcule situații financiare |
+| `20260708120000_add_balance_format_dual_support.sql` | `balance_format` per import; param `p_balance_format` în `process_import_accounts` |
+| `20260708130000_fix_financial_statements_version_on_reimport.sql` | Versionare corectă FS la reimport aceeași lună |
+
+### Reconciliation v3.6 (9 iul. 2026)
+
+| Fișier | Descriere |
+|--------|-----------|
+| `20260709100000_add_functional_type.sql` | Coloană `functional_type` pe CoA + template; populare din mapare |
+| `20260709110000_fix_account_type_receivables.sql` | Corecție `account_type` creanțe (411, 413, …) |
+| `20260709120000_fix_balance_sheet_totals.sql` | Corecție totaluri bilanț |
+| `20260709140000_balance_sheet_reconciliation.sql` | `validate_balance_sheet_coverage`, status `unreconciled`, rute SLD duale |
+| `20260709150000_fix_balance_sheet_mapping_reconciliation.sql` | `_tb_closing_balance` cu `functional_type`; validare bifuncțională |
+| `20260709160000_sync_operational_coa_and_audit.sql` | Cont 581, corecții 4551/2805/2807 |
+
+**Total migrări versionate:** 48 (+ script utilitar `CLEANUP_EXISTING_STALE_IMPORTS.sql`)
 
 ---
 
@@ -670,7 +758,7 @@ View pentru frontend (`authenticated`):
 CREATE VIEW public.trial_balance_imports_public
 WITH (security_invoker = true) AS
 SELECT
-  id, company_id, balance_month,
+  id, company_id, balance_month, balance_format,
   period_start, period_end,
   source_file_name, source_file_url, file_size_bytes,
   uploaded_by, status, error_message, validation_errors,
@@ -680,6 +768,23 @@ WHERE deleted_at IS NULL;
 ```
 
 **Exclud:** `internal_error_detail`, `internal_error_code`, `processing_started_at`
+
+### active_trial_balance_imports
+
+View pentru importuri active (alias al importurilor ne-șterse); referințiat de FK-uri din `kpi_values` și `financial_statements`:
+
+```sql
+CREATE VIEW public.active_trial_balance_imports
+WITH (security_invoker = true) AS
+SELECT
+  id, company_id, balance_month, balance_format,
+  period_start, period_end, source_file_name, source_file_url,
+  file_size_bytes, uploaded_by, status, error_message,
+  validation_errors, accounts_count, processing_started_at,
+  created_at, updated_at, processed_at, deleted_at
+FROM public.trial_balance_imports
+WHERE deleted_at IS NULL;
+```
 
 ### trial_balance_imports_internal
 

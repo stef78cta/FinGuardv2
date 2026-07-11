@@ -1,21 +1,16 @@
-# 🧪 TESTE PENTRU VALIDĂRI BLOCKING
+# Teste pentru validări blocking — upload balanță
 
-> **⚠️ Actualizare iulie 2026 (v3.0) — suport DUAL format.** Aplicația acceptă **două formate standard de balanță: 8 coloane (A–H) și 10 coloane (A–J)**. Formatul este detectat automat per import; în caz de ambiguitate utilizatorul poate selecta manual formatul. Afirmațiile despre acceptarea **exclusivă** a formatului 10 coloane sau respingerea formatului 8 coloane (`EXCEL_LEGACY_8_COLUMN_FORMAT`) sunt **depășite**. Sursa curentă: `ce_verificari_se_fac_la_upload_baanta.md`.
+> **Actualizare 11 iulie 2026 (v3.1).** Dual format 8/10 coloane. Implementare: **`src/lib/excel-parser.test.ts`** — **31 teste** Vitest. Format 8 coloane **acceptat** (nu mai există `EXCEL_LEGACY_8_COLUMN_FORMAT`). Duplicate = **warning** + agregare. Sursa: [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md).
 
 ## Overview
 
-Acest document descrie testele pentru validarea fluxului de upload balanță cu validări blocking.
-
-**Versiune parser:** v3.0 — **dual format 8/10 coloane** (iulie 2026); anterior v2.1 (doar 10 coloane A–J).
-
-**Implementare automată:** `src/lib/excel-parser.test.ts` (Vitest, 13 teste) — rulează cu `npm test`.
-
-**Coloane Excel:**
-- G = `total_sume_debitoare` (= SI D + Rulaj D)
-- H = `total_sume_creditoare` (= SI C + Rulaj C)
-- I/J = SF Debit / SF Credit
-
-**Coduri noi:** `EXCEL_LEGACY_8_COLUMN_FORMAT`, `EXCEL_MISSING_REQUIRED_COLUMNS`, `BALANCE_ROW_CLOSING_MISMATCH`, `BALANCE_CLOSING_MISMATCH_DETECTED`
+| Aspect | Valoare actuală |
+|--------|-----------------|
+| Parser | `src/lib/excel-parser.ts` |
+| Teste automate | `src/lib/excel-parser.test.ts` — **31 teste** |
+| Helper test | `parseExcelRows(rows: unknown[][])` |
+| Prag control | 0.01 RON |
+| Rulare | `npm test -- --run src/lib/excel-parser.test.ts` |
 
 ---
 
@@ -173,14 +168,14 @@ describe('parseExcelFile - Validări Blocking', () => {
       expect(result.accounts).toHaveLength(0);
     });
 
-    it('RESPINGE format vechi cu 8 coloane (A–H)', async () => {
-      const legacyFile = createMockExcelFileLegacy8Columns();
+    it('ACCEPTĂ format 8 coloane (A–H) cu G/H = sold final', async () => {
+      const file8 = createMockExcelFileLegacy8Columns(); // 8 coloane valide
 
-      const result = await parseExcelFile(legacyFile);
+      const result = await parseExcelFile(file8);
 
-      expect(result.ok).toBe(false);
-      expect(result.blockingErrors[0].code).toBe('EXCEL_LEGACY_8_COLUMN_FORMAT');
-      expect(result.accounts).toHaveLength(0);
+      expect(result.ok).toBe(true);
+      expect(result.format).toBe('8_COLUMNS');
+      expect(result.warnings.some((w) => w.code === 'TOTAL_SUME_COMPUTED_FROM_8_COLUMN_FORMAT')).toBe(true);
     });
 
     it('RESPINGE rând unde SF net ≠ Total Sume D − Total Sume C', async () => {
@@ -638,28 +633,19 @@ jobs:
 | Control SF Mismatch (diff > 0.01) | ❌ false | 1 (TOTAL) | 0 | 0 | ❌ No | error |
 | Control SI Mismatch (diff > 0.01) | ❌ false | 1 (OPENING) | 0 | 0 | ❌ No | error |
 | Control Rulaj Mismatch (diff > 0.01) | ❌ false | 1 (TURNOVER) | 0 | 0 | ❌ No | error |
-| Coloane ≠ 10 (format vechi 8) | ❌ false | 1 (LEGACY_8) | 0 | 0 | ❌ No | error |
-| Coloane K+ cu date | ❌ false | 1 (COLUMN_COUNT) | 0 | 0 | ❌ No | error |
-| total_sume G/H incorect | ❌ false | 1 (TOTAL_SUMS) | 1+ | 0 | ❌ No | error |
-| Celule goale C–J | ✅ true | 0 | 0 | > 0 | ✅ Yes | completed (valori = 0) |
-| Clasa 6 SF nenul | ❌ false | 1 (CLASS6) | 1+ | 0 | ❌ No | error |
-| Clasa 7 SF nenul | ❌ false | 1 (CLASS7) | 1+ | 0 | ❌ No | error |
-| Cont Lipsă | ❌ false | 1 (INVALID_ROWS) | 1+ | 0 | ❌ No | error |
-| Cont Invalid Format | ❌ false | 1 (INVALID_ROWS) | 1+ | 0 | ❌ No | error |
-| AMBELE Erori | ❌ false | 2 | 1+ | 0 | ❌ No | error |
-| Rotunjiri (diff <= 0.01) | ✅ true | 0 | 0 | > 0 | ✅ Yes | completed (warning) |
-| Empty Workbook | ❌ false | 1 (NO_SHEETS) | 0 | 0 | ❌ No | error |
-| Header Only | ❌ false | 1 (INSUFFICIENT_DATA) | 0 | 0 | ❌ No | error |
+| Coloane K+ cu date | ❌ false | 1 (COLUMN_COUNT) | 0 | 0 | ❌ No | — |
+| Format 8 coloane valid | ✅ true | 0 | 0 | > 0 | ✅ Yes | completed |
+| Duplicate cod cont | ✅ true | 0 | 0 | > 0 | ✅ Yes | warning + agregare |
 
 ---
 
 ## 🚀 **NEXT STEPS**
 
-1. ✅ **Teste unitare parser**: `src/lib/excel-parser.test.ts` — `npm test`
-2. **Teste integration upload**: `uploadBalance.integration.spec.ts` (mock Supabase)
-3. **Fixtures Excel 10 coloane**: actualizare fișiere din `testing/fixtures/`
+1. ✅ **Teste unitare parser**: `src/lib/excel-parser.test.ts` — 31 teste, `npm test`
+2. **Teste integration upload**: mock Supabase (opțional)
+3. **Fixtures Excel**: 8 coloane + 10 coloane în `testing/fixtures/` (dacă există)
 4. **CI/CD**: job `npm test` în pipeline
-5. **Migrare DB**: `supabase db push` pentru coloane `total_sume_*`
+5. **Migrări DB**: `supabase db push` până la `20260708120000_*`
 
 ---
 

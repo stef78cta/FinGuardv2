@@ -1,8 +1,9 @@
 # Ghid de Deployment - Security Patches v1.8
 
-> **Data**: 28 Ianuarie 2026  
+> **Data**: 28 Ianuarie 2026 (actualizat 11 Iulie 2026)  
 > **Versiune Plan**: 1.8  
-> **Severitate**: Patch-uri CRITICE de securitate
+> **Severitate**: Patch-uri CRITICE de securitate  
+> **Notă iul. 2026:** pe proiectul activ `finguard2`, migrările Security v1.8 sunt **parțial neaplicate** (`rate_limits`, `companies.status` lipsesc). Verificați înainte de a rula query-urile de mai jos.
 
 ---
 
@@ -437,12 +438,12 @@ GROUP BY c.id, c.name
 HAVING COUNT(cu.user_id) = 0;
 -- Output așteptat: 0 rânduri
 
--- Verifică rate limiting activ
+-- Verifică rate limiting activ (doar dacă migrarea 20260128100002 e aplicată)
 SELECT COUNT(*) FROM public.rate_limits;
--- Ar trebui să crească în timp (requests active)
+-- Dacă tabelul lipsește: aplică migrarea sau dezactivează apelul din parse-balanta
 
 -- Verifică imports stale (processing > 10 min)
-SELECT * FROM public.detect_stale_imports();
+SELECT * FROM public.cleanup_stale_imports();
 -- Output așteptat: 0 rânduri (toate procesate sau failed)
 
 -- Verifică că try_uuid funcționează

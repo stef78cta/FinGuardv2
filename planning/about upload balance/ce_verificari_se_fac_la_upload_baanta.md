@@ -1,26 +1,48 @@
 # Verificări și mesaje la upload balanță (finguardv2)
 
-**Document central pentru upload balanță — suport DUAL format (8 / 10 coloane).**
+**Document central — suport DUAL format (8 / 10 coloane).**
 
-**Versiune format:** v3.0 — **două formate acceptate: 8 coloane (A–H) și 10 coloane (A–J)**
-**Ultima actualizare:** Iulie 2026
+**Versiune:** v3.1  
+**Ultima actualizare:** 11 iulie 2026  
+**Status:** Reflectă codul din branch-ul curent (fără modificări de cod în această etapă)
 
-> Aplicația acceptă două formate standard de balanță: **8 coloane** și **10 coloane**.
-> Formatul este **detectat automat per import**, iar în caz de ambiguitate utilizatorul poate
-> selecta manual formatul. Formatul **nu este o setare globală** pe companie sau user — fiecare
-> lună/import poate avea un format diferit (ex. ianuarie 8 coloane, februarie 10 coloane).
+> Aplicația acceptă două formate standard de balanță: **8 coloane (A–H)** și **10 coloane (A–J)**.
+> Formatul este **detectat automat per import**; la ambiguitate (exact 9 coloane populate) utilizatorul alege manual.
+> Formatul **nu este global** pe companie sau user — fiecare lună/import poate diferi.
 
-Document generat din analiza codului sursă: `IncarcareBalanta.tsx`, `BalanceUploadPreview.tsx`,
-`useBalanceUploadForm.ts`, `useTrialBalances.tsx`, `excel-parser.ts`, `importPipeline.ts`,
-`balanceValidation.ts`, Edge Function `parse-balanta`, migrația `20260708120000_add_balance_format_dual_support.sql`.
+---
+
+## 0. Rezumat arhitectură (stare actuală)
+
+| Layer | Fișier(e) | Rol |
+|-------|-----------|-----|
+| UI pagină | `src/pages/IncarcareBalanta.tsx` | Upload, listă imports, replace lunar, retry |
+| Formular + preview | `src/hooks/useBalanceUploadForm.ts`, `src/components/upload/BalanceUploadPreview.tsx` | Parsare la selectare fișier, preview, selector format ambiguu |
+| Orchestrare upload | `src/hooks/useTrialBalances.tsx` | Validare blocking → pregătire lună → Storage → INSERT → procesare |
+| Pregătire lună | `src/lib/prepareBalanceMonthUpload.ts` → RPC `prepare_balance_month_upload` | O balanță activă per companie/lună; replace opțional |
+| Perioadă contabilă | `src/lib/balancePeriod.ts` | `balance_month`, `period_start`, `period_end` din luna selectată |
+| Parser + validări | `src/lib/excel-parser.ts` | Detectare format, validări blocking/warning (motor principal) |
+| Pipeline procesare | `src/lib/importPipeline.ts` | Edge Function `parse-balanta`, polling, fallback client-side |
+| Agregare duplicate | `src/utils/balanceValidation.ts` (`aggregateDuplicateAccounts`) | Sumă conturi duplicate la insert (nu validarea completă v1.3) |
+| Edge Function | `supabase/functions/parse-balanta/index.ts` | Re-parsare server-side, RPC `process_import_accounts` |
+| Storage | bucket **`balante`** (`src/lib/storage/constants.ts`) | Path: `{company_id}/{timestamp}_{filename}` |
+| Rapoarte post-upload | `src/lib/financialStatementsPipeline.ts` | Generare situații financiare după import reușit |
+| DB format | `supabase/migrations/20260708120000_add_balance_format_dual_support.sql` | Coloană `balance_format`, RPC/view-uri actualizate |
+
+**Componente existente dar nefolosite în fluxul curent de upload:**
+- `src/components/upload/ValidationResultsDialog.tsx` — dialog alternativ; UI activ folosește `BalanceUploadPreview`
+- `validateBalance()` din `balanceValidation.ts` — suite v1.3 (16 verificări); **nu** este apelată în fluxul de upload; validările blocking sunt în `excel-parser.ts`
+
+**Teste automate (Vitest):** `npm test`
+- `src/lib/excel-parser.test.ts` — **31 teste** (8/10 coloane, ambiguitate, control totals)
+- `src/hooks/useBalanceUploadForm.test.ts` — 2 teste
+- `src/lib/prepareBalanceMonthUpload.test.ts` — 6 teste
 
 ---
 
 ## 1. Modelul intern canonic
 
-Indiferent de formatul fișierului, după parsare aplicația lucrează cu un singur model canonic
-(`ParsedAccount`). **Nicio poziție de coloană Excel nu iese din parser** — rapoartele, KPI-urile
-și analizele lunare folosesc exclusiv câmpurile canonice:
+Indiferent de formatul Excel, după parsare aplicația lucrează cu `ParsedAccount`:
 
 | Câmp canonic | Semnificație |
 |---|---|
@@ -31,9 +53,9 @@ Indiferent de formatul fișierului, după parsare aplicația lucrează cu un sin
 | `closing_debit` / `closing_credit` | Sold final debitor / creditor |
 | `total_sume_debitoare` / `total_sume_creditoare` | Total sume (citite la 10 coloane, calculate la 8 coloane) |
 
-**Regulă critică:** `total_sume_*` NU sunt folosite niciodată ca rulaj lunar sau ca sold final.
-Analiza lunară folosește `debit_turnover`/`credit_turnover`; soldurile finale folosesc
-`closing_debit`/`closing_credit`.
+**Regulă:** `total_sume_*` nu înlocuiesc rulajul lunar sau soldul final în analize. Raportarea folosește `debit_turnover`/`credit_turnover` și `closing_*`.
+
+**Prag numeric global:** `CONTROL_THRESHOLD = 0.01` RON (`excel-parser.ts`).
 
 ---
 
@@ -60,170 +82,185 @@ Analiza lunară folosește `debit_turnover`/`credit_turnover`; soldurile finale 
 
 | Coloană | Câmp canonic | Descriere |
 |---|---|---|
-| A | `account_code` | Cont |
-| B | `account_name` | Denumire |
-| C | `opening_debit` | SI Debit |
-| D | `opening_credit` | SI Credit |
-| E | `debit_turnover` | Rulaj lunar debitor |
-| F | `credit_turnover` | Rulaj lunar creditor |
-| G | `total_sume_debitoare` | **Total sume debitoare** (citit din Excel) |
-| H | `total_sume_creditoare` | **Total sume creditoare** (citit din Excel) |
+| A–F | (ca mai sus) | SI + rulaj |
+| G | `total_sume_debitoare` | Total sume debitoare (din Excel) |
+| H | `total_sume_creditoare` | Total sume creditoare (din Excel) |
 | I | `closing_debit` | SF Debit |
 | J | `closing_credit` | SF Credit |
 
 - `detected_balance_format = "10_COLUMNS"`
-- G/H sunt **ignorate pentru analiza rulajelor lunare** (nu sunt rulaj, ci total cumulat).
+- G/H **nu** sunt folosite ca rulaj lunar în analize
 
 ---
 
 ## 3. Detectare automată a formatului
 
-Funcția `detectBalanceFormat(maxColIndex)` (client + Edge Function), pe baza celui mai mare index
-de coloană cu date (`getDataMaxColumnIndex`, incluzând header-ul):
+Funcția `detectBalanceFormat(maxColIndex)` (client + Edge Function), pe baza `getDataMaxColumnIndex`:
 
 | Date până la coloana | Index (0-based) | Rezultat |
 |---|---|---|
 | H | ≤ 7 | `8_COLUMNS` |
-| I (exact 9 coloane) | 8 | `AMBIGUOUS` (cere alegere manuală) |
+| I (exact 9 coloane) | 8 | `AMBIGUOUS` → alegere manuală în UI |
 | J | 9 | `10_COLUMNS` |
-| peste J (K+) | > 9 | `INVALID` (blocat) |
+| peste J (K+) | > 9 | `INVALID` → blocat |
 
-- Dacă există header, numărul de coloane populate din header participă la `maxColIndex` (semnal suplimentar).
-- Dacă utilizatorul alege manual formatul, parserul validează alegerea față de structura reală
-  (`forcedFormat`); dacă alegerea contrazice structura → `EXCEL_FORCED_FORMAT_MISMATCH`.
+Opțiune `forcedFormat` la re-parsare (după alegerea userului sau din `balance_format` salvat pe import).
 
 ---
 
-## 4. Validări comune (ambele formate)
+## 4. Validări blocking (excel-parser.ts)
 
-Rulează în `excel-parser.ts` (client, blocking) **înainte** de upload, replicate în Edge Function.
-
-- Cont lipsă → `BALANCE_ROW_ACCOUNT_MISSING`
-- Cont invalid (nu 3–6 cifre) → `BALANCE_ROW_ACCOUNT_INVALID`
-- Denumire > 200 caractere → `BALANCE_ROW_NAME_TOO_LONG`
-- Rânduri complet goale → ignorate
-- Celule numerice goale → tratate ca 0
-- Duplicate cod cont → **warning** + agregare automată la insert
-- Echilibru global (toleranță **0,01 RON**):
-  - Total SI Debit = Total SI Credit → `BALANCE_CONTROL_OPENING_MISMATCH`
-  - Total Rulaj Debit = Total Rulaj Credit → `BALANCE_CONTROL_TURNOVER_MISMATCH`
-  - Total SF Debit = Total SF Credit → `BALANCE_CONTROL_TOTAL_MISMATCH`
-- Conturi clasa 6/7 cu sold final nenul → `BALANCE_CONTROL_CLASS6/7_CLOSING_NOT_ZERO`
-- Zero conturi valide → `BALANCE_NO_VALID_ACCOUNTS`
-
-## 5. Validări specifice format 8 coloane
-
-- G/H sunt **sold final** (NU total sume).
-- `total_sume_*` sunt **calculate intern** din SI + rulaj (warning informativ
-  `TOTAL_SUME_COMPUTED_FROM_8_COLUMN_FORMAT`).
-- **NU** se aplică validarea per-rând `SF ↔ total_sume` (fișierul nu conține total_sume).
-
-## 6. Validări specifice format 10 coloane
-
-- G/H sunt **total sume** (citite ca atare, pot fi lunare sau cumulate).
-- I/J sunt **sold final**.
-- Identitate per rând blocking (toleranță 0,01 RON):
-  `(SF Debit − SF Credit) = (Total Sume Debitoare − Total Sume Creditoare)`
-  → `BALANCE_ROW_CLOSING_MISMATCH` / agregat `BALANCE_CLOSING_MISMATCH_DETECTED`.
-
----
-
-## 7. Mesaje de eroare (coduri)
+Rulează **client-side înainte de upload** (`useBalanceUploadForm` la selectare fișier; `uploadBalance` re-verifică). Replicate în Edge Function.
 
 | Cod | Situație |
 |---|---|
 | `EXCEL_NO_SHEETS` | Workbook fără foi |
-| `EXCEL_INSUFFICIENT_DATA` | < 2 rânduri (header + date) |
-| `EXCEL_AMBIGUOUS_FORMAT` | Structură ambiguă (9 coloane) — necesită alegere manuală |
-| `EXCEL_FORCED_FORMAT_MISMATCH` | Formatul ales manual contrazice structura fișierului |
-| `EXCEL_INVALID_COLUMN_COUNT` | Date peste coloana J sau structură necorespunzătoare |
-| `BALANCE_CLOSING_MISMATCH_DETECTED` | (10 coloane) SF ≠ Total Sume D − Total Sume C |
-| `BALANCE_CONTROL_OPENING/TURNOVER/TOTAL_MISMATCH` | Dezechilibru global SI / Rulaj / SF |
-| `BALANCE_CONTROL_CLASS6/7_CLOSING_NOT_ZERO` | Clasa 6/7 cu sold final nenul |
+| `EXCEL_INSUFFICIENT_DATA` | < 2 rânduri |
+| `EXCEL_AMBIGUOUS_FORMAT` | 9 coloane — necesită alegere |
+| `EXCEL_FORCED_FORMAT_MISMATCH` | Format manual contrazice structura |
+| `EXCEL_INVALID_COLUMN_COUNT` | Date peste coloana J |
+| `EXCEL_MISSING_REQUIRED_COLUMNS` | Lipsesc coloane obligatorii pentru formatul forțat |
+| `BALANCE_ROW_ACCOUNT_MISSING` / `BALANCE_ROW_ACCOUNT_INVALID` | Cont lipsă sau invalid |
+| `BALANCE_ROW_NAME_TOO_LONG` | Denumire > 200 caractere |
+| `BALANCE_INVALID_ROWS_DETECTED` | Agregat erori pe rânduri |
+| `BALANCE_CONTROL_OPENING_MISMATCH` | SI Debit ≠ SI Credit |
+| `BALANCE_CONTROL_TURNOVER_MISMATCH` | Rulaj D ≠ Rulaj C |
+| `BALANCE_CONTROL_TOTAL_MISMATCH` | SF Debit ≠ SF Credit |
+| `BALANCE_CONTROL_CLASS6_CLOSING_NOT_ZERO` | Clasa 6, SF nenul |
+| `BALANCE_CONTROL_CLASS7_CLOSING_NOT_ZERO` | Clasa 7, SF nenul |
+| `BALANCE_ROW_CLOSING_MISMATCH` | (doar 10 col.) SF net ≠ Total Sume D − C |
+| `BALANCE_CLOSING_MISMATCH_DETECTED` | Agregat erori identitate sold final |
 | `BALANCE_NO_VALID_ACCOUNTS` | Zero conturi valide |
 
-> Nota: eroarea `EXCEL_LEGACY_8_COLUMN_FORMAT` **a fost eliminată** — formatul 8 coloane este acum
-> acceptat, nu respins.
+Rotunjiri ≤ 0.01 RON → **warning** (`BALANCE_CONTROL_*_ROUNDING_DIFF`), upload permis.
 
-### Mesaje UX (pagina „Încărcare balanță")
-
-- 8 coloane: „Format detectat: balanță 8 coloane. Coloanele Total sume nu există în fișier și sunt
-  calculate automat din sold inițial + rulaj lunar. Coloanele G/H sunt interpretate ca sold final."
-- 10 coloane: „Format detectat: balanță 10 coloane. Coloanele Total sume (G/H) sunt citite din Excel
-  și validate, dar analiza lunară folosește rulajele lunare din coloanele E/F. Soldul final din I/J."
-- Ambiguu: dialog cu două butoane — „Format 8 coloane (A–H)" / „Format 10 coloane (A–J)".
-- Date peste J: „Fișierul conține date peste coloana J. Sunt acceptate doar formatele standard cu
-  8 coloane sau 10 coloane."
+> `EXCEL_LEGACY_8_COLUMN_FORMAT` — **eliminat**; formatul 8 coloane este acceptat.
 
 ---
 
-## 8. Flux client → Edge Function → Supabase
+## 5. Validări warning (non-blocking)
+
+| Cod | Situație |
+|---|---|
+| `DUPLICATE_ACCOUNTS` | Cod cont duplicat — **warning**; agregare automată la insert |
+| `TOTAL_SUME_COMPUTED_FROM_8_COLUMN_FORMAT` | Info la format 8 coloane |
+| `MAX_ACCOUNTS_LIMIT_REACHED` | Trunchiere la 10.000 conturi |
+
+---
+
+## 6. Flux complet upload
 
 ```
-UI → parseExcelFile (client, detectare + validare blocking, forcedFormat opțional)
-   → Storage upload
-   → INSERT trial_balance_imports (inclusiv balance_format detectat)
-   → Edge Function parse-balanta (re-parsare cu balance_format ca forcedFormat)
-       → process_import_accounts RPC (p_balance_format) → status completed
-   → (fallback client-side dacă Edge eșuează: processAccountsClientSide setează balance_format)
+[User] selectează luna (BalanceMonthPicker) + fișier Excel
+    ↓
+[useBalanceUploadForm] parseExcelFile → preview (BalanceUploadPreview)
+    → dacă AMBIGUOUS: dialog 8 vs 10 coloane → re-parse cu forcedFormat
+    ↓
+[User] Confirmă încărcarea
+    ↓
+[useTrialBalances.uploadBalance]
+    1. parseExcelFile (re-validare; forcedFormat dacă e cazul)
+    2. dacă !ok → throw (fără Storage, fără INSERT)
+    3. prepare_balance_month_upload (conflict lună / replace)
+    4. Storage upload → bucket `balante`
+    5. INSERT trial_balance_imports (status=processing, balance_format, balance_month, …)
+    6. processImport:
+         a) invoke parse-balanta (Edge Fn)
+         b) poll status → completed
+         c) la eșec Edge Fn → processAccountsClientSide (fallback)
+    7. generateFinancialStatementsForImport
+    8. refresh listă imports (RPC get_company_imports_with_totals)
 ```
 
-- Clientul și Edge Function folosesc **aceeași logică** de detectare/normalizare/validare.
-- Edge Function preia `balance_format` din import (setat de client) ca format forțat → aliniere garantată.
+**Important:** La eșec validare blocking **înainte** de INSERT, nu se creează import în DB (spre deosebire de versiunile vechi care actualizau un rând `error`).
 
 ---
 
-## 9. Persistență DB
+## 7. Persistență DB
 
-- Coloană nouă `trial_balance_imports.balance_format` (`'8_COLUMNS' | '10_COLUMNS' | NULL`),
-  cu `CHECK`. Migrație: `20260708120000_add_balance_format_dual_support.sql`.
-- Formatul este salvat **per import** (nu global).
-- `trial_balance_accounts` salvează pentru fiecare cont: SI, rulaj, SF, `total_sume_*`.
-  - 8 coloane: `total_sume_*` = valori calculate (SI + rulaj).
-  - 10 coloane: `total_sume_*` = valori citite din Excel.
-- View-uri actualizate: `trial_balance_imports_public`, `trial_balance_imports_internal`,
-  `active_trial_balance_imports`; RPC `get_company_imports_with_totals` expune `balance_format`.
+### `trial_balance_imports`
 
----
+- `balance_month` — prima zi a lunii (migrare `20260630100000_add_balance_month_to_trial_balance_imports.sql`)
+- `balance_format` — `'8_COLUMNS' | '10_COLUMNS' | NULL` (importuri vechi)
+- `status` — `draft` | `processing` | `validated` | `completed` | `error`
+- Citire UI: view `trial_balance_imports_public` (fallback la tabel dacă view lipsește)
 
-## 10. Rapoarte și analize lunare
+### `trial_balance_accounts`
 
-`useFinancialCalculations.tsx` și `generate_financial_statements_from_import` folosesc **doar**
-câmpuri canonice: `opening_*`, `debit_turnover`/`credit_turnover`, `closing_*`.
-`total_sume_*` **nu** sunt folosite în calculele de raportare — deci luni cu formate diferite
-(8 vs 10) se compară corect pentru că toate folosesc rulajele E/F și soldurile finale canonice.
+Per cont: SI, rulaj, SF, `total_sume_*` (calculate sau citite conform formatului).
 
----
+### RPC-uri relevante
 
-## 11. Checklist de testare
-
-Fișier: `src/lib/excel-parser.test.ts` (Vitest) — `npm test`.
-
-- [x] Acceptă balanță validă 8 coloane; detectează `8_COLUMNS`.
-- [x] Mapează corect A–H (G/H = sold final).
-- [x] Calculează `total_sume_* = SI + rulaj`.
-- [x] Nu returnează `EXCEL_LEGACY_8_COLUMN_FORMAT`.
-- [x] Nu aplică validarea per-rând total_sume la 8 coloane.
-- [x] Acceptă balanță validă 10 coloane; detectează `10_COLUMNS`.
-- [x] G/H = total_sume, I/J = sold final; total_sume NU sunt rulaj.
-- [x] Validează identitatea SF ↔ total_sume la 10 coloane.
-- [x] Respinge date peste J (`EXCEL_INVALID_COLUMN_COUNT`).
-- [x] Fișier 9 coloane → `EXCEL_AMBIGUOUS_FORMAT`.
-- [x] Forțare format contradictorie → `EXCEL_FORCED_FORMAT_MISMATCH`.
-- [x] Import ianuarie 8 coloane + februarie 10 coloane → rulaje canonice identice E/F.
+| RPC | Scop |
+|-----|------|
+| `prepare_balance_month_upload` | Verifică/replace balanță activă pe lună |
+| `process_import_accounts` | Insert bulk conturi (+ `p_balance_format`) |
+| `get_company_imports_with_totals` | Listă imports cu totaluri + `balance_format` |
+| `soft_delete_import` | Ștergere logică |
+| `get_import_totals` | Totaluri per import |
 
 ---
 
-## Fișiere sursă relevante
+## 8. Mesaje UX (BalanceUploadPreview)
+
+- **8 coloane:** badge + text despre total_sume calculate și G/H = sold final
+- **10 coloane:** badge + text despre G/H = total sume, E/F = rulaj, I/J = SF
+- **Ambiguu:** butoane „Format 8 coloane (A–H)” / „Format 10 coloane (A–J)”
+- **Erori blocking:** listă în preview; la upload toast error (8s) cu prima linie
+
+---
+
+## 9. Limitări tehnice
+
+| Limită | Valoare | Locație |
+|--------|---------|---------|
+| Dimensiune fișier | 10 MB | Client + Edge Function |
+| Extensii | `.xlsx`, `.xls` | Client |
+| MAX_ACCOUNTS | 10.000 | excel-parser |
+| PARSE_TIMEOUT | 30s | Edge Function |
+| Toleranță control | 0.01 RON | excel-parser |
+| Bucket Storage | `balante` | constants.ts + parse-balanta |
+
+---
+
+## 10. Rapoarte și analize
+
+`useFinancialCalculations.tsx` și `generate_financial_statements_from_import` folosesc câmpuri canonice (`opening_*`, `debit_turnover`/`credit_turnover`, `closing_*`), nu `total_sume_*` ca rulaj.
+
+---
+
+## 11. Checklist testare
+
+```bash
+npm test -- --run src/lib/excel-parser.test.ts
+```
+
+- [x] Acceptă balanță validă 8 coloane (`8_COLUMNS`)
+- [x] Acceptă balanță validă 10 coloane (`10_COLUMNS`)
+- [x] Calculează `total_sume_*` la 8 coloane
+- [x] Validează SF ↔ total_sume doar la 10 coloane
+- [x] Respinge date peste J
+- [x] Fișier 9 coloane → ambiguu / forced format
+- [x] Duplicate → warning (nu blocking)
+- [x] Mix ianuarie 8 col + februarie 10 col — rulaje canonice E/F
+
+---
+
+## Fișiere sursă (index)
 
 | Fișier | Rol |
 |---|---|
-| `src/lib/excel-parser.ts` | Detectare format + parsare + validări (motor comun `runParse`) |
-| `src/lib/importPipeline.ts` | Formatare erori, procesare server/fallback, persistă balance_format |
-| `src/hooks/useBalanceUploadForm.ts` | Stare upload, format detectat, alegere manuală |
-| `src/components/upload/BalanceUploadPreview.tsx` | Badge format, mesaje UX, selector ambiguitate |
-| `src/pages/IncarcareBalanta.tsx` | UI upload, ghid dual 8/10 coloane |
-| `src/hooks/useTrialBalances.tsx` | Orchestrare flux upload + balance_format |
-| `supabase/functions/parse-balanta/index.ts` | Procesare server-side aliniată (dual-format) |
-| `supabase/migrations/20260708120000_add_balance_format_dual_support.sql` | Coloană balance_format + RPC + view-uri |
-| `src/lib/excel-parser.test.ts` | Teste Vitest (8/10 coloane, ambiguitate, mixt) |
+| `src/lib/excel-parser.ts` | Parser + validări blocking/warning |
+| `src/lib/importPipeline.ts` | Edge Fn, fallback, formatare erori |
+| `src/hooks/useBalanceUploadForm.ts` | Stare formular, parsare la selectare |
+| `src/components/upload/BalanceUploadPreview.tsx` | Preview UI activ |
+| `src/pages/IncarcareBalanta.tsx` | Pagina upload |
+| `src/hooks/useTrialBalances.tsx` | CRUD imports, upload orchestration |
+| `src/lib/prepareBalanceMonthUpload.ts` | Wrapper RPC lună |
+| `src/lib/balancePeriod.ts` | Calcul perioadă din `balance_month` |
+| `src/lib/storage/constants.ts` | Bucket `balante`, view-uri |
+| `supabase/functions/parse-balanta/index.ts` | Procesare server |
+| `supabase/migrations/20260621000000_stabilize_upload_pipeline.sql` | Pipeline stabilizat |
+| `supabase/migrations/20260701120000_prepare_balance_month_upload.sql` | RPC lună |
+| `supabase/migrations/20260708120000_add_balance_format_dual_support.sql` | Dual format DB |
+| `src/lib/excel-parser.test.ts` | 31 teste Vitest |

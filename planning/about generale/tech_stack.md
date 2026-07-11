@@ -199,6 +199,8 @@ Componente Radix UI pre-configurate cu Tailwind:
 
 ## Backend Architecture
 
+> **Actualizare iulie 2026:** Schema completă documentată în `planning/about database/`. Producție (`finguard2`): **19 tabele**, flux upload→FS→reconciliere funcțional; Security v1.8 (`rate_limits`, `companies.status`) parțial neaplicat. Types: `src/integrations/supabase/types.ts`.
+
 ### 🔮 Current State
 <!-- UPDATED: Actualizat de la "frontend-only" la "fully integrated" - Ianuarie 2026 -->
 
@@ -902,6 +904,7 @@ npx supabase db diff
 | Data | Modificare |
 |------|------------|
 | Ianuarie 2026 | Actualizare majoră: documentare integrare Supabase completă |
+| Iulie 2026 | Schema v3.6: FS pipeline, reconciliere, dual format 8/10 coloane; doc în `planning/about database/` |
 | Ianuarie 2026 | Adăugare schema DB actuală, Edge Functions, Route Guards |
 | Ianuarie 2026 | Marcare schema veche ca depreciate (strikethrough) |
 | Ianuarie 2026 | Adăugare secțiuni noi: Contexts, Custom Hooks, Supabase Commands |

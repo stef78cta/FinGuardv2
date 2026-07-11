@@ -1,376 +1,170 @@
-# 📊 Implementare Completă Upload Balanță - finguardv2
+# Implementare Upload Balanță — finguardv2
 
-> **⚠️ Actualizare iulie 2026 (v3.0) — suport DUAL format.** Aplicația acceptă acum **două formate standard de balanță: 8 coloane (A–H) și 10 coloane (A–J)**, detectate automat per import (alegere manuală pentru cazuri ambigue). Documentul de mai jos reflectă implementarea istorică (ian. 2026); pentru starea curentă vezi `ce_verificari_se_fac_la_upload_baanta.md`.
+**Versiune document:** 3.1  
+**Data:** 11 iulie 2026  
+**Status:** Production — reflectă implementarea din cod
 
-**Data:** 29 Ianuarie 2026  
-**Versiune:** v1.4 Complete  
-**Status:** ✅ PRODUCTION READY
-
----
-
-## 📋 Sumar Implementare
-
-Am implementat **complet** planul de rezolvare buguri și inconsistențe din `plan_upload_balanta.md`, incluzând:
-
-- ✅ **3 FIX-uri CRITICE** de securitate și consistență
-- ✅ **16 Validări contabile** complete (8 critice + 8 warnings)
-- ✅ **2 Migrări SQL** pentru securitate database
-- ✅ **Componente UI** pentru feedback detaliat
-- ✅ **Documentație** completă
+> **Document de referință pentru detalii tehnice:** [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md)
 
 ---
 
-## 🔴 FIX-uri CRITICE Implementate
+## Sumar
 
-### 1. Bucket Name Inconsistent (v1.4.1) ✅
+Pipeline-ul de upload balanță este **stabilizat end-to-end** (iunie–iulie 2026):
 
-**Problema:** Cod folosea `'balante'` în unele locuri și `'trial-balances'` în altele.
-
-**Soluție:**
-- ✅ Standardizat la `'trial-balances'` în hook `useTrialBalances.tsx`
-- ✅ Creat migrare SQL pentru policies: `20260129000002_fix_storage_bucket_consistency.sql`
-- ✅ Edge Function deja folosea `'trial-balances'` (OK)
-
-**Fișiere modificate:**
-- `src/hooks/useTrialBalances.tsx` (3 locații)
-- `supabase/migrations/20260129000002_fix_storage_bucket_consistency.sql` (NOU)
+- Suport **dual format** Excel: 8 coloane (A–H) și 10 coloane (A–J)
+- Validări **blocking în client** înainte de Storage/DB
+- Procesare **Edge Function** `parse-balanta` cu **fallback client-side**
+- Bucket Storage canonic: **`balante`**
+- O balanță activă per **companie + lună** (`balance_month`)
+- Generare automată situații financiare după import reușit
 
 ---
 
-### 2. View RLS Security Invoker (v1.4.2) ✅
+## Arhitectură
 
-**Problema:** View-urile nu aveau `security_invoker = true` → risc cross-tenant leak.
-
-**Soluție:**
-- ✅ RECREATE view-uri cu `WITH (security_invoker = true)`
-- ✅ RLS policies pe view-uri pentru izolare tenants
-- ✅ Verificări post-migration automate
-
-**Fișiere create:**
-- `supabase/migrations/20260129000001_fix_view_rls_security_invoker.sql` (NOU)
-
-**Views securizate:**
-- `trial_balance_imports_public` (pentru authenticated users)
-- `trial_balance_imports_internal` (pentru service_role - debugging)
-
----
-
-### 3. Storage Policy Hardening (v1.4.3) ✅
-
-**Problema:** Policies incomplete sau cu mapping incorect user_id → company_id.
-
-**Soluție:**
-- ✅ Policies actualizate cu verificare explicită company_users junction
-- ✅ Folosește UUID cast explicit: `(storage.foldername(name))[1]::uuid`
-- ✅ Upload/Read/Delete policies complete
-
-**Policy Pattern (securizat):**
-```sql
-CREATE POLICY "Users can upload trial balances"
-ON storage.objects FOR INSERT
-TO authenticated
-WITH CHECK (
-    bucket_id = 'trial-balances'
-    AND (storage.foldername(name))[1]::uuid IN (
-        SELECT c.id
-        FROM public.companies c
-        JOIN public.company_users cu ON cu.company_id = c.id
-        WHERE cu.user_id = (
-            SELECT id FROM public.users WHERE auth_user_id = auth.uid()
-        )
-    )
-);
+```
+IncarcareBalanta.tsx
+  ├── useBalanceUploadForm     → parse + preview la selectare fișier
+  ├── BalanceUploadPreview     → UI preview / warnings / selector format
+  └── useTrialBalances         → upload, listă, delete, retry
+        ├── excel-parser.ts    → validări blocking
+        ├── prepareBalanceMonthUpload → RPC conflict lună
+        ├── importPipeline.ts  → Edge Fn + fallback
+        └── financialStatementsPipeline.ts → post-upload
 ```
 
 ---
 
-## ✅ Validări Contabile v1.3
+## Componente principale
 
-Am implementat **16 validări complete** conform standardelor OMFP 1802/2014:
-
-### CRITICE (8) - Blocante:
-
-| # | Validare | Cod Eroare | Status |
-|---|----------|------------|--------|
-| 1 | Listă nu e goală | `EMPTY_BALANCE` | ✅ Implementat |
-| 2 | Echilibru solduri inițiale | `BALANCE_CONTROL_OPENING_MISMATCH` | ✅ Implementat (`excel-parser.ts`) |
-| 3 | Echilibru rulaje | `BALANCE_CONTROL_TURNOVER_MISMATCH` | ✅ Implementat (`excel-parser.ts`) |
-| 4 | Echilibru solduri finale | `BALANCE_CONTROL_TOTAL_MISMATCH` | ✅ Implementat (`excel-parser.ts`) |
-| 4b | Clasa 6 — sold final zero | `BALANCE_CONTROL_CLASS6_CLOSING_NOT_ZERO` | ✅ Implementat (`excel-parser.ts`) |
-| 4c | Clasa 7 — sold final zero | `BALANCE_CONTROL_CLASS7_CLOSING_NOT_ZERO` | ✅ Implementat (`excel-parser.ts`) |
-| 4d | Structură exact 10 coloane A–J; respinge format vechi 8 col | `EXCEL_LEGACY_8_COLUMN_FORMAT`, `EXCEL_INVALID_COLUMN_COUNT` | ✅ Implementat (`excel-parser.ts` v2.1) |
-| 4e | Identitate sold final per rând: (SF D − SF C) = (Total Sume D − Total Sume C) | `BALANCE_ROW_CLOSING_MISMATCH`, `BALANCE_CLOSING_MISMATCH_DETECTED` | ✅ Implementat (`excel-parser.ts` v2.3) — înlocuiește validarea `Total Sume = SI + Rulaj` |
-| 4f | Persistență DB total_sume | coloane `trial_balance_accounts` | ✅ Migrare `20260621100000` |
-| 5 | Clase cont obligatorii (1-7) | `MISSING_ACCOUNT_CLASSES` | ✅ Implementat |
-| 6 | Format conturi (OMFP 1802) | `INVALID_ACCOUNT_FORMAT` | ✅ Implementat |
-| 7 | Valori numerice finite | `INVALID_NUMERIC_VALUES` | ✅ Implementat |
-| 8 | Duplicate cod cont | `DUPLICATE_ACCOUNTS` | ✅ Implementat |
-
-### WARNINGS (8) - Non-blocante:
-
-| # | Validare | Cod Warning | Status |
-|---|----------|-------------|--------|
-| 9 | Solduri duale (D+C simultan) | `DUAL_BALANCE` | ✅ Implementat |
-| 10 | Ecuație contabilă per cont | `ACCOUNT_EQUATION_MISMATCH` | ✅ Implementat |
-| 11 | Conturi inactive (toate 0) | `INACTIVE_ACCOUNTS` | ✅ Implementat |
-| 12 | Valori negative | `NEGATIVE_VALUES` | ✅ Implementat |
-| 13 | Outliers (IQR method) | `ANOMALOUS_VALUES` | ✅ Implementat |
-| 14 | Denumiri duplicate | `DUPLICATE_NAMES` | ✅ Implementat |
-| 15 | Ierarhie conturi | `HIERARCHY_ISSUES` | ✅ Implementat |
-| 16 | Completitudine date | `INCOMPLETE_DATA` | ✅ Implementat |
-
-**Fișier creat:**
-- `src/utils/balanceValidation.ts` (NOU, 850+ linii)
+| Componentă | Locație | Status |
+|------------|---------|--------|
+| Pagină upload | `src/pages/IncarcareBalanta.tsx` | ✅ Activ |
+| Hook formular | `src/hooks/useBalanceUploadForm.ts` | ✅ Activ |
+| Preview UI | `src/components/upload/BalanceUploadPreview.tsx` | ✅ Activ |
+| Dialog conturi | `src/components/upload/BalanceAccountsViewDialog.tsx` | ✅ Activ |
+| Hook CRUD | `src/hooks/useTrialBalances.tsx` | ✅ Activ |
+| Parser | `src/lib/excel-parser.ts` | ✅ Motor validări |
+| Pipeline | `src/lib/importPipeline.ts` | ✅ Edge + fallback |
+| Edge Function | `supabase/functions/parse-balanta/index.ts` | ✅ Deploy necesar |
+| Constante Storage | `src/lib/storage/constants.ts` | ✅ Bucket `balante` |
+| ValidationResultsDialog | `src/components/upload/ValidationResultsDialog.tsx` | ⚠️ Neintegrat în pagină |
+| balanceValidation v1.3 | `src/utils/balanceValidation.ts` | ⚠️ Doar `aggregateDuplicateAccounts` folosit |
 
 ---
 
-## 🎨 Componente UI
+## Validări implementate (excel-parser.ts)
 
-### ValidationResultsDialog (NOU) ✅
+### Blocking
 
-**Funcționalitate:**
-- Afișează totaluri calculate cu diferențe
-- Erori critice expandabile cu detalii
-- Warnings non-blocante
-- Info observații
-- Butoane: Confirmă/Anulează (disabled dacă erori)
+- Structură fișier (foi, rânduri, coloane, format ambiguu/forțat)
+- Conturi (lipsă, format 3–6 cifre, denumire prea lungă)
+- Echilibru global SI / Rulaj / SF (prag 0.01 RON)
+- Clase 6 și 7 — sold final zero
+- Identitate SF ↔ total_sume (**doar format 10 coloane**)
 
-**Fișier:**
-- `src/components/upload/ValidationResultsDialog.tsx` (NOU, 400+ linii)
+### Warning
 
-**UX Features:**
-- 🟢 Badge "Echilibrat" pentru totaluri OK (diferență ≤ 1 RON)
-- 🔴 Badge "Diferență: X RON" pentru dezechilibre
-- 📊 Grid responsive pentru totaluri
-- 🔍 Collapsible pentru detalii (conturi afectate, JSON details)
-- 📋 Scroll pentru liste mari (max 20 conturi vizibile)
+- Duplicate cod cont → agregare la insert
+- Total_sume calculate (format 8 coloane)
+- Rotunjiri ≤ 0.01 RON
+
+### Neimplementate în fluxul activ
+
+Suitea `validateBalance()` (16 verificări OMFP din `balanceValidation.ts`) există ca utilitar dar **nu** este invocată la upload.
 
 ---
 
-## 📁 Structura Fișiere Noi/Modificate
+## Storage și securitate
 
-```
-finguardv2/
-├── src/
-│   ├── hooks/
-│   │   └── useTrialBalances.tsx              ✏️ Modificat (bucket name)
-│   ├── utils/
-│   │   └── balanceValidation.ts              ✨ NOU (16 validări)
-│   └── components/
-│       └── upload/
-│           └── ValidationResultsDialog.tsx   ✨ NOU (UI validări)
-└── supabase/
-    └── migrations/
-        ├── 20260129000001_fix_view_rls_security_invoker.sql      ✨ NOU
-        └── 20260129000002_fix_storage_bucket_consistency.sql     ✨ NOU
+| Aspect | Valoare actuală |
+|--------|-----------------|
+| Bucket | `balante` (frontend + Edge Function + migrări recente) |
+| Path | `{company_id}/{timestamp}_{filename}` |
+| View citire | `trial_balance_imports_public` |
+| Scriere | `trial_balance_imports` (tabel) |
+| RLS | `is_company_member` pe companie |
+
+Migrări relevante:
+- `20260621000000_stabilize_upload_pipeline.sql`
+- `20260129000001_fix_view_rls_security_invoker.sql`
+- `20260129000002_fix_storage_bucket_consistency.sql` (istoric trial-balances → consolidat la `balante`)
+
+---
+
+## Migrări DB (upload)
+
+| Migrare | Scop |
+|---------|------|
+| `20260621000000_stabilize_upload_pipeline.sql` | Pipeline, bucket, view, RPC |
+| `20260630100000_add_balance_month_to_trial_balance_imports.sql` | Coloană `balance_month` |
+| `20260701120000_prepare_balance_month_upload.sql` | RPC conflict/replace lună |
+| `20260708120000_add_balance_format_dual_support.sql` | `balance_format`, RPC/view actualizate |
+
+---
+
+## Deployment
+
+```bash
+cd c:\_Software\SAAS\finguardv2
+supabase db push
+supabase functions deploy parse-balanta
+npm test
+npm run build
 ```
 
----
-
-## 🚀 Deployment Checklist
-
-### Pre-Deployment (OBLIGATORIU):
-
-1. **Verificare Bucket**:
-   ```bash
-   # În Supabase Dashboard → Storage
-   # Verifică că bucket 'trial-balances' există
-   # Dacă există 'balante', migrează fișierele manual
-   ```
-
-2. **Aplicare Migrări**:
-   ```bash
-   cd c:\_Software\SAAS\finguardv2
-   supabase db push
-   ```
-
-3. **Verificare Views**:
-   ```sql
-   -- Rulează în Supabase SQL Editor
-   SELECT viewname, definition
-   FROM pg_views
-   WHERE viewname LIKE 'trial_balance_imports%'
-     AND schemaname = 'public';
-   
-   -- Trebuie să vezi security_invoker = true în definiție
-   ```
-
-4. **Verificare Policies**:
-   ```sql
-   SELECT tablename, policyname, cmd, qual
-   FROM pg_policies
-   WHERE tablename = 'objects'
-     AND schemaname = 'storage'
-   ORDER BY policyname;
-   
-   -- Trebuie să vezi 3 policies pentru 'trial-balances'
-   ```
-
-5. **Regenerare Types**:
-   ```bash
-   npx supabase gen types typescript --project-id <your-project-id> > src/integrations/supabase/types.ts
-   ```
-
-6. **Test Upload Local**:
-   ```bash
-   npm run dev
-   # Navighează la /incarcare-balanta
-   # Upload fișier Excel de test
-   # Verifică că validările apar corect
-   ```
-
-### Post-Deployment:
-
-1. **Monitorizare Logs**:
-   - Supabase Dashboard → Logs → Errors
-   - Căută "trial-balances", "validation", "MISMATCH"
-
-2. **Test Funcțional**:
-   - Upload balanță validă → SUCCESS
-   - Upload balanță dezechilibrată → ERROR cu detalii
-   - Upload balanță cu warnings → PERMIS cu avertizare
-
-3. **Verificare Storage**:
-   - Fișiere sunt în `trial-balances` bucket
-   - Path format: `<company_id>/<timestamp>_<filename>`
-
----
-
-## 🧪 Exemple de Teste
-
-### Test 1: Balanță Validă
-
-**Fișier:** `test_balanta_valida.xlsx`
-
-| Cont | Denumire | SI Debit | SI Credit | Rulaj D | Rulaj C | SF Debit | SF Credit |
-|------|----------|----------|-----------|---------|---------|----------|-----------|
-| 1012 | Bănci | 10000.00 | 0.00 | 5000.00 | 3000.00 | 12000.00 | 0.00 |
-| 4111 | Venituri | 0.00 | 10000.00 | 0.00 | 5000.00 | 0.00 | 15000.00 |
-| 6111 | Cheltuieli | 0.00 | 0.00 | 3000.00 | 0.00 | 3000.00 | 0.00 |
-
-**Așteptat:** ✅ Validare reușită, totaluri echilibrate.
-
----
-
-### Test 2: Balanță Dezechilibrată
-
-**Fișier:** `test_balanta_dezechilibrata.xlsx`
-
-| Cont | Denumire | SI Debit | SI Credit | Rulaj D | Rulaj C | SF Debit | SF Credit |
-|------|----------|----------|-----------|---------|---------|----------|-----------|
-| 1012 | Bănci | 10000.00 | 0.00 | 5000.00 | 3000.00 | 12000.00 | 0.00 |
-| 4111 | Venituri | 0.00 | 9000.00 | 0.00 | 5000.00 | 0.00 | 14000.00 |
-
-**Așteptat:** ❌ Eroare blocking `BALANCE_CONTROL_OPENING_MISMATCH`, diferență 1000 RON.
-
----
-
-### Test 3: Conturi Duplicate
-
-**Fișier:** `test_duplicate.xlsx`
-
-| Cont | Denumire | SI Debit | SI Credit | Rulaj D | Rulaj C | SF Debit | SF Credit |
-|------|----------|----------|-----------|---------|---------|----------|-----------|
-| 1012 | Bănci BRD | 5000.00 | 0.00 | 2000.00 | 1000.00 | 6000.00 | 0.00 |
-| 1012 | Bănci ING | 3000.00 | 0.00 | 1000.00 | 500.00 | 3500.00 | 0.00 |
-
-**Așteptat (ENV default):** ❌ Eroare `DUPLICATE_ACCOUNTS`, blocare.  
-**Așteptat (ENV agregare):** ⚠️ Warning + agregare automată.
-
----
-
-## 📊 Metrici de Succes
-
-### Performanță:
-
-- ⚡ **Timp parsare:** < 5s pentru 1000 conturi
-- ⚡ **Timp validare:** < 1s pentru 1000 conturi
-- ⚡ **Upload file:** < 30s pentru 10MB
-
-### Calitate:
-
-- ✅ **Zero false pozitive:** Toleranță ±1 RON
-- ✅ **Coverage validări:** 16/16 (100%)
-- ✅ **UX clarity:** Erori cu context și sugestii
-
-### Securitate:
-
-- 🔒 **RLS:** 100% izolare tenants
-- 🔒 **Storage:** Policies verificate
-- 🔒 **Views:** security_invoker enabled
-
----
-
-## 🐛 Known Issues & Workarounds
-
-### Issue 1: Fișiere mari (> 5000 conturi)
-
-**Simptom:** Timeout la parsare (> 30s)  
-**Workaround:** Split fișier în 2 părți sau crește PARSE_TIMEOUT_MS în Edge Function
-
-### Issue 2: Excel cu formule
-
-**Simptom:** Valori calculate greșit  
-**Workaround:** Export ca valori (Copy → Paste Special → Values) înainte de upload
-
-### Issue 3: Diacritice în nume fișier
-
-**Simptom:** Upload eșuează cu policy error  
-**Workaround:** Folosește `normalizeFilename()` (deja implementat în `fileHelpers.ts`)
-
----
-
-## 📞 Support & Debugging
-
-### Logs Utile:
+### Verificări post-deploy (SQL)
 
 ```sql
--- Importuri cu erori (ultimele 10)
-SELECT id, source_file_name, error_message, created_at
-FROM trial_balance_imports
-WHERE status = 'error'
-ORDER BY created_at DESC
-LIMIT 10;
+SELECT id, name FROM storage.buckets WHERE id = 'balante';
 
--- Totaluri imports per companie
-SELECT company_id, COUNT(*) as total_imports, 
-       SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
-FROM trial_balance_imports
-WHERE deleted_at IS NULL
-GROUP BY company_id;
+SELECT policyname FROM pg_policies
+WHERE schemaname = 'storage' AND tablename = 'objects'
+  AND policyname LIKE 'balante_%';
 
--- Storage usage per companie
-SELECT (storage.foldername(name))[1] as company_id,
-       COUNT(*) as files_count,
-       SUM((metadata->>'size')::bigint) as total_bytes
-FROM storage.objects
-WHERE bucket_id = 'trial-balances'
-GROUP BY (storage.foldername(name))[1];
+SELECT column_name FROM information_schema.columns
+WHERE table_name = 'trial_balance_imports'
+  AND column_name IN ('balance_month', 'balance_format');
 ```
 
-### Contact Development:
+### Test manual
 
-- 📧 Email: development@finguard.ro
-- 📚 Docs: Verifică `plan_upload_balanta.md` pentru detalii complete
-- 🐛 Issues: Supabase Dashboard → Logs → Errors
-
----
-
-## 🎉 Conclusion
-
-Implementarea este **completă și production-ready**. Toate inconsistențele critice identificate în `plan_upload_balanta.md` au fost rezolvate:
-
-- ✅ Bucket consistency (v1.4.1)
-- ✅ View RLS security (v1.4.2)
-- ✅ Storage policies (v1.4.3)
-- ✅ 16 Validări contabile (v1.3)
-- ✅ UI/UX îmbunătățit
-- ✅ Documentație completă
-
-**Ready for deployment!** 🚀
+1. `/incarcare-balanta` — upload valid 10 coloane → status `completed`
+2. Upload valid 8 coloane → `balance_format = 8_COLUMNS`
+3. Upload dezechilibrat → blocat în preview, fără rând nou în listă
+4. Re-upload aceeași lună → dialog replace
 
 ---
 
-**Versiune Document:** 1.0  
-**Autor:** FinGuard Development Team  
-**Data:** 29 Ianuarie 2026
+## Teste automate
+
+| Fișier | Teste |
+|--------|-------|
+| `src/lib/excel-parser.test.ts` | 31 |
+| `src/lib/prepareBalanceMonthUpload.test.ts` | 6 |
+| `src/hooks/useBalanceUploadForm.test.ts` | 2 |
+
+```bash
+npm test -- --run src/lib/excel-parser.test.ts
+```
+
+---
+
+## Known issues / note
+
+1. **ValidationResultsDialog** — componentă creată în ian. 2026, nefolosită; preview-ul activ este `BalanceUploadPreview`.
+2. **Documentație ian. 2026** menționa bucket `trial-balances` — codul curent folosește **`balante`**.
+3. **Fișiere mari** (>5000 conturi) — posibil timeout parsare Edge Function (30s).
+4. **Excel cu formule** — `cellFormula: false`; recomandat export valori.
+
+---
+
+## Istoric versiuni document
+
+| Versiune | Data | Note |
+|----------|------|------|
+| v1.4 | Ian 2026 | Fix bucket, RLS, 16 validări planificate |
+| v2.x | Iun 2026 | Stabilizare pipeline, format 10 coloane |
+| v3.0 | Iul 2026 | Dual format 8/10 coloane |
+| v3.1 | 11 Iul 2026 | Aliniere la cod: balance_month, prepare RPC, preview UI, teste 31 |
