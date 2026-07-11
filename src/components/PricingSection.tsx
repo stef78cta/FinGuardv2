@@ -89,12 +89,12 @@ const PricingSection = () => {
     <section
       id="pricing"
       ref={sectionRef}
-      className="section-padding bg-[var(--newa-surface-light)]"
+      className="py-10 md:py-14 bg-[var(--newa-surface-light)]"
     >
       <div className="container-custom">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h2 className="section-title text-[var(--newa-text-primary)] mb-4">
+        <div className="text-center mb-5">
+          <h2 className="section-title text-[var(--newa-text-primary)] mb-2">
             Prețuri simple, fără surprize
           </h2>
           <p className="body-large text-[var(--newa-text-secondary)] max-w-2xl mx-auto">
@@ -110,7 +110,7 @@ const PricingSection = () => {
           const savings = monthlyNum * 12 - yearlyNum;
           const canShowSavings = Number.isFinite(savings) && savings > 0;
           return (
-            <div className="flex flex-col items-center mb-10 gap-3">
+            <div className="flex flex-col items-center mb-6 gap-2">
               <div
                 role="tablist"
                 aria-label="Ciclu de facturare"
@@ -198,7 +198,7 @@ const PricingSection = () => {
                   </h3>
 
                   {/* Price */}
-                  <div className="mb-6 mt-4">
+                  <div className="mb-4 mt-3">
                     {active ? (
                       <div className="flex items-baseline justify-center gap-1">
                         <span className="text-4xl font-mono font-bold gradient-text leading-none">
@@ -223,7 +223,7 @@ const PricingSection = () => {
                   </div>
 
                   {/* Features */}
-                  <ul className="space-y-3 mb-6 text-left">
+                  <ul className="space-y-2 mb-4 text-left">
                     {plan.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-start gap-2.5">
                         <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[var(--newa-brand-accent-emerald)]/15 flex items-center justify-center mt-0.5">
@@ -257,8 +257,8 @@ const PricingSection = () => {
         </div>
 
         {/* Trust & Reassurance Bar */}
-        <div className="text-center mt-14">
-          <div className="inline-flex flex-wrap items-center justify-center gap-6 lg:gap-8 bg-gradient-to-r from-[var(--newa-surface-canvas)] via-[var(--newa-surface-light)] to-[var(--newa-surface-canvas)] px-6 lg:px-8 py-5 rounded-[var(--newa-radius-xl)] border border-[var(--newa-border-default)] shadow-sm">
+        <div className="text-center mt-8">
+          <div className="inline-flex flex-wrap items-center justify-center gap-6 lg:gap-8 bg-gradient-to-r from-[var(--newa-surface-canvas)] via-[var(--newa-surface-light)] to-[var(--newa-surface-canvas)] px-6 lg:px-8 py-3 rounded-[var(--newa-radius-xl)] border border-[var(--newa-border-default)] shadow-sm">
             <div className="flex items-center gap-2 group">
               <div className="flex-shrink-0 w-10 h-10 bg-[var(--newa-alert-success-bg)] rounded-[var(--newa-radius-lg)] flex items-center justify-center group-hover:opacity-80 transition-opacity duration-300">
                 <Sparkles className="w-5 h-5 text-[var(--newa-brand-accent-emerald)]" />
@@ -292,8 +292,8 @@ const PricingSection = () => {
         </div>
 
         {/* Guarantee notice */}
-        <div className="max-w-3xl mx-auto mt-6">
-          <div className="flex items-start gap-3 bg-[var(--newa-selection-bg)]/40 border border-[var(--newa-border-default)] rounded-[var(--newa-radius-xl)] px-5 py-4">
+        <div className="max-w-3xl mx-auto mt-4">
+          <div className="flex items-start gap-3 bg-[var(--newa-selection-bg)]/40 border border-[var(--newa-border-default)] rounded-[var(--newa-radius-xl)] px-5 py-3">
             <div className="flex-shrink-0 w-9 h-9 rounded-[var(--newa-radius-lg)] bg-[var(--newa-brand-accent-indigo)]/10 flex items-center justify-center">
               <ShieldCheck className="w-5 h-5 text-[var(--newa-brand-accent-indigo)]" />
             </div>
