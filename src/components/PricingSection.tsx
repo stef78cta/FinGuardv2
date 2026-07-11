@@ -89,12 +89,12 @@ const PricingSection = () => {
     <section
       id="pricing"
       ref={sectionRef}
-      className="section-padding bg-[var(--newa-surface-light)]"
+      className="py-10 md:py-14 bg-[var(--newa-surface-light)]"
     >
       <div className="container-custom">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h2 className="section-title text-[var(--newa-text-primary)] mb-4">
+        <div className="text-center mb-5">
+          <h2 className="section-title text-[var(--newa-text-primary)] mb-2">
             Prețuri simple, fără surprize
           </h2>
           <p className="body-large text-[var(--newa-text-secondary)] max-w-2xl mx-auto">
