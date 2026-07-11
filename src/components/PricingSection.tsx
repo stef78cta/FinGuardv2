@@ -257,8 +257,8 @@ const PricingSection = () => {
         </div>
 
         {/* Trust & Reassurance Bar */}
-        <div className="text-center mt-14">
-          <div className="inline-flex flex-wrap items-center justify-center gap-6 lg:gap-8 bg-gradient-to-r from-[var(--newa-surface-canvas)] via-[var(--newa-surface-light)] to-[var(--newa-surface-canvas)] px-6 lg:px-8 py-5 rounded-[var(--newa-radius-xl)] border border-[var(--newa-border-default)] shadow-sm">
+        <div className="text-center mt-8">
+          <div className="inline-flex flex-wrap items-center justify-center gap-6 lg:gap-8 bg-gradient-to-r from-[var(--newa-surface-canvas)] via-[var(--newa-surface-light)] to-[var(--newa-surface-canvas)] px-6 lg:px-8 py-3 rounded-[var(--newa-radius-xl)] border border-[var(--newa-border-default)] shadow-sm">
             <div className="flex items-center gap-2 group">
               <div className="flex-shrink-0 w-10 h-10 bg-[var(--newa-alert-success-bg)] rounded-[var(--newa-radius-lg)] flex items-center justify-center group-hover:opacity-80 transition-opacity duration-300">
                 <Sparkles className="w-5 h-5 text-[var(--newa-brand-accent-emerald)]" />
