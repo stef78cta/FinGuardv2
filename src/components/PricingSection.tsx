@@ -103,57 +103,67 @@ const PricingSection = () => {
         </div>
 
         {/* Billing toggle — segmented control */}
-        <div className="flex justify-center mb-10">
-          <div
-            role="tablist"
-            aria-label="Ciclu de facturare"
-            className="relative inline-flex items-center bg-[var(--newa-surface-light)] border border-[var(--newa-border-default)] rounded-full p-1 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
-          >
-            <span
-              aria-hidden="true"
-              className={`absolute top-1 bottom-1 rounded-full bg-[var(--newa-brand-accent-indigo)] shadow-[0_4px_12px_rgba(99,102,241,0.35)] transition-all duration-300 ease-out ${
-                billing === 'monthly'
-                  ? 'left-1 right-[calc(50%+2px)]'
-                  : 'left-[calc(50%+2px)] right-1'
-              }`}
-            />
-            <button
-              type="button"
-              role="tab"
-              aria-selected={billing === 'monthly'}
-              onClick={() => setBilling('monthly')}
-              className={`relative z-10 px-6 py-2 text-sm font-semibold rounded-full transition-colors duration-300 ${
-                billing === 'monthly'
-                  ? 'text-[var(--newa-text-inverse)]'
-                  : 'text-[var(--newa-text-secondary)] hover:text-[var(--newa-text-primary)]'
-              }`}
-            >
-              Lunar
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={billing === 'yearly'}
-              onClick={() => setBilling('yearly')}
-              className={`relative z-10 px-6 py-2 text-sm font-semibold rounded-full transition-colors duration-300 inline-flex items-center gap-2 ${
-                billing === 'yearly'
-                  ? 'text-[var(--newa-text-inverse)]'
-                  : 'text-[var(--newa-text-secondary)] hover:text-[var(--newa-text-primary)]'
-              }`}
-            >
-              Anual
-              <span
-                className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full transition-colors duration-300 ${
+        {(() => {
+          const pro = plans.find((p) => p.planKey === 'professional');
+          const monthlyNum = pro?.pricing ? parseFloat(pro.pricing.monthly.amount) : 0;
+          const yearlyNum = pro?.pricing ? parseFloat(pro.pricing.yearly.amount) : 0;
+          const savings = monthlyNum * 12 - yearlyNum;
+          const canShowSavings = Number.isFinite(savings) && savings > 0;
+          return (
+            <div className="flex flex-col items-center mb-10 gap-3">
+              <div
+                role="tablist"
+                aria-label="Ciclu de facturare"
+                className="inline-flex items-center bg-[var(--newa-surface-light)] border border-[var(--newa-border-default)] rounded-full p-1 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={billing === 'monthly'}
+                  onClick={() => setBilling('monthly')}
+                  className={`px-5 py-2 text-sm font-semibold rounded-full transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--newa-brand-accent-indigo)]/40 ${
+                    billing === 'monthly'
+                      ? 'bg-[var(--newa-brand-accent-indigo)] text-[var(--newa-text-inverse)] shadow-[0_4px_12px_rgba(99,102,241,0.35)]'
+                      : 'text-[var(--newa-text-secondary)] hover:text-[var(--newa-text-primary)]'
+                  }`}
+                >
+                  Lunar
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={billing === 'yearly'}
+                  onClick={() => setBilling('yearly')}
+                  className={`inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-full transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--newa-brand-accent-indigo)]/40 ${
+                    billing === 'yearly'
+                      ? 'bg-[var(--newa-brand-accent-indigo)] text-[var(--newa-text-inverse)] shadow-[0_4px_12px_rgba(99,102,241,0.35)]'
+                      : 'text-[var(--newa-text-secondary)] hover:text-[var(--newa-text-primary)]'
+                  }`}
+                >
+                  <span>Anual</span>
+                  <span
+                    className={`whitespace-nowrap text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full transition-transform duration-200 bg-[var(--newa-brand-accent-emerald)] text-[var(--newa-brand-primary-dark)] ${
+                      billing === 'yearly' ? 'scale-105' : ''
+                    }`}
+                  >
+                    2 luni bonus
+                  </span>
+                </button>
+              </div>
+              <p
+                className={`text-xs md:text-sm font-medium transition-colors duration-200 ${
                   billing === 'yearly'
-                    ? 'bg-[var(--newa-brand-accent-emerald)] text-[var(--newa-brand-primary-dark)]'
-                    : 'bg-[var(--newa-brand-accent-emerald)]/15 text-[var(--newa-brand-accent-emerald)]'
+                    ? 'text-[var(--newa-brand-accent-emerald)]'
+                    : 'text-[var(--newa-text-muted)]'
                 }`}
               >
-                −2 luni
-              </span>
-            </button>
-          </div>
-        </div>
+                {billing === 'yearly' && canShowSavings
+                  ? `✓ Economisești ${savings} € pe an`
+                  : 'Plătești lunar. Anulezi oricând.'}
+              </p>
+            </div>
+          );
+        })()}
 
 
         {/* Single centered plan card */}
