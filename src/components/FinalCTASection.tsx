@@ -15,7 +15,7 @@ const FinalCTASection = () => {
             <span className="block">decizii inteligente?</span>
           </h2>
           
-          <p className="body text-[var(--newa-text-inverse)]/80 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-white mb-8 max-w-2xl mx-auto">
             Alătură-te celor 500+ de companii care au economisit deja 10,000+ ore cu FinGuard.
           </p>
 
