@@ -2,9 +2,9 @@
 
 **Document central — suport DUAL format (8 / 10 coloane).**
 
-**Versiune:** v3.1  
-**Ultima actualizare:** 11 iulie 2026  
-**Status:** Reflectă codul din branch-ul curent (fără modificări de cod în această etapă)
+**Versiune:** v3.2  
+**Ultima actualizare:** 12 iulie 2026  
+**Status:** Reflectă codul din branch-ul curent (validare cont alfanumeric v3.2)
 
 > Aplicația acceptă două formate standard de balanță: **8 coloane (A–H)** și **10 coloane (A–J)**.
 > Formatul este **detectat automat per import**; la ambiguitate (exact 9 coloane populate) utilizatorul alege manual.
@@ -22,8 +22,9 @@
 | Pregătire lună | `src/lib/prepareBalanceMonthUpload.ts` → RPC `prepare_balance_month_upload` | O balanță activă per companie/lună; replace opțional |
 | Perioadă contabilă | `src/lib/balancePeriod.ts` | `balance_month`, `period_start`, `period_end` din luna selectată |
 | Parser + validări | `src/lib/excel-parser.ts` | Detectare format, validări blocking/warning (motor principal) |
+| Validator simbol cont | `supabase/functions/_shared/accountCodeValidation.ts` → `src/utils/accountCodeValidation.ts` | Sursă unică format cont (numeric + alfanumeric) |
 | Pipeline procesare | `src/lib/importPipeline.ts` | Edge Function `parse-balanta`, polling, fallback client-side |
-| Agregare duplicate | `src/utils/balanceValidation.ts` (`aggregateDuplicateAccounts`) | Sumă conturi duplicate la insert (nu validarea completă v1.3) |
+| Agregare duplicate | `src/utils/balanceValidation.ts` (`aggregateDuplicateAccounts`, `validateAccountFormat` via validator central) | Sumă conturi duplicate la insert; format OMFP în suitea v1.3 |
 | Edge Function | `supabase/functions/parse-balanta/index.ts` | Re-parsare server-side, RPC `process_import_accounts` |
 | Storage | bucket **`balante`** (`src/lib/storage/constants.ts`) | Path: `{company_id}/{timestamp}_{filename}` |
 | Rapoarte post-upload | `src/lib/financialStatementsPipeline.ts` | Generare situații financiare după import reușit |
@@ -34,7 +35,8 @@
 - `validateBalance()` din `balanceValidation.ts` — suite v1.3 (16 verificări); **nu** este apelată în fluxul de upload; validările blocking sunt în `excel-parser.ts`
 
 **Teste automate (Vitest):** `npm test`
-- `src/lib/excel-parser.test.ts` — **31 teste** (8/10 coloane, ambiguitate, control totals)
+- `src/lib/excel-parser.test.ts` — **33 teste** (8/10 coloane, ambiguitate, control totals, cont alfanumeric)
+- `src/utils/accountCodeValidation.test.ts` — **13 teste** (format cont central)
 - `src/hooks/useBalanceUploadForm.test.ts` — 2 teste
 - `src/lib/prepareBalanceMonthUpload.test.ts` — 6 teste
 
@@ -46,7 +48,7 @@ Indiferent de formatul Excel, după parsare aplicația lucrează cu `ParsedAccou
 
 | Câmp canonic | Semnificație |
 |---|---|
-| `account_code` | Cont (3–6 cifre) |
+| `account_code` | Cont (3–6 caractere alfanumerice, min. o cifră; sufix analitic opțional `.XX`/`.XXX`) |
 | `account_name` | Denumire (max 200 caractere) |
 | `opening_debit` / `opening_credit` | Sold inițial debitor / creditor |
 | `debit_turnover` / `credit_turnover` | **Rulaj LUNAR** debitor / creditor |
@@ -120,7 +122,7 @@ Rulează **client-side înainte de upload** (`useBalanceUploadForm` la selectare
 | `EXCEL_FORCED_FORMAT_MISMATCH` | Format manual contrazice structura |
 | `EXCEL_INVALID_COLUMN_COUNT` | Date peste coloana J |
 | `EXCEL_MISSING_REQUIRED_COLUMNS` | Lipsesc coloane obligatorii pentru formatul forțat |
-| `BALANCE_ROW_ACCOUNT_MISSING` / `BALANCE_ROW_ACCOUNT_INVALID` | Cont lipsă sau invalid |
+| `BALANCE_ROW_ACCOUNT_MISSING` / `BALANCE_ROW_ACCOUNT_INVALID` | Cont lipsă sau format invalid (validator central) |
 | `BALANCE_ROW_NAME_TOO_LONG` | Denumire > 200 caractere |
 | `BALANCE_INVALID_ROWS_DETECTED` | Agregat erori pe rânduri |
 | `BALANCE_CONTROL_OPENING_MISMATCH` | SI Debit ≠ SI Credit |
@@ -133,6 +135,28 @@ Rulează **client-side înainte de upload** (`useBalanceUploadForm` la selectare
 | `BALANCE_NO_VALID_ACCOUNTS` | Zero conturi valide |
 
 Rotunjiri ≤ 0.01 RON → **warning** (`BALANCE_CONTROL_*_ROUNDING_DIFF`), upload permis.
+
+### 4.1. Format simbol cont (validator central — v3.2)
+
+**Sursă unică:** `supabase/functions/_shared/accountCodeValidation.ts` (re-export: `src/utils/accountCodeValidation.ts`).
+
+**Simbol principal (înainte de punct):**
+- 3–6 caractere `[A-Za-z0-9]`
+- cel puțin o cifră
+- conturile care încep cu `9` → respinse (clasa 9)
+- conturile **exclusiv numerice** → trebuie să înceapă cu `1`–`8` (clase OMFP)
+
+**Sufix analitic (opțional):** `.` + 2 sau 3 cifre (ex: `401.01`, `401A.01`)
+
+**Exemple valide:** `401`, `5121`, `ABC123`, `401A`, `A401`, `abc123`, `401A.01`
+
+**Exemple invalide:** `12` (prea scurt), `10123456` (prea lung), `ABC` (fără cifră), `9111` (clasa 9), `40-1A` / `40 1A` (caractere nepermise)
+
+**Mesaje:**
+- prea scurt (`12`, `A1`): *„Cont prea scurt — minimum 3 cifre.”*
+- alt format invalid: *„Contul trebuie să conțină între 3 și 6 caractere alfanumerice, să includă cel puțin o cifră și să respecte formatul analitic permis.”*
+
+Folosit în: `excel-parser.ts`, `balanceValidation.ts` (`validateAccountFormat`), Edge Function `parse-balanta`.
 
 > `EXCEL_LEGACY_8_COLUMN_FORMAT` — **eliminat**; formatul 8 coloane este acceptat.
 
@@ -263,4 +287,6 @@ npm test -- --run src/lib/excel-parser.test.ts
 | `supabase/migrations/20260621000000_stabilize_upload_pipeline.sql` | Pipeline stabilizat |
 | `supabase/migrations/20260701120000_prepare_balance_month_upload.sql` | RPC lună |
 | `supabase/migrations/20260708120000_add_balance_format_dual_support.sql` | Dual format DB |
-| `src/lib/excel-parser.test.ts` | 31 teste Vitest |
+| `src/lib/excel-parser.test.ts` | 33 teste Vitest |
+| `src/utils/accountCodeValidation.test.ts` | 13 teste Vitest |
+| `supabase/functions/_shared/accountCodeValidation.ts` | Validator central simbol cont |

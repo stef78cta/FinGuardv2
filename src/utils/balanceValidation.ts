@@ -1,3 +1,5 @@
+import { isValidAccountCode } from '@/utils/accountCodeValidation';
+
 /**
  * Balance Validation Utilities
  * 
@@ -224,18 +226,17 @@ function validateMandatoryClasses(accounts: BalanceAccount[]): ValidationResult 
 /**
  * v1.3.6: Format conturi OMFP 1802/2014 (CRITICĂ)
  * 
- * Pattern REALIST (v1.4.9 ajustare):
- * - Permite conturi de 3-6 cifre
- * - Permite subconturi cu punct (ex: 5121.01)
- * - Acceptă clase 1-8 (include clasa 8 pentru off-balance)
+ * Pattern REALIST (v1.4.9 ajustare, extins alfanumeric):
+ * - Permite simbol principal 3-6 caractere alfanumerice (minim o cifră)
+ * - Permite subconturi cu punct (ex: 5121.01, 401A.01)
+ * - Respinge clasa 9; conturile numerice rămân în clasele 1-8
  */
 function validateAccountFormat(accounts: BalanceAccount[]): ValidationResult[] {
   const results: ValidationResult[] = [];
   const invalidAccounts: string[] = [];
   
   accounts.forEach(acc => {
-    // Pattern realist: 1-8 cifre inițial + opțional .XX sau .XXX
-    if (!/^[1-8]\d{2,5}(\.\d{2,3})?$/.test(acc.account_code)) {
+    if (!isValidAccountCode(acc.account_code)) {
       invalidAccounts.push(acc.account_code);
     }
   });

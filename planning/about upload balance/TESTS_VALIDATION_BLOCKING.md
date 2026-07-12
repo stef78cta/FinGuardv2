@@ -1,16 +1,17 @@
 # Teste pentru validări blocking — upload balanță
 
-> **Actualizare 11 iulie 2026 (v3.1).** Dual format 8/10 coloane. Implementare: **`src/lib/excel-parser.test.ts`** — **31 teste** Vitest. Format 8 coloane **acceptat** (nu mai există `EXCEL_LEGACY_8_COLUMN_FORMAT`). Duplicate = **warning** + agregare. Sursa: [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md).
+> **Actualizare 12 iulie 2026 (v3.2).** Dual format 8/10 coloane. **Cont alfanumeric** acceptat. Implementare: **`src/lib/excel-parser.test.ts`** — **33 teste** + **`src/utils/accountCodeValidation.test.ts`** — **13 teste** Vitest. Sursa: [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md).
 
 ## Overview
 
 | Aspect | Valoare actuală |
 |--------|-----------------|
 | Parser | `src/lib/excel-parser.ts` |
-| Teste automate | `src/lib/excel-parser.test.ts` — **31 teste** |
+| Validator cont | `src/utils/accountCodeValidation.ts` (canonic: `_shared/accountCodeValidation.ts`) |
+| Teste automate | `excel-parser.test.ts` — **33**; `accountCodeValidation.test.ts` — **13** |
 | Helper test | `parseExcelRows(rows: unknown[][])` |
 | Prag control | 0.01 RON |
-| Rulare | `npm test -- --run src/lib/excel-parser.test.ts` |
+| Rulare | `npm test -- src/lib/excel-parser.test.ts src/utils/accountCodeValidation.test.ts` |
 
 ---
 
@@ -259,12 +260,12 @@ describe('parseExcelFile - Validări Blocking', () => {
       expect(result.metrics.rowsRejected).toEqual(1);
     });
     
-    it('RESPINGE balanță cu cont invalid (nu 3-6 cifre)', async () => {
-      // Arrange: Creează fișier mock cu cont alfanumeric
+    it('RESPINGE balanță cu cont invalid (format central — fără cifră / prea scurt)', async () => {
+      // Arrange: ABC = doar litere (invalid); 12 = prea scurt; ABC123 = VALID (alfanumeric)
       const invalidAccountFile = createMockExcelFile({
         accounts: [
           { code: '1012', name: 'Bănci', opening_d: 1000, opening_c: 0, debit_t: 500, credit_t: 200, closing_d: 1300, closing_c: 0 },
-          { code: 'ABC', name: 'Venituri', opening_d: 0, opening_c: 2000, debit_t: 100, credit_t: 600, closing_d: 0, closing_c: 2500 }, // CONT INVALID
+          { code: 'ABC', name: 'Venituri', opening_d: 0, opening_c: 2000, debit_t: 100, credit_t: 600, closing_d: 0, closing_c: 2500 }, // FĂRĂ CIFRĂ
           { code: '12', name: 'Cheltuieli', opening_d: 500, opening_c: 0, debit_t: 700, credit_t: 0, closing_d: 1200, closing_c: 0 }, // PREA SCURT
         ],
       });
@@ -280,12 +281,24 @@ describe('parseExcelFile - Validări Blocking', () => {
       expect(result.rowErrors[0].message).toContain('Cont invalid "ABC"');
       
       expect(result.rowErrors[1].code).toBe('BALANCE_ROW_ACCOUNT_INVALID');
-      expect(result.rowErrors[1].message).toContain('Cont invalid "12"');
+      expect(result.rowErrors[1].message).toContain('Cont prea scurt — minimum 3 cifre');
       
       expect(result.blockingErrors[0].code).toBe('BALANCE_INVALID_ROWS_DETECTED');
       expect(result.blockingErrors[0].message).toContain('2 rând(uri) cu erori detectate');
       
       expect(result.accounts).toHaveLength(0);
+    });
+
+    it('ACCEPTĂ cont alfanumeric valid (ex: ABC123)', async () => {
+      const mixedFile = createMockExcelFile({
+        accounts: [
+          { code: '401', name: 'Furnizori', opening_d: 0, opening_c: 1000, debit_t: 500, credit_t: 0, closing_d: 0, closing_c: 1500 },
+          { code: 'ABC123', name: 'Cont custom', opening_d: 1000, opening_c: 0, debit_t: 0, credit_t: 500, closing_d: 1000, closing_c: 500 },
+        ],
+      });
+      const result = await parseExcelFile(mixedFile);
+      expect(result.ok).toBe(true);
+      expect(result.accounts.some((a) => a.account_code === 'ABC123')).toBe(true);
     });
     
     it('RESPINGE balanță cu AMBELE erori (control totals + conturi invalide)', async () => {
@@ -641,7 +654,7 @@ jobs:
 
 ## 🚀 **NEXT STEPS**
 
-1. ✅ **Teste unitare parser**: `src/lib/excel-parser.test.ts` — 31 teste, `npm test`
+1. ✅ **Teste unitare parser + validator**: `excel-parser.test.ts` (33) + `accountCodeValidation.test.ts` (13), `npm test`
 2. **Teste integration upload**: mock Supabase (opțional)
 3. **Fixtures Excel**: 8 coloane + 10 coloane în `testing/fixtures/` (dacă există)
 4. **CI/CD**: job `npm test` în pipeline

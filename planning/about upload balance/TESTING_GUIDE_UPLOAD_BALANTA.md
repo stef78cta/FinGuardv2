@@ -1,9 +1,9 @@
 # Ghid testare Upload Balanță — finguardv2
 
-> **Actualizare 11 iulie 2026 (v3.1).** Dual format 8/10 coloane. Preview UI: `BalanceUploadPreview`. Bucket: **`balante`**. Duplicate = warning + agregare. **31 teste** parser Vitest. Sursa: [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md).
+> **Actualizare 12 iulie 2026 (v3.2).** Dual format 8/10 coloane. **Cont alfanumeric** acceptat (`ABC123`, `401A`, etc.) — validator central `accountCodeValidation.ts`. Preview UI: `BalanceUploadPreview`. Bucket: **`balante`**. Duplicate = warning + agregare. **46 teste** parser + validator Vitest. Sursa: [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md).
 
-**Versiune:** v3.1  
-**Data:** 11 iulie 2026  
+**Versiune:** v3.2  
+**Data:** 12 iulie 2026  
 **Scop:** Scenarii manuale + referință teste automate
 
 ---
@@ -144,19 +144,27 @@ c:\_Software\SAAS\finguardv2\testing\
 
 ### 4. balanta_format_invalid.xlsx ❌
 
-**Descriere:** Conturi cu format OMFP invalid.
+**Descriere:** Conturi cu format invalid (validator central `accountCodeValidation.ts`).
 
 **Conturi invalide:**
-- `12` (prea scurt - minim 3 cifre)
-- `10123456` (prea lung - maxim 6 cifre + opțional .XX)
-- `ABC123` (conține litere)
-- `9111` (clasa 9 - invalida pentru balanță standard)
+- `12` (prea scurt — minimum 3 caractere)
+- `10123456` (prea lung — maximum 6 caractere în simbolul principal)
+- `ABC` (fără nicio cifră)
+- `9111` (clasa 9 — invalidă pentru balanță standard)
 
-**Așteptat:**
+**Conturi valide (nu mai sunt respinse):**
+- `ABC123`, `401A`, `A401`, `abc123`, `401A.01`
+
+**Așteptat (flux activ — excel-parser):**
+- ❌ Erori per rând `BALANCE_ROW_ACCOUNT_INVALID` pentru fiecare cont invalid
+- ❌ Eroare agregată `BALANCE_INVALID_ROWS_DETECTED` sau `BALANCE_NO_VALID_ACCOUNTS`
+- Mesaj exemplu rând `12`: *„Cont prea scurt — minimum 3 cifre.”*
+- Mesaj exemplu rând `ABC`: *„Contul trebuie să conțină între 3 și 6 caractere alfanumerice…”*
+- Upload blocat în preview (înainte de Storage)
+
+**Așteptat (suitea `validateBalance()` — dacă este invocată):**
 - ❌ Eroare `INVALID_ACCOUNT_FORMAT`
-- Mesaj: "4 cont(uri) cu format invalid. Verificați codul conturilor."
-- Conturi afectate: `["12", "10123456", "ABC123", "9111"]`
-- Upload blocat
+- Conturi afectate: `["12", "10123456", "ABC", "9111"]` (fără `ABC123`)
 
 ---
 
@@ -375,11 +383,13 @@ export AGGREGATE_DUPLICATES=true
 
 ---
 
-### Test V6: Format Conturi OMFP ✅
+### Test V6: Format Conturi (numeric + alfanumeric) ✅
 
-**Input:** `balanta_format_invalid.xlsx`  
-**Așteptat:** Eroare `INVALID_ACCOUNT_FORMAT`  
-**Status:** [ ]
+**Input:** `balanta_format_invalid.xlsx` (conține `12`, `10123456`, `ABC`, `9111`)  
+**Input valid separat:** fișier cu `ABC123` + cont numeric echilibrat  
+**Așteptat invalid:** `BALANCE_ROW_ACCOUNT_INVALID` + upload blocat  
+**Așteptat valid:** `ABC123` acceptat; `12`, `10123456`, `9111` respinse  
+**Status:** [ ] (acoperit parțial de `accountCodeValidation.test.ts` + `excel-parser.test.ts`)
 
 ---
 
@@ -544,7 +554,7 @@ export AGGREGATE_DUPLICATES=true
 - [ ] Bucket `balante` există
 - [ ] Storage policies verificate (prefix `balante_`)
 - [ ] Migrări până la `20260708120000_add_balance_format_dual_support.sql`
-- [ ] `npm test` — 31 teste parser trec
+- [ ] `npm test` — 46 teste parser + validator trec
 - [ ] Fișiere fixture Excel pentru ambele formate (A–H și A–J)
 - [ ] Hook folosește bucket canonical (`BALANCE_STORAGE_BUCKET` din constants)
 - [ ] Edge Function aliniată cu parser client (detectare + normalizare dual-format)

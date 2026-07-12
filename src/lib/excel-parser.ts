@@ -13,6 +13,10 @@
  * la 8 coloane, G/H = sold final, iar total_sume sunt calculate intern din SI + rulaj.
  */
 import * as XLSX from 'xlsx';
+import {
+  getAccountCodeErrorMessage,
+  validateAccountCode,
+} from '@/utils/accountCodeValidation';
 
 /** Maximum accounts în fișier */
 const MAX_ACCOUNTS = 10_000;
@@ -676,11 +680,16 @@ function runParse(
 
     const accountCode = sanitizeString(row[0]);
 
-    if (!/^\d{3,6}$/.test(accountCode)) {
+    const accountCodeValidation = validateAccountCode(accountCode);
+    if (accountCodeValidation.valid === false) {
+      const formatMessage = getAccountCodeErrorMessage(
+        accountCode,
+        accountCodeValidation.reason,
+      );
       rowErrors.push({
         rowIndex: i + 1,
         code: 'BALANCE_ROW_ACCOUNT_INVALID',
-        message: `Rândul ${i + 1}: Cont invalid "${accountCode}" (așteptat 3-6 cifre)`,
+        message: `Rândul ${i + 1}: Cont invalid "${accountCode}" — ${formatMessage}`,
         field: 'account_code',
       });
       rowsRejected++;

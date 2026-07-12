@@ -1,6 +1,6 @@
 # Raport Stabilizare Pipeline Upload Balanță — FinGuard v2
 
-> **Actualizare 11 iulie 2026 (v3.1).** Raportul original (21 iunie 2026) descrie stabilizarea pipeline-ului. De atunci s-au adăugat: **dual format 8/10 coloane**, **`balance_month`**, RPC **`prepare_balance_month_upload`**, UI **`BalanceUploadPreview`**, generare situații financiare post-upload. Sursa curentă completă: [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md).
+> **Actualizare 12 iulie 2026 (v3.2).** Raportul original (21 iunie 2026) descrie stabilizarea pipeline-ului. De atunci s-au adăugat: **dual format 8/10 coloane**, **`balance_month`**, RPC **`prepare_balance_month_upload`**, UI **`BalanceUploadPreview`**, generare situații financiare post-upload, **validare cont alfanumeric** (`accountCodeValidation.ts`). Sursa curentă completă: [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md).
 
 **Data raport inițial:** 21 iunie 2026  
 **Ultima revizie document:** 11 iulie 2026  
@@ -112,10 +112,11 @@
 | Adăugare | Fișier / migrare |
 |----------|------------------|
 | Dual format 8/10 coloane | `excel-parser.ts`, `20260708120000_add_balance_format_dual_support.sql` |
+| Validare cont alfanumeric | `accountCodeValidation.ts` (shared), `excel-parser.ts`, `parse-balanta` |
 | Selector lună + `balance_month` | `BalanceMonthPicker`, `20260630100000_*` |
 | RPC conflict lună | `prepareBalanceMonthUpload.ts`, `20260701120000_*` |
 | Preview UI | `useBalanceUploadForm`, `BalanceUploadPreview` |
-| Teste parser | 31 teste în `excel-parser.test.ts` |
+| Teste parser + validator | 46 teste (`excel-parser.test.ts` + `accountCodeValidation.test.ts`) |
 
 ---
 

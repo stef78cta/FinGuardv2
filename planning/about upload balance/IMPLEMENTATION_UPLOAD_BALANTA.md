@@ -1,8 +1,8 @@
 # Implementare Upload Balanță — finguardv2
 
-**Versiune document:** 3.1  
-**Data:** 11 iulie 2026  
-**Status:** Production — reflectă implementarea din cod
+**Versiune document:** 3.2  
+**Data:** 12 iulie 2026  
+**Status:** Production — reflectă implementarea din cod (cont alfanumeric v3.2)
 
 > **Document de referință pentru detalii tehnice:** [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md)
 
@@ -46,6 +46,7 @@ IncarcareBalanta.tsx
 | Dialog conturi | `src/components/upload/BalanceAccountsViewDialog.tsx` | ✅ Activ |
 | Hook CRUD | `src/hooks/useTrialBalances.tsx` | ✅ Activ |
 | Parser | `src/lib/excel-parser.ts` | ✅ Motor validări |
+| Validator cont | `src/utils/accountCodeValidation.ts` | ✅ Sursă unică (re-export din `_shared`) |
 | Pipeline | `src/lib/importPipeline.ts` | ✅ Edge + fallback |
 | Edge Function | `supabase/functions/parse-balanta/index.ts` | ✅ Deploy necesar |
 | Constante Storage | `src/lib/storage/constants.ts` | ✅ Bucket `balante` |
@@ -59,7 +60,7 @@ IncarcareBalanta.tsx
 ### Blocking
 
 - Structură fișier (foi, rânduri, coloane, format ambiguu/forțat)
-- Conturi (lipsă, format 3–6 cifre, denumire prea lungă)
+- Conturi (lipsă, format 3–6 caractere alfanumerice cu min. o cifră, clasa 9 respinsă, sufix analitic opțional, denumire prea lungă)
 - Echilibru global SI / Rulaj / SF (prag 0.01 RON)
 - Clase 6 și 7 — sold final zero
 - Identitate SF ↔ total_sume (**doar format 10 coloane**)
@@ -141,12 +142,13 @@ WHERE table_name = 'trial_balance_imports'
 
 | Fișier | Teste |
 |--------|-------|
-| `src/lib/excel-parser.test.ts` | 31 |
+| `src/lib/excel-parser.test.ts` | 33 |
+| `src/utils/accountCodeValidation.test.ts` | 13 |
 | `src/lib/prepareBalanceMonthUpload.test.ts` | 6 |
 | `src/hooks/useBalanceUploadForm.test.ts` | 2 |
 
 ```bash
-npm test -- --run src/lib/excel-parser.test.ts
+npm test -- src/lib/excel-parser.test.ts src/utils/accountCodeValidation.test.ts
 ```
 
 ---
@@ -167,4 +169,5 @@ npm test -- --run src/lib/excel-parser.test.ts
 | v1.4 | Ian 2026 | Fix bucket, RLS, 16 validări planificate |
 | v2.x | Iun 2026 | Stabilizare pipeline, format 10 coloane |
 | v3.0 | Iul 2026 | Dual format 8/10 coloane |
+| v3.2 | Iul 2026 | Cont alfanumeric — validator central `accountCodeValidation.ts` |
 | v3.1 | 11 Iul 2026 | Aliniere la cod: balance_month, prepare RPC, preview UI, teste 31 |

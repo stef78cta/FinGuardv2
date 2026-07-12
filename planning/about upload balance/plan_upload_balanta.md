@@ -1,13 +1,16 @@
 # Plan Rezolvare Buguri Upload Balanță - Finguard v2
 
-> **STARE ACTUALĂ (11 iulie 2026).** Planul de mai jos este **document istoric** (ian.–iun. 2026). Implementarea curentă este descrisă în [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md).
+> **STARE ACTUALĂ (12 iulie 2026).** Planul de mai jos este **document istoric** (ian.–iun. 2026). Implementarea curentă este descrisă în [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md).
 
 ## Rezumat — ce este implementat acum
 
 | Zonă | Status |
 |------|--------|
 | Dual format Excel 8/10 coloane | ✅ `excel-parser.ts`, migrare 20260708 |
+| Validare cont alfanumeric (v3.2) | ✅ `accountCodeValidation.ts` — sursă unică client + Edge |
 | Validări blocking (SI, Rulaj, SF, clase 6/7) | ✅ Client + Edge Function |
+
+> **Notă v3.2:** Secțiunile de mai jos care descriu regex `^\d{3,6}$` sau resping `ABC123` sunt **depășite**. Formatul curent: 3–6 caractere alfanumerice, min. o cifră — vezi [`ce_verificari_se_fac_la_upload_baanta.md`](./ce_verificari_se_fac_la_upload_baanta.md) §4.1.
 | Bucket Storage `balante` | ✅ constants.ts, parse-balanta, migrări |
 | Pipeline Edge Fn + fallback client | ✅ importPipeline.ts |
 | View RLS `security_invoker` | ✅ Migrări 20260129 |
@@ -17,7 +20,7 @@
 | 16 validări balanceValidation.ts | ⚠️ Doar agregare duplicate folosită |
 | ValidationResultsDialog | ⚠️ Componentă neintegrată în pagină |
 
-**Teste automate:** 31 teste `excel-parser.test.ts` + 6 prepareBalanceMonth + 2 useBalanceUploadForm.
+**Teste automate:** 33 teste `excel-parser.test.ts` + 13 `accountCodeValidation.test.ts` + 6 prepareBalanceMonth + 2 useBalanceUploadForm.
 
 ---
 

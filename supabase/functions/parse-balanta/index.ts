@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import * as XLSX from "https://esm.sh/xlsx@0.18.5";
+import { isValidAccountCode } from "../_shared/accountCodeValidation.ts";
 
 /**
  * Edge Function: parse-balanta
@@ -470,7 +471,7 @@ function parseExcelFile(arrayBuffer: ArrayBuffer, forcedFormat?: BalanceExcelFor
       if (isBlankCell(row[0])) continue;
 
       const accountCode = sanitizeString(row[0]);
-      if (!/^\d{3,6}$/.test(accountCode)) continue;
+      if (!isValidAccountCode(accountCode)) continue;
 
       const accountName = sanitizeString(row[1]);
       if (accountName.length > 200) continue;

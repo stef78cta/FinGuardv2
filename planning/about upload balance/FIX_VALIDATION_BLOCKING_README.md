@@ -91,11 +91,11 @@ if (!row[0]) {
   continue; // Skip rând
 }
 
-if (!/^\d{3,6}$/.test(accountCode)) {
+if (!isValidAccountCode(accountCode)) {
   rowErrors.push({
     rowIndex: i + 1,
     code: 'BALANCE_ROW_ACCOUNT_INVALID',
-    message: `Rândul ${i + 1}: Cont invalid "${accountCode}" (așteptat 3-6 cifre)`,
+    message: `Rândul ${i + 1}: Cont invalid "${accountCode}" — ${getAccountCodeErrorMessage(accountCode, reason)}`,
     field: 'account_code',
   });
   rowsRejected++;
@@ -177,7 +177,7 @@ if (!parseResult.ok) {
 ```
 1. User selectează fișier cu rânduri care au coloana A goală
 2. Parser: ok = false, rowErrors = [{rowIndex: 5, code: 'BALANCE_ROW_ACCOUNT_MISSING', ...}, ...], blockingErrors = [{code: 'BALANCE_INVALID_ROWS_DETECTED', ...}]
-3. Hook: throw Error("❌ 3 rând(uri) cu erori detectate: conturi lipsă sau invalide\n  • Total rânduri invalide: 3\n  • Exemple erori:\n    - Rândul 5: Cont lipsă (coloana A este goală)\n    - Rândul 12: Cont invalid 'ABC' (așteptat 3-6 cifre)\n    - Rândul 18: Cont lipsă (coloana A este goală)")
+3. Hook: throw Error("❌ 3 rând(uri) cu erori detectate: conturi lipsă sau invalide\n  • Total rânduri invalide: 3\n  • Exemple erori:\n    - Rândul 5: Cont lipsă (coloana A este goală)\n    - Rândul 12: Cont invalid 'ABC' — Contul trebuie să conțină între 3 și 6 caractere alfanumerice…\n    - Rândul 18: Cont lipsă (coloana A este goală)")
 4. Status = 'error', ZERO insert în trial_balance_accounts
 5. UI: Toast error cu mesaj detaliat (8s)
 ```
@@ -278,7 +278,8 @@ expect(parseResult.blockingErrors[0].code).toBe('BALANCE_INVALID_ROWS_DETECTED')
 
 ### **Test #4: Cont Invalid Format (Blocking)**
 ```typescript
-// Fișier: rând 12 cu cont 'ABC' (nu 3-6 cifre)
+// Fișier: rând 12 cu cont 'ABC' (doar litere, fără cifră — invalid)
+// Notă: 'ABC123' este VALID din v3.2 (cont alfanumeric)
 expect(parseResult.ok).toBe(false);
 expect(parseResult.rowErrors[0].code).toBe('BALANCE_ROW_ACCOUNT_INVALID');
 // DB: status = 'error', ZERO insert
@@ -324,7 +325,7 @@ expect(parseResult.warnings[0].code).toBe('BALANCE_CONTROL_ROUNDING_DIFF');
 - [x] **5. No partial writes**: ZERO insert în DB dacă `ok === false`
 - [x] **6. UI feedback**: Toast error cu mesaj detaliat (8s)
 - [x] **7. Audit trail**: `internal_error_detail`, `internal_error_code` în DB
-- [x] **8. Teste automate:** `excel-parser.test.ts` — **31 teste** Vitest (`npm test`)
+- [x] **8. Teste automate:** `excel-parser.test.ts` (33) + `accountCodeValidation.test.ts` (13) — Vitest (`npm test`)
 - [x] **9. Dual format + balance_month:** migrări 20260701, 20260708
 
 ---

@@ -257,13 +257,18 @@ function sanitizeString(value: unknown): string {
 
 #### 4.2.3. Validare Cod Cont
 
-**Linii 327-328:**
+**Validator central (v3.2):** `accountCodeValidation.ts` — folosit în `excel-parser.ts` și Edge Function.
+
 ```typescript
 const accountCode = sanitizeString(row[0]);
-
-// Validate account code (3-6 digits)
-if (!/^\d{3,6}$/.test(accountCode)) continue;
+const validation = validateAccountCode(accountCode);
+if (validation.valid === false) {
+  // BALANCE_ROW_ACCOUNT_INVALID — mesaj din getAccountCodeErrorMessage()
+  continue; // sau rowErrors + rowsRejected în client
+}
 ```
+
+**Reguli:** 3–6 caractere alfanumerice, min. o cifră, clasa 9 respinsă, sufix opțional `.XX`/`.XXX`.
 
 #### 4.2.4. Validare Nume Cont
 
@@ -684,7 +689,7 @@ USING (
 |--------|---------|----------|
 | **MAX_CELL_LENGTH** | 500 caractere | Truncare automată |
 | **Account Name** | 200 caractere | Skip row |
-| **Account Code** | 3-6 cifre | Skip row dacă invalid |
+| **Account Code** | 3–6 caractere alfanumerice (min. o cifră); sufix `.XX`/`.XXX` opțional | Skip row dacă invalid |
 
 ### 7.4. Limite Numerice
 
@@ -1777,7 +1782,7 @@ Manual Intervention:
 2. **Selectare luna balanței** (obligatoriu)
 3. **Fișier Excel** 8 coloane (A–H) **sau** 10 coloane (A–J)
 4. **Format numere:** RO (1.234,56) sau US (1,234.56)
-5. **Cod cont:** 3-6 cifre
+5. **Cod cont:** 3–6 caractere alfanumerice (litere și/sau cifre), minim o cifră; opțional sufix analitic `.01`
 
 ### ⚠️ Limite de Reținut
 

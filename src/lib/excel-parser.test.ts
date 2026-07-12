@@ -180,6 +180,40 @@ describe('parseExcelRows — format 10 coloane', () => {
     ];
     const resultInvalid = parseExcelRows(rowsInvalid);
     expect(resultInvalid.rowErrors.some((e) => e.code === 'BALANCE_ROW_ACCOUNT_INVALID')).toBe(true);
+    expect(resultInvalid.rowErrors.some((e) => e.message.includes('Cont prea scurt — minimum 3 cifre'))).toBe(true);
+  });
+
+  it('acceptă cont alfanumeric valid (ex: ABC123)', () => {
+    const rows = [
+      HEADER_10,
+      ['101', 'Capital', 0, 1000, 0, 500, 0, 1500, 0, 1500],
+      ['ABC123', 'Cont alfanumeric', 1000, 0, 500, 0, 1500, 0, 1500, 0],
+    ];
+
+    const result = parseExcelRows(rows);
+
+    expect(result.ok).toBe(true);
+    expect(result.accounts.some((a) => a.account_code === 'ABC123')).toBe(true);
+  });
+
+  it('respinge cont prea lung, clasa 9 și acceptă mix numeric + alfanumeric', () => {
+    const rowsRejected = [
+      HEADER_10,
+      ['10123456', 'Prea lung', 0, 0, 0, 0, 0, 0, 0, 0],
+      ['9111', 'Clasa 9', 0, 0, 0, 0, 0, 0, 0, 0],
+      ['5121', 'Bancă', 1000, 0, 500, 0, 1500, 0, 1500, 0],
+    ];
+    const rejected = parseExcelRows(rowsRejected);
+    expect(rejected.rowErrors.filter((e) => e.code === 'BALANCE_ROW_ACCOUNT_INVALID')).toHaveLength(2);
+
+    const rowsMixed = [
+      HEADER_10,
+      ['401', 'Numeric', 0, 1000, 0, 500, 0, 1500, 0, 1500],
+      ['401A', 'Alfanumeric', 1000, 0, 500, 0, 1500, 0, 1500, 0],
+    ];
+    const mixed = parseExcelRows(rowsMixed);
+    expect(mixed.ok).toBe(true);
+    expect(mixed.accounts.map((a) => a.account_code)).toEqual(['401', '401A']);
   });
 
   it('ignoră rânduri complet goale', () => {

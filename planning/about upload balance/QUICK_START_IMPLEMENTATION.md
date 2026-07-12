@@ -36,8 +36,12 @@ src/
 │   ├── prepareBalanceMonthUpload.ts
 │   ├── balancePeriod.ts
 │   └── storage/constants.ts         # BALANCE_STORAGE_BUCKET = 'balante'
+├── utils/
+│   └── accountCodeValidation.ts     # re-export validator cont (canonic: _shared)
 supabase/
-├── functions/parse-balanta/index.ts
+├── functions/
+│   ├── _shared/accountCodeValidation.ts  # sursă unică validator cont
+│   └── parse-balanta/index.ts
 └── migrations/
     ├── 20260621000000_stabilize_upload_pipeline.sql
     ├── 20260701120000_prepare_balance_month_upload.sql
