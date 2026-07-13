@@ -8,7 +8,7 @@ import {
   GitCompare, 
   BarChart3, 
   Calendar,
-  Sparkles,
+  
   Shield
 } from 'lucide-react';
 import {
