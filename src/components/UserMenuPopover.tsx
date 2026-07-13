@@ -25,6 +25,7 @@ export function UserMenuPopover() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -79,16 +80,26 @@ export function UserMenuPopover() {
     }
   };
 
+  const handleProfileClick = () => {
+    setUserMenuOpen(false);
+    navigate('/app/settings');
+  };
+
+  const handleSettingsClick = () => {
+    setUserMenuOpen(false);
+    navigate('/app/settings');
+  };
+
   const menuItems = [
     { 
       icon: User, 
       label: "Profilul meu", 
-      action: () => navigate('/app/settings') 
+      action: handleProfileClick,
     },
     { 
       icon: Settings, 
       label: "Setări", 
-      action: () => navigate('/app/settings') 
+      action: handleSettingsClick,
     },
     { 
       icon: HelpCircle, 
@@ -112,7 +123,7 @@ export function UserMenuPopover() {
   }
 
   return (
-    <Popover>
+    <Popover open={userMenuOpen} onOpenChange={setUserMenuOpen}>
       <PopoverTrigger asChild>
         <button className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-accent transition-colors">
           <Avatar className="w-9 h-9">

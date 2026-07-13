@@ -3,11 +3,16 @@ import { useCompanyContext } from '@/contexts/CompanyContext';
 import { Loader2, Building2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { CreateCompanyDialog } from '@/components/company/CreateCompanyDialog';
+import {
+  hasFormErrors,
+  trimCompanyName,
+  trimCui,
+  validateCompanyProfileForm,
+} from '@/lib/companyValidation';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 interface CompanyGuardProps {
   children: ReactNode;
@@ -18,20 +23,44 @@ export const CompanyGuard = ({ children }: CompanyGuardProps) => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [companyName, setCompanyName] = useState('');
   const [companyCUI, setCompanyCUI] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; cui?: string }>({});
   const [creating, setCreating] = useState(false);
 
   const handleCreateCompany = async () => {
-    if (!companyName.trim() || !companyCUI.trim()) {
-      toast.error('Toate câmpurile sunt obligatorii');
+    const errors = validateCompanyProfileForm(
+      {
+        name: companyName,
+        cui: companyCUI,
+        tradeRegisterNumber: '',
+        legalForm: '',
+        address: '',
+        city: '',
+        county: '',
+        country: '',
+        postalCode: '',
+        email: '',
+        phone: '',
+        website: '',
+      },
+      { requireFullProfile: false }
+    );
+
+    const nextFieldErrors = {
+      name: errors.name,
+      cui: errors.cui,
+    };
+    setFieldErrors(nextFieldErrors);
+
+    if (hasFormErrors(nextFieldErrors)) {
       return;
     }
 
     setCreating(true);
     try {
-      await createCompany(companyName.trim(), companyCUI.trim());
-      setShowCreateDialog(false);
+      await createCompany(trimCompanyName(companyName), trimCui(companyCUI));
       setCompanyName('');
       setCompanyCUI('');
+      setFieldErrors({});
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Eroare la crearea companiei');
     } finally {
@@ -39,17 +68,6 @@ export const CompanyGuard = ({ children }: CompanyGuardProps) => {
     }
   };
 
-  /**
-   * ⚠️ FIX TAB SWITCH: Afișăm loading screen DOAR dacă:
-   * 1. loading = true ȘI
-   * 2. NU avem deja companii încărcate ȘI
-   * 3. NU avem deja o companie activă
-   * 
-   * Asta previne demontarea arborelui React când se face refetch în background
-   * (de ex. la revenirea în tab când Supabase emite evenimente de auth).
-   * 
-   * Pattern: "stale-while-revalidate" - afișăm datele vechi în timp ce se reîncarcă.
-   */
   const shouldShowLoadingScreen = loading && companies.length === 0 && !activeCompany;
   
   if (shouldShowLoadingScreen) {
@@ -63,7 +81,6 @@ export const CompanyGuard = ({ children }: CompanyGuardProps) => {
     );
   }
 
-  // No companies - show create company screen
   if (companies.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -84,8 +101,15 @@ export const CompanyGuard = ({ children }: CompanyGuardProps) => {
                 id="company-name"
                 placeholder="SC Exemplu SRL"
                 value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
+                onChange={(e) => {
+                  setCompanyName(e.target.value);
+                  if (fieldErrors.name) setFieldErrors(prev => ({ ...prev, name: undefined }));
+                }}
+                aria-invalid={!!fieldErrors.name}
               />
+              {fieldErrors.name && (
+                <p className="text-sm text-destructive">{fieldErrors.name}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="company-cui">CUI</Label>
@@ -93,9 +117,19 @@ export const CompanyGuard = ({ children }: CompanyGuardProps) => {
                 id="company-cui"
                 placeholder="RO12345678"
                 value={companyCUI}
-                onChange={(e) => setCompanyCUI(e.target.value)}
+                onChange={(e) => {
+                  setCompanyCUI(e.target.value);
+                  if (fieldErrors.cui) setFieldErrors(prev => ({ ...prev, cui: undefined }));
+                }}
+                aria-invalid={!!fieldErrors.cui}
               />
+              {fieldErrors.cui && (
+                <p className="text-sm text-destructive">{fieldErrors.cui}</p>
+              )}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Poți completa ulterior toate datele companiei din Setări → Companie.
+            </p>
             <Button 
               className="w-full btn-primary" 
               onClick={handleCreateCompany}
@@ -110,7 +144,6 @@ export const CompanyGuard = ({ children }: CompanyGuardProps) => {
     );
   }
 
-  // Multiple companies but none selected - show selection modal
   if (companies.length > 1 && !activeCompany) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -160,50 +193,13 @@ export const CompanyGuard = ({ children }: CompanyGuardProps) => {
           </CardContent>
         </Card>
 
-        {/* Create Company Dialog */}
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Creează companie nouă</DialogTitle>
-              <DialogDescription>
-                Introduceți datele companiei pentru a o adăuga în cont.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="new-company-name">Nume companie</Label>
-                <Input
-                  id="new-company-name"
-                  placeholder="SC Exemplu SRL"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="new-company-cui">CUI</Label>
-                <Input
-                  id="new-company-cui"
-                  placeholder="RO12345678"
-                  value={companyCUI}
-                  onChange={(e) => setCompanyCUI(e.target.value)}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-                Anulează
-              </Button>
-              <Button onClick={handleCreateCompany} disabled={creating}>
-                {creating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Creează
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <CreateCompanyDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+        />
       </div>
     );
   }
 
-  // Has active company - render children
   return <>{children}</>;
 };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { User, Building2, Lock, CreditCard, Check, Loader2 } from 'lucide-react';
 import { PageHeader } from '@/components/app/PageHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,31 +9,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCompany } from '@/hooks/useCompany';
+import { useCompanyContext } from '@/contexts/CompanyContext';
+import { CompanySettingsTab } from '@/components/settings/CompanySettingsTab';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const Settings = () => {
   const { user } = useAuth();
-  const { company, loading: companyLoading } = useCompany();
+  const { companies } = useCompanyContext();
+  const companyTabLabel = companies.length > 1 ? 'Companii' : 'Companie';
   
-  // Profile form state
   const [fullName, setFullName] = useState('');
   const [profileLoading, setProfileLoading] = useState(false);
   
-  // Password form state
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
-  
-  // Company form state
-  const [companyName, setCompanyName] = useState('');
-  const [companyCui, setCompanyCui] = useState('');
-  const [companyLoading2, setCompanyLoading2] = useState(false);
 
-  // Load initial data
-  useState(() => {
+  useEffect(() => {
     const loadProfile = async () => {
       if (!user) return;
       
@@ -49,14 +42,7 @@ const Settings = () => {
     };
     
     loadProfile();
-  });
-
-  useState(() => {
-    if (company) {
-      setCompanyName(company.name);
-      setCompanyCui(company.cui);
-    }
-  });
+  }, [user]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,14 +50,12 @@ const Settings = () => {
 
     setProfileLoading(true);
     try {
-      // Update Supabase Auth metadata
       const { error: authError } = await supabase.auth.updateUser({
         data: { full_name: fullName }
       });
       
       if (authError) throw authError;
 
-      // Update users table
       const { error: dbError } = await supabase
         .from('users')
         .update({ full_name: fullName })
@@ -110,7 +94,6 @@ const Settings = () => {
       if (error) throw error;
 
       toast.success('Parola a fost schimbată cu succes!');
-      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
@@ -118,28 +101,6 @@ const Settings = () => {
       toast.error('Eroare la schimbarea parolei');
     } finally {
       setPasswordLoading(false);
-    }
-  };
-
-  const handleUpdateCompany = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!company) return;
-
-    setCompanyLoading2(true);
-    try {
-      const { error } = await supabase
-        .from('companies')
-        .update({ name: companyName, cui: companyCui })
-        .eq('id', company.id);
-      
-      if (error) throw error;
-
-      toast.success('Datele companiei au fost actualizate!');
-    } catch (error) {
-      console.error('Error updating company:', error);
-      toast.error('Eroare la actualizarea companiei');
-    } finally {
-      setCompanyLoading2(false);
     }
   };
 
@@ -179,7 +140,7 @@ const Settings = () => {
           </TabsTrigger>
           <TabsTrigger value="company" className="flex items-center gap-2">
             <Building2 className="w-4 h-4" />
-            <span className="hidden sm:inline">Companie</span>
+            <span className="hidden sm:inline">{companyTabLabel}</span>
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Lock className="w-4 h-4" />
@@ -191,7 +152,6 @@ const Settings = () => {
           </TabsTrigger>
         </TabsList>
 
-        {/* Profile Tab */}
         <TabsContent value="profile">
           <Card>
             <CardHeader>
@@ -235,63 +195,10 @@ const Settings = () => {
           </Card>
         </TabsContent>
 
-        {/* Company Tab */}
         <TabsContent value="company">
-          <Card>
-            <CardHeader>
-              <CardTitle>Informații Companie</CardTitle>
-              <CardDescription>
-                Gestionează datele companiei tale
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {companyLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                </div>
-              ) : company ? (
-                <form onSubmit={handleUpdateCompany} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="companyName">Nume companie</Label>
-                    <Input
-                      id="companyName"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="SC Exemplu SRL"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="companyCui">CUI</Label>
-                    <Input
-                      id="companyCui"
-                      value={companyCui}
-                      onChange={(e) => setCompanyCui(e.target.value)}
-                      placeholder="RO12345678"
-                    />
-                  </div>
-
-                  <Button type="submit" disabled={companyLoading2}>
-                    {companyLoading2 && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Actualizează compania
-                  </Button>
-                </form>
-              ) : (
-                <div className="text-center py-8">
-                  <Building2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground mb-4">
-                    Nu ai nicio companie asociată încă.
-                  </p>
-                  <Button asChild>
-                    <a href="/app/incarcare-balanta">Adaugă o companie</a>
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <CompanySettingsTab />
         </TabsContent>
 
-        {/* Security Tab */}
         <TabsContent value="security">
           <Card>
             <CardHeader>
@@ -333,7 +240,6 @@ const Settings = () => {
           </Card>
         </TabsContent>
 
-        {/* Subscription Tab */}
         <TabsContent value="subscription">
           <div className="space-y-6">
             <Card>

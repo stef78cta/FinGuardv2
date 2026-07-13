@@ -10,44 +10,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
+import { CreateCompanyDialog } from '@/components/company/CreateCompanyDialog';
 import { cn } from '@/lib/utils';
 
 export const CompanySwitcher = () => {
-  const { activeCompany, companies, switchCompany, createCompany, loading } = useCompanyContext();
+  const { activeCompany, companies, switchCompany, loading } = useCompanyContext();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [companyName, setCompanyName] = useState('');
-  const [companyCUI, setCompanyCUI] = useState('');
-  const [creating, setCreating] = useState(false);
-
-  const handleCreateCompany = async () => {
-    if (!companyName.trim() || !companyCUI.trim()) {
-      toast.error('Toate câmpurile sunt obligatorii');
-      return;
-    }
-
-    setCreating(true);
-    try {
-      await createCompany(companyName.trim(), companyCUI.trim());
-      setShowCreateDialog(false);
-      setCompanyName('');
-      setCompanyCUI('');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Eroare la crearea companiei');
-    } finally {
-      setCreating(false);
-    }
-  };
 
   if (loading || !activeCompany) {
     return null;
@@ -132,46 +100,10 @@ export const CompanySwitcher = () => {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Create Company Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Creează companie nouă</DialogTitle>
-            <DialogDescription>
-              Introduceți datele companiei pentru a o adăuga în cont.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="switcher-company-name">Nume companie</Label>
-              <Input
-                id="switcher-company-name"
-                placeholder="SC Exemplu SRL"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="switcher-company-cui">CUI</Label>
-              <Input
-                id="switcher-company-cui"
-                placeholder="RO12345678"
-                value={companyCUI}
-                onChange={(e) => setCompanyCUI(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-              Anulează
-            </Button>
-            <Button onClick={handleCreateCompany} disabled={creating}>
-              {creating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Creează
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateCompanyDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+      />
     </>
   );
 };

@@ -322,45 +322,66 @@ export type Database = {
       companies: {
         Row: {
           address: string | null
+          city: string | null
           country_code: string | null
+          county: string | null
           created_at: string | null
           cui: string
           currency: string | null
+          email: string | null
           fiscal_year_start_month: number | null
           id: string
           is_active: boolean | null
+          legal_form: string | null
           logo_url: string | null
           name: string
           phone: string | null
+          postal_code: string | null
+          trade_register_number: string | null
           updated_at: string | null
+          website: string | null
         }
         Insert: {
           address?: string | null
+          city?: string | null
           country_code?: string | null
+          county?: string | null
           created_at?: string | null
           cui: string
           currency?: string | null
+          email?: string | null
           fiscal_year_start_month?: number | null
           id?: string
           is_active?: boolean | null
+          legal_form?: string | null
           logo_url?: string | null
           name: string
           phone?: string | null
+          postal_code?: string | null
+          trade_register_number?: string | null
           updated_at?: string | null
+          website?: string | null
         }
         Update: {
           address?: string | null
+          city?: string | null
           country_code?: string | null
+          county?: string | null
           created_at?: string | null
           cui?: string
           currency?: string | null
+          email?: string | null
           fiscal_year_start_month?: number | null
           id?: string
           is_active?: boolean | null
+          legal_form?: string | null
           logo_url?: string | null
           name?: string
           phone?: string | null
+          postal_code?: string | null
+          trade_register_number?: string | null
           updated_at?: string | null
+          website?: string | null
         }
         Relationships: []
       }
@@ -1492,7 +1513,7 @@ export type Database = {
         }[]
       }
       create_company_with_member: {
-        Args: { p_cui: string; p_name: string; p_user_id: string }
+        Args: { p_cui: string; p_name: string }
         Returns: string
       }
       generate_financial_statements_from_import: {
