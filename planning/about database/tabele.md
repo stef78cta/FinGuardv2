@@ -56,6 +56,16 @@
 | CUI index normalizat v1.8 | Doar `companies_cui_key` simplu |
 | `create_company_with_member(p_name, p_cui)` fără `p_user_id` | Prod încă expune `p_user_id` în `types.ts` |
 
+> **UPDATE 14 iul. 2026 — remediere CUI multi-tenant APLICATĂ pe `finguard2`:**
+> divergențele de mai sus legate de CUI/`create_company_with_member` au fost rezolvate.
+> Vezi secțiunea „Remediere CUI Multi-Tenant” din `descriere_database.md` pentru detalii complete,
+> matricea de teste **T-CUI-01 .. T-CUI-12** și fișierul `supabase/tests/cui_uniqueness_test.sql`.
+>
+> Obiecte noi în producție: `normalize_cui()`, `idx_companies_cui_canonical` (UNIQUE canonic),
+> `companies.status`, `company_users.role`, `company_access_requests` + RPC-urile
+> `request_company_access` / `approve_company_access` / `reject_company_access`.
+> `create_company_with_member` este acum 2-param, fără join-by-CUI (caz B redirect, caz C `23505`).
+
 Funcționalități **confirmate live**: `balance_month`, `balance_format`, `functional_type`, pipeline FS (`generate_financial_statements_from_import`), reconciliere (`validate_balance_sheet_coverage`, `reports.status = unreconciled`).
 
 ---

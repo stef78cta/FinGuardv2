@@ -3755,3 +3755,40 @@ ORDER BY grantee, privilege_type;
 - `src/lib/balancePeriod.ts`
 - `src/hooks/useBalanceUploadForm.ts`
 
+---
+
+## Remediere CUI Multi-Tenant (14 iul. 2026) — IMPLEMENTAT
+
+Scenariul „al doilea user cu același CUI” este remediat și aplicat pe `finguard2`.
+Principiu: **o companie / CUI canonic la nivel global**; al doilea user poate doar solicita acces.
+
+### Ce s-a implementat
+
+| Componentă | Fișier / obiect |
+|------------|-----------------|
+| Normalizare canonică CUI (SQL) | `normalize_cui()` + `idx_companies_cui_canonical` (UNIQUE) |
+| Normalizare canonică (frontend) | `src/lib/cuiNormalization.ts` |
+| Funcție creare securizată | `create_company_with_member(p_name, p_cui)` — fără join-by-CUI |
+| Hardening RLS | `companies.INSERT` doar admin; `company_users.INSERT` fără self-join |
+| Triggere orphan-prevention | `enforce_company_has_member` (INSERT/DELETE/UPDATE) |
+| Flow cerere acces | `company_access_requests` + `request/approve/reject_company_access` |
+| Roluri + lifecycle | `company_users.role`, `companies.status` |
+| UI | `CreateCompanyDialog`, `CompanyGuard` (Solicită acces / Introdu alt CUI), CUI read-only în Setări |
+
+### Migrări
+
+`20260714100000` … `20260714100004` (vezi `supabase/migrations/`).
+
+### Teste
+
+- Unitare: `src/lib/cuiNormalization.test.ts` (8 teste), `src/lib/companyValidation.test.ts`.
+- DB / CI: `supabase/tests/cui_uniqueness_test.sql`.
+- Matricea completă **T-CUI-01 .. T-CUI-12** documentată în
+  `planning/about database/descriere_database.md` → „Remediere CUI Multi-Tenant”.
+
+### Riscuri rămase
+
+- UI de administrare a cererilor `pending` pentru owner (backend gata, UI = TODO).
+- Invitații proactive prin e-mail (roadmap v2.0).
+- CUI-uri istorice: preflight 14 iul. = 0 coliziuni canonice.
+

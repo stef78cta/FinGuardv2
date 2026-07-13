@@ -337,6 +337,7 @@ export type Database = {
           name: string
           phone: string | null
           postal_code: string | null
+          status: string
           trade_register_number: string | null
           updated_at: string | null
           website: string | null
@@ -358,6 +359,7 @@ export type Database = {
           name: string
           phone?: string | null
           postal_code?: string | null
+          status?: string
           trade_register_number?: string | null
           updated_at?: string | null
           website?: string | null
@@ -379,17 +381,77 @@ export type Database = {
           name?: string
           phone?: string | null
           postal_code?: string | null
+          status?: string
           trade_register_number?: string | null
           updated_at?: string | null
           website?: string | null
         }
         Relationships: []
       }
+      company_access_requests: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          message: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_access_requests_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_access_requests_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_access_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_users: {
         Row: {
           company_id: string
           created_at: string | null
           id: string
+          role: string
           updated_at: string | null
           user_id: string
         }
@@ -397,6 +459,7 @@ export type Database = {
           company_id: string
           created_at?: string | null
           id?: string
+          role?: string
           updated_at?: string | null
           user_id: string
         }
@@ -404,6 +467,7 @@ export type Database = {
           company_id?: string
           created_at?: string | null
           id?: string
+          role?: string
           updated_at?: string | null
           user_id?: string
         }
@@ -1512,6 +1576,10 @@ export type Database = {
           import_ids: string[]
         }[]
       }
+      approve_company_access: {
+        Args: { p_request_id: string; p_role?: string }
+        Returns: string
+      }
       create_company_with_member: {
         Args: { p_cui: string; p_name: string }
         Returns: string
@@ -1581,10 +1649,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_company_manager: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_company_member: {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      normalize_cui: { Args: { p_cui: string }; Returns: string }
       prepare_balance_month_upload: {
         Args: {
           _balance_month: string
@@ -1611,6 +1684,11 @@ export type Database = {
             }
             Returns: boolean
           }
+      reject_company_access: { Args: { p_request_id: string }; Returns: string }
+      request_company_access: {
+        Args: { p_cui: string; p_message?: string }
+        Returns: string
+      }
       retry_failed_import: {
         Args: { p_import_id: string; p_user_id: string }
         Returns: boolean

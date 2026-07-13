@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react';
-import { useCompanyContext } from '@/contexts/CompanyContext';
-import { Loader2, Building2, Plus } from 'lucide-react';
+import { CuiAlreadyExistsError, useCompanyContext } from '@/contexts/CompanyContext';
+import { Loader2, Building2, Plus, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,12 +19,15 @@ interface CompanyGuardProps {
 }
 
 export const CompanyGuard = ({ children }: CompanyGuardProps) => {
-  const { activeCompany, companies, loading, createCompany, switchCompany } = useCompanyContext();
+  const { activeCompany, companies, loading, createCompany, requestCompanyAccess, switchCompany } =
+    useCompanyContext();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [companyName, setCompanyName] = useState('');
   const [companyCUI, setCompanyCUI] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ name?: string; cui?: string }>({});
   const [creating, setCreating] = useState(false);
+  const [cuiExists, setCuiExists] = useState(false);
+  const [requesting, setRequesting] = useState(false);
 
   const handleCreateCompany = async () => {
     const errors = validateCompanyProfileForm(
@@ -62,10 +65,37 @@ export const CompanyGuard = ({ children }: CompanyGuardProps) => {
       setCompanyCUI('');
       setFieldErrors({});
     } catch (error) {
+      if (error instanceof CuiAlreadyExistsError) {
+        setCuiExists(true);
+        return;
+      }
       toast.error(error instanceof Error ? error.message : 'Eroare la crearea companiei');
     } finally {
       setCreating(false);
     }
+  };
+
+  const handleRequestAccess = async () => {
+    setRequesting(true);
+    try {
+      const result = await requestCompanyAccess(trimCui(companyCUI));
+      if (result === 'already_member') {
+        toast.info('Ești deja membru al acestei companii.');
+      } else {
+        toast.success('Cererea de acces a fost trimisă. Vei fi notificat după aprobare.');
+      }
+      setCuiExists(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Eroare la trimiterea cererii');
+    } finally {
+      setRequesting(false);
+    }
+  };
+
+  const handleTryAnotherCui = () => {
+    setCuiExists(false);
+    setCompanyCUI('');
+    setFieldErrors({});
   };
 
   const shouldShowLoadingScreen = loading && companies.length === 0 && !activeCompany;
@@ -77,6 +107,35 @@ export const CompanyGuard = ({ children }: CompanyGuardProps) => {
           <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Se încarcă companiile...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (companies.length === 0 && cuiExists) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <ShieldAlert className="w-8 h-8 text-amber-500" />
+            </div>
+            <CardTitle className="text-2xl">Această companie există deja</CardTitle>
+            <CardDescription>
+              Există deja o companie înregistrată cu acest CUI. Pentru protejarea datelor,
+              accesul nu poate fi acordat automat. Solicită acces administratorului companiei
+              sau contactează suportul.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button className="w-full btn-primary" onClick={handleRequestAccess} disabled={requesting}>
+              {requesting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Solicită acces
+            </Button>
+            <Button variant="outline" className="w-full" onClick={handleTryAnotherCui} disabled={requesting}>
+              Introdu alt CUI
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }

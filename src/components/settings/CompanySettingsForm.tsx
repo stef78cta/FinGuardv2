@@ -129,11 +129,14 @@ export const CompanySettingsForm = ({ company }: CompanySettingsFormProps) => {
             <Input
               id="company-cui"
               value={values.cui}
-              onChange={(e) => updateField('cui', e.target.value)}
+              readOnly
+              disabled
               placeholder="RO12345678"
-              aria-invalid={!!fieldErrors.cui}
+              className="bg-muted/50 cursor-not-allowed"
             />
-            <FieldError message={fieldErrors.cui} />
+            <p className="text-xs text-muted-foreground">
+              CUI-ul identifică unic compania și nu poate fi modificat. Pentru corecții, contactează suportul.
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="company-trade-register">Nr. Registrul Comerțului</Label>

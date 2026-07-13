@@ -76,6 +76,59 @@ Proiect Supabase activ: **`finguard2`** (`gqxopxbzslwrjgukqbha`, `eu-west-1`).
 
 ---
 
+## 🔒 Remediere CUI Multi-Tenant (14 iul. 2026) — APLICAT PE PRODUCȚIE
+
+Rezolvă scenariul „al doilea user introduce același CUI”. Principiu: **o companie există o
+singură dată la nivel global pentru un CUI canonic**; al doilea user poate doar *solicita acces*.
+
+### Migrări aplicate pe `finguard2`
+
+| Migrare | Efect |
+|---------|-------|
+| `20260714100000_add_companies_status_and_member_role` | `companies.status` (active/archived/deleting) + `company_users.role` (owner/admin/member), backfill owner = primul membru |
+| `20260714100001_cui_canonical_normalization` | `normalize_cui()` IMMUTABLE + **UNIQUE INDEX** `idx_companies_cui_canonical` pe `normalize_cui(cui)` |
+| `20260714100002_fix_create_company_with_member` | Funcție 2-param, **fără join-by-CUI**; caz B redirect membru existent, caz C `RAISE 23505` |
+| `20260714100003_harden_company_rls_and_triggers` | `companies.INSERT` doar admin; `company_users.INSERT` fără self-join; triggere orphan-prevention |
+| `20260714100004_company_access_requests` | Tabel `company_access_requests` + RPC `request_company_access` / `approve_company_access` / `reject_company_access` |
+
+### Normalizare canonică CUI
+
+`normalize_cui(cui)` = elimină non-alfanumerice → UPPER → elimină prefix `RO`.
+Toate variantele `RO12345678`, `12345678`, `ro 12345678`, `RO-12345678` → canonic **`12345678`**.
+Oglindă în frontend: `src/lib/cuiNormalization.ts`.
+
+### Comportament pe caz (aliniat cu recomandarea)
+
+- **Caz A** (CUI nou): companie creată, user = `owner`, relație atomică.
+- **Caz B** (CUI existent, user deja membru): redirect către compania existentă, fără duplicat.
+- **Caz C** (CUI existent, user NU e membru): `RAISE 23505` + HINT `request_access`; UI oferă „Solicită acces” / „Introdu alt CUI”; **fără date expuse**.
+- **Caz D** (invitație/cerere): `company_access_requests` (`pending/approved/rejected/expired/revoked`); acces doar după aprobare de owner/admin.
+
+### Matrice de teste T-CUI-01 .. T-CUI-12
+
+| # | User A | User B | Rezultat așteptat | Acoperire test |
+|---|--------|--------|-------------------|----------------|
+| T-CUI-01 | Creează CUI nou | — | Companie creată, user = owner | `create_company_with_member`; SQL: `supabase/tests/cui_uniqueness_test.sql` |
+| T-CUI-02 | Are compania | Același CUI exact | `23505`, fără duplicat, fără acces | RPC + index canonic |
+| T-CUI-03 | `RO12345678` | `12345678` | Aceeași companie (canonic) | `cuiNormalization.test.ts`; SQL normalize |
+| T-CUI-04 | Litere mari | Litere mici | Aceeași companie | `cuiNormalization.test.ts` |
+| T-CUI-05 | Fără spații | Cu spații | Aceeași companie | `cuiNormalization.test.ts` |
+| T-CUI-06 | Are compania | INSERT direct `company_users` | Blocat RLS (policy hardened) | RLS `company_users` INSERT |
+| T-CUI-07 | Are compania | UPDATE companie A | Blocat RLS (non-membru) | RLS `companies` UPDATE |
+| T-CUI-08 | Are balanțe | Ghicește `company_id` | Date inaccesibile (RLS `is_company_member`) | RLS trial_balance_* |
+| T-CUI-09 | Creare simultană | Simultan | O singură companie (index UNIQUE atomic) | SQL `cui_uniqueness_test.sql` |
+| T-CUI-10 | User deja membru | Reintroduce CUI | Redirect (caz B) | `CompanyContext.createCompany` |
+| T-CUI-11 | CUI invalid | Valoare invalidă | Validare clară, `check_violation` | validare app + SQL |
+| T-CUI-12 | CUI existent | Solicită acces | Doar cerere `pending`, fără acces direct | `request_company_access` + `company_access_requests` |
+
+### Riscuri rămase după remediere
+
+- CUI-uri istorice cu variante `RO` vs fără RO: preflight 14 iul. = **0 coliziuni** (safe).
+- Notificare owner despre cereri `pending`: UI de administrare cereri = TODO (backend gata).
+- Invitații prin e-mail (flow proactiv owner→user): roadmap v2.0.
+
+---
+
 ### Diagrama Relațiilor
 
 ```

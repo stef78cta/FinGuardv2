@@ -23,6 +23,21 @@ export interface Company {
   legal_form: string | null;
 }
 
+/**
+ * Eroare specifică pentru CUI deja înregistrat de altă companie (caz C).
+ * Permite UI-ului să ofere fluxul "Solicită acces" fără a expune date despre firmă.
+ */
+export class CuiAlreadyExistsError extends Error {
+  code = 'CUI_EXISTS' as const;
+  constructor(message: string) {
+    super(message);
+    this.name = 'CuiAlreadyExistsError';
+  }
+}
+
+/** Rezultatul unei cereri de acces (RPC request_company_access). */
+export type AccessRequestResult = 'submitted' | 'already_member';
+
 interface CompanyContextType {
   activeCompany: Company | null;
   companies: Company[];
@@ -30,6 +45,7 @@ interface CompanyContextType {
   error: string | null;
   switchCompany: (companyId: string) => void;
   createCompany: (name: string, cui: string) => Promise<Company>;
+  requestCompanyAccess: (cui: string, message?: string) => Promise<AccessRequestResult>;
   updateCompany: (companyId: string, values: CompanyFormValues) => Promise<Company>;
   refreshCompanies: () => Promise<void>;
 }
@@ -164,17 +180,28 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
       });
 
     if (rpcError) {
+      // Caz C: CUI aparține unei companii în care userul NU e membru → fără acces automat.
       if (rpcError.code === '23505') {
-        throw new Error(
-          'O companie cu acest CUI există deja în sistem. ' +
-          'Dacă doriți acces, solicitați o invitație de la owner.'
+        throw new CuiAlreadyExistsError(
+          'Există deja o companie înregistrată cu acest CUI.'
         );
       }
       throw rpcError;
     }
 
+    const returnedId = companyId as string;
+
+    // Caz B: RPC a întors o companie în care userul e deja membru → redirect, fără duplicat.
+    const existing = companies.find(c => c.id === returnedId);
+    if (existing) {
+      setActiveCompany(existing);
+      localStorage.setItem(LAST_COMPANY_KEY, existing.id);
+      toast.info(`Compania "${existing.name}" există deja în contul tău.`);
+      return existing;
+    }
+
     const newCompany: Company = {
-      id: companyId as string,
+      id: returnedId,
       name,
       cui,
       currency: 'RON',
@@ -197,7 +224,23 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
 
     toast.success(`Compania "${name}" a fost creată cu succes!`);
     return newCompany;
-  }, [user]);
+  }, [user, companies]);
+
+  const requestCompanyAccess = useCallback(
+    async (cui: string, message?: string): Promise<AccessRequestResult> => {
+      if (!user) throw new Error('Nu ești autentificat');
+
+      const { data, error: rpcError } = await supabase.rpc('request_company_access', {
+        p_cui: cui,
+        p_message: message ?? undefined,
+      });
+
+      if (rpcError) throw rpcError;
+
+      return (data as AccessRequestResult) ?? 'submitted';
+    },
+    [user]
+  );
 
   const updateCompany = useCallback(async (
     companyId: string,
@@ -247,6 +290,7 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
         error,
         switchCompany,
         createCompany,
+        requestCompanyAccess,
         updateCompany,
         refreshCompanies,
       }}
