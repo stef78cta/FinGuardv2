@@ -153,24 +153,6 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-border bg-gradient-to-r from-card to-muted/30">
-        {/* Upgrade CTA - Only show when sidebar is open */}
-        {open && (
-          <div className="px-4 py-3">
-            <div className="bg-gradient-to-r from-primary to-primary/80 rounded-xl p-4 text-primary-foreground">
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-4 h-4" />
-                <span className="text-sm font-semibold">Upgrade la Pro</span>
-              </div>
-              <p className="text-xs opacity-90 mb-3">
-                Acces la previziuni AI și analize avansate
-              </p>
-              <button className="w-full bg-card text-primary rounded-lg py-2 text-xs font-semibold hover:bg-card/90 transition-colors">
-                Află mai multe
-              </button>
-            </div>
-          </div>
-        )}
-        
         <div className="px-4 py-3 space-y-2">
           <NotificationsPopover />
           <UserMenuPopover />
