@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/app/PageHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +25,8 @@ const Settings = () => {
   
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
@@ -96,6 +99,8 @@ const Settings = () => {
       toast.success('Parola a fost schimbată cu succes!');
       setNewPassword('');
       setConfirmPassword('');
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
     } catch (error) {
       console.error('Error updating password:', error);
       toast.error('Eroare la schimbarea parolei');
@@ -208,33 +213,37 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleUpdatePassword} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">Parola nouă</Label>
-                  <Input
-                    id="newPassword"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="••••••••"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirmă parola</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                  />
-                </div>
+              <form onSubmit={handleUpdatePassword}>
+                <div className="w-full max-w-lg space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">Parola nouă</Label>
+                    <PasswordInput
+                      id="newPassword"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="••••••••"
+                      visible={showNewPassword}
+                      onVisibleChange={setShowNewPassword}
+                    />
+                  </div>
 
-                <Button type="submit" disabled={passwordLoading}>
-                  {passwordLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Schimbă parola
-                </Button>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirmă parola</Label>
+                    <PasswordInput
+                      id="confirmPassword"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      visible={showConfirmPassword}
+                      onVisibleChange={setShowConfirmPassword}
+                    />
+                  </div>
+
+                  <Button type="submit" disabled={passwordLoading}>
+                    {passwordLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Schimbă parola
+                  </Button>
+                </div>
               </form>
             </CardContent>
           </Card>

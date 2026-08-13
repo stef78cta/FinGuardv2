@@ -17,7 +17,6 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, type, ...props }, ref) => {
     return (
       <input
-        type={type}
         className={cn(
           // Base styles
           "flex w-full",
@@ -47,6 +46,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
         )}
         ref={ref}
         {...props}
+        type={type}
       />
     );
   }
